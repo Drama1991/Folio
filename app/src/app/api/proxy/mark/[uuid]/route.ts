@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/cookie";
-import { upsertMark, deleteMark, getMyMark } from "@/lib/neodb/client";
+import { upsertMark, deleteMark, getMyMark, tags as cacheTags } from "@/lib/neodb/client";
 import { ratingToNeoDB } from "@/components/shared/Stars";
 import type { NeoDBShelfType, NeoDBVisibility } from "@/lib/neodb/types";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 interface MarkPayload {
   status: NeoDBShelfType;
@@ -12,6 +12,12 @@ interface MarkPayload {
   visibility?: NeoDBVisibility;
   tags?: string[];
   createdTime?: string;
+}
+
+function invalidateAfterMark(uuid: string) {
+  // 任何 shelf 列表/计数页都过期；该 item 的"我的标记"也过期
+  revalidateTag(cacheTags.shelfAny());
+  revalidateTag(cacheTags.myMark(uuid));
 }
 
 export async function GET(_: NextRequest, ctx: { params: Promise<{ uuid: string }> }) {
@@ -43,9 +49,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ uuid: stri
       tags: body.tags ?? [],
       ...(body.createdTime ? { created_time: body.createdTime } : {}),
     });
-    // RSC pages will re-fetch via router.refresh; explicit revalidate is harmless
-    revalidatePath("/home");
-    revalidatePath(`/archive`, "layout");
+    invalidateAfterMark(uuid);
     return NextResponse.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "upsert_failed";
@@ -59,7 +63,7 @@ export async function DELETE(_: NextRequest, ctx: { params: Promise<{ uuid: stri
   const { uuid } = await ctx.params;
   try {
     await deleteMark(uuid);
-    revalidatePath("/home");
+    invalidateAfterMark(uuid);
     return NextResponse.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "delete_failed";

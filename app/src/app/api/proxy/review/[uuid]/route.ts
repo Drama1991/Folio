@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/cookie";
-import { postReview } from "@/lib/neodb/client";
+import { postReview, tags as cacheTags } from "@/lib/neodb/client";
 import type { NeoDBVisibility } from "@/lib/neodb/types";
+import { revalidateTag } from "next/cache";
 
 export async function POST(req: NextRequest, ctx: { params: Promise<{ uuid: string }> }) {
   const session = await getSession();
@@ -16,6 +17,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ uuid: stri
       body: body.body,
       visibility: (body.visibility ?? 0) as NeoDBVisibility,
     });
+    revalidateTag(cacheTags.myReviews());
     return NextResponse.json({ ok: true, review: res ?? null });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "post_failed";

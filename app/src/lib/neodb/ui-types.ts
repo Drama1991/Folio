@@ -53,8 +53,12 @@ export interface UiTimelineEntry {
   creator?: string;
   status: UiShelfStatus;
   rating?: number;
+  /** NeoDB 社区评分（0-5），当用户自己未评分时作为 fallback */
+  externalRating?: number;
   comment?: string;
   createdAt: string;
+  /** 最新 note 派生的进度短文本，如 "p.187" / "S2 E04" */
+  progressLabel?: string;
 }
 
 export interface ShelfCounts {

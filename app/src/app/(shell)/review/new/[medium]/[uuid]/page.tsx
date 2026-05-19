@@ -5,8 +5,6 @@ import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
 import { ReviewEditor } from "@/components/review-editor/ReviewEditor";
 import type { UiMedium } from "@/lib/format/verbs";
 
-export const dynamic = "force-dynamic";
-
 interface PageProps {
   params: Promise<{ medium: string; uuid: string }>;
 }

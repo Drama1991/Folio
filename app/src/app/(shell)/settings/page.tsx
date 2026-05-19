@@ -1,8 +1,6 @@
 import { getSession } from "@/lib/auth/cookie";
 import { SettingsContent } from "@/components/settings/SettingsContent";
 
-export const dynamic = "force-dynamic";
-
 export default async function SettingsPage() {
   const session = await getSession();
   if (!session) return null;

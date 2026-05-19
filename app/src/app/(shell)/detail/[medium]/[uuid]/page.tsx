@@ -12,8 +12,6 @@ import { EpisodeTracker } from "@/components/detail/EpisodeTracker";
 import { ReadingProgress } from "@/components/detail/ReadingProgress";
 import type { UiMedium } from "@/lib/format/verbs";
 
-export const dynamic = "force-dynamic";
-
 interface PageProps {
   params: Promise<{ medium: string; uuid: string }>;
 }

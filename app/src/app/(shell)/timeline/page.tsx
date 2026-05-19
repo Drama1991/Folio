@@ -7,8 +7,6 @@ import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
 import { gradientFor } from "@/lib/format/cover-gradient";
 import { Stars } from "@/components/shared/Stars";
 
-export const dynamic = "force-dynamic";
-
 interface PageProps {
   searchParams: Promise<{ filter?: string }>;
 }

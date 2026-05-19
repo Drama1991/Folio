@@ -5,8 +5,6 @@ import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
 import { mediumLabel, type UiMedium } from "@/lib/format/verbs";
 import { WishlistContent } from "@/components/wishlist/WishlistContent";
 
-export const dynamic = "force-dynamic";
-
 interface PageProps {
   searchParams: Promise<{ filter?: string }>;
 }

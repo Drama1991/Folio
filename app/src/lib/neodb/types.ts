@@ -52,6 +52,22 @@ export interface NeoDBReview {
   created_time: string;
 }
 
+/** journal/models/note.py ProgressType */
+export type NeoDBProgressType =
+  | "page" | "chapter" | "part" | "episode" | "track" | "cycle" | "timestamp" | "percentage";
+
+export interface NeoDBNote {
+  uuid: string;
+  visibility: NeoDBVisibility;
+  item?: NeoDBItemBase;
+  title?: string | null;
+  content: string;
+  sensitive?: boolean;
+  progress_type?: NeoDBProgressType | null;
+  progress_value?: string | null;
+  created_time: string;
+}
+
 export interface NeoDBSearchResult {
   data: NeoDBItemBase[];
   pages?: number;

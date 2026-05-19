@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth/cookie";
 import type {
   NeoDBItemBase,
   NeoDBMark,
+  NeoDBNote,
   NeoDBPaged,
   NeoDBReview,
   NeoDBSearchResult,
@@ -43,7 +44,7 @@ async function neodb<T>(path: string, opts: RequestOpts = {}): Promise<T> {
     method: opts.method ?? "GET",
     headers: { ...headers, ...(opts.headers ?? {}) },
     body: opts.body,
-    cache: opts.cache ?? "no-store",
+    cache: opts.cache,
     next: opts.next,
   });
   if (!res.ok) {
@@ -56,6 +57,25 @@ async function neodb<T>(path: string, opts: RequestOpts = {}): Promise<T> {
   if (!ct.includes("application/json")) return undefined as T;
   return (await res.json()) as T;
 }
+
+const READ_REVALIDATE = 60;
+
+const cached = (tags: string[]): RequestOpts => ({ next: { revalidate: READ_REVALIDATE, tags } });
+const noStore = (): RequestOpts => ({ cache: "no-store" });
+
+/** 集中管理的缓存 tag。写操作通过 revalidateTag 命中这些 key 让对应页面下次取新数据。 */
+export const tags = {
+  me: () => "neodb:me",
+  shelf: (type: NeoDBShelfType, category?: UiMedium) =>
+    category ? `neodb:shelf:${type}:${category}` : `neodb:shelf:${type}`,
+  /** 所有 shelf 列表的总开关（mark 写入时一刀切失效） */
+  shelfAny: () => "neodb:shelf",
+  myMark: (uuid: string) => `neodb:my-mark:${uuid}`,
+  myReviews: () => "neodb:my-reviews",
+  myNotes: (uuid: string) => `neodb:my-notes:${uuid}`,
+  item: (uuid: string) => `neodb:item:${uuid}`,
+  trending: (medium: UiMedium) => `neodb:trending:${medium}`,
+};
 
 // ─── Account ─────────────────────────────────────────────────────────
 export interface NeoDBMe {
@@ -70,7 +90,7 @@ export interface NeoDBMe {
 }
 
 export async function getMe(): Promise<NeoDBMe> {
-  return neodb<NeoDBMe>("/api/me");
+  return neodb<NeoDBMe>("/api/me", cached([tags.me()]));
 }
 
 // ─── Shelf list ──────────────────────────────────────────────────────
@@ -83,7 +103,10 @@ export async function listShelf(opts: {
   if (opts.category) params.set("category", toNeoDBCategory(opts.category));
   if (opts.page) params.set("page", String(opts.page));
   const qs = params.toString();
-  return neodb<NeoDBPaged<NeoDBMark>>(`/api/me/shelf/${opts.type}${qs ? "?" + qs : ""}`);
+  return neodb<NeoDBPaged<NeoDBMark>>(
+    `/api/me/shelf/${opts.type}${qs ? "?" + qs : ""}`,
+    cached([tags.shelfAny(), tags.shelf(opts.type, opts.category)]),
+  );
 }
 
 export async function shelfCount(opts: { type: NeoDBShelfType; category?: UiMedium }): Promise<number> {
@@ -101,7 +124,7 @@ export async function shelfCount(opts: { type: NeoDBShelfType; category?: UiMedi
 export async function getItem(opts: { medium: UiMedium; uuid: string }): Promise<NeoDBItemBase> {
   const cat = toNeoDBCategory(opts.medium);
   const seg = endpointSegment(cat);
-  return neodb<NeoDBItemBase>(`/api/${seg}/${opts.uuid}`);
+  return neodb<NeoDBItemBase>(`/api/${seg}/${opts.uuid}`, cached([tags.item(opts.uuid)]));
 }
 
 // ─── Mark on item ───────────────────────────────────────────────────
@@ -117,7 +140,7 @@ export interface NeoDBMarkOnItem {
 
 export async function getMyMark(uuid: string): Promise<NeoDBMarkOnItem | null> {
   try {
-    return await neodb<NeoDBMarkOnItem>(`/api/me/shelf/item/${uuid}`);
+    return await neodb<NeoDBMarkOnItem>(`/api/me/shelf/item/${uuid}`, cached([tags.myMark(uuid)]));
   } catch (err) {
     if (err instanceof NeoDBError && (err.status === 404 || err.status === 400)) return null;
     throw err;
@@ -129,11 +152,12 @@ export async function upsertMark(uuid: string, mark: NeoDBMarkOnItem): Promise<v
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(mark),
+    ...noStore(),
   });
 }
 
 export async function deleteMark(uuid: string): Promise<void> {
-  await neodb<void>(`/api/me/shelf/item/${uuid}`, { method: "DELETE" });
+  await neodb<void>(`/api/me/shelf/item/${uuid}`, { method: "DELETE", ...noStore() });
 }
 
 // ─── Search ─────────────────────────────────────────────────────────
@@ -141,7 +165,7 @@ export async function search(opts: { q: string; category?: UiMedium; page?: numb
   const params = new URLSearchParams({ query: opts.q });
   if (opts.category) params.set("category", toNeoDBCategory(opts.category));
   if (opts.page) params.set("page", String(opts.page));
-  return neodb<NeoDBSearchResult>(`/api/catalog/search?${params.toString()}`);
+  return neodb<NeoDBSearchResult>(`/api/catalog/search?${params.toString()}`, noStore());
 }
 
 // ─── Reviews ────────────────────────────────────────────────────────
@@ -157,6 +181,7 @@ export async function postReview(uuid: string, payload: NeoDBReviewInput): Promi
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
+    ...noStore(),
   });
 }
 
@@ -166,7 +191,19 @@ export async function listMyReviews(opts: { page?: number; category?: UiMedium }
   if (opts.page) params.set("page", String(opts.page));
   const qs = params.toString();
   try {
-    return await neodb<NeoDBPaged<NeoDBReview>>(`/api/me/review${qs ? "?" + qs : ""}`);
+    return await neodb<NeoDBPaged<NeoDBReview>>(
+      `/api/me/review${qs ? "?" + qs : ""}`,
+      cached([tags.myReviews()]),
+    );
+  } catch {
+    return { data: [] };
+  }
+}
+
+// ─── Notes ──────────────────────────────────────────────────────────
+export async function listMyNotes(uuid: string): Promise<NeoDBPaged<NeoDBNote>> {
+  try {
+    return await neodb<NeoDBPaged<NeoDBNote>>(`/api/me/note/item/${uuid}/`, cached([tags.myNotes(uuid)]));
   } catch {
     return { data: [] };
   }
@@ -177,7 +214,10 @@ export async function listTrending(opts: { medium: UiMedium }): Promise<NeoDBIte
   const cat = toNeoDBCategory(opts.medium);
   const seg = endpointSegment(cat);
   try {
-    const res = await neodb<{ data: NeoDBItemBase[] } | NeoDBItemBase[]>(`/api/trending/${seg}/`);
+    const res = await neodb<{ data: NeoDBItemBase[] } | NeoDBItemBase[]>(
+      `/api/trending/${seg}/`,
+      cached([tags.trending(opts.medium)]),
+    );
     if (Array.isArray(res)) return res;
     return res.data ?? [];
   } catch {

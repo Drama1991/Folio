@@ -111,6 +111,7 @@ export function markToTimelineEntry(mark: NeoDBMark): UiTimelineEntry {
     creator: ui.creator,
     status: mark.shelf_type,
     rating: ratingToUi(mark.rating_grade ?? undefined),
+    externalRating: ui.externalRating ? ui.externalRating / 2 : undefined,
     comment: mark.comment_text ?? undefined,
     createdAt: mark.created_time,
   };

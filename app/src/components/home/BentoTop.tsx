@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Cover } from "@/components/shared/Cover";
 import { Stars } from "@/components/shared/Stars";
-import { statusVerb, type UiMedium } from "@/lib/format/verbs";
+import { statusVerb, mediumLabel, type UiMedium } from "@/lib/format/verbs";
 import type { UiTimelineEntry } from "@/lib/neodb/ui-types";
 
 interface Stats {
@@ -30,6 +30,53 @@ export function BentoTop({ featured, stats }: { featured: UiTimelineEntry | null
           <StatBox label="弃" value={stats.dropped} muted />
         </div>
       </div>
+    </div>
+  );
+}
+
+function RatingDisplay({ rating, external }: { rating?: number; external?: number }) {
+  const value = rating || external;
+  if (!value) return null;
+  const isMine = !!rating;
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+      <Stars value={value} size={12} />
+      <span
+        style={{
+          fontFamily: "var(--mono)",
+          fontSize: 11,
+          color: "var(--gold)",
+          opacity: isMine ? 1 : 0.7,
+        }}
+        title={isMine ? "我的评分" : "NeoDB 评分"}
+      >
+        {value.toFixed(1)}
+      </span>
+    </span>
+  );
+}
+
+function ProgressBadge({ progress, medium }: { progress?: string; medium: UiMedium }) {
+  const label = progress || mediumLabel(medium);
+  const isProgress = !!progress;
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        background: "#2C2C2A",
+        borderRadius: 999,
+        padding: "3px 9px",
+        flexShrink: 0,
+      }}
+    >
+      {isProgress ? (
+        <span aria-hidden style={{ width: 5, height: 5, borderRadius: 999, background: "var(--gold)" }} />
+      ) : null}
+      <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#D3D1C7", letterSpacing: ".05em" }}>
+        {label}
+      </span>
     </div>
   );
 }
@@ -97,9 +144,12 @@ function FeaturedCard({ entry }: { entry: UiTimelineEntry | null }) {
         style={{ borderRadius: 6, aspectRatio: "2/3", height: "auto", alignSelf: "center" }}
       />
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: ".1em", color: "#888780" }}>
-          {statusVerb(entry.medium as UiMedium, entry.status)}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: ".1em", color: "#888780" }}>
+            {statusVerb(entry.medium as UiMedium, entry.status)}
+          </span>
+          <ProgressBadge progress={entry.progressLabel} medium={entry.medium as UiMedium} />
+        </div>
         <div style={{ minWidth: 0 }}>
           <p
             style={{
@@ -117,20 +167,22 @@ function FeaturedCard({ entry }: { entry: UiTimelineEntry | null }) {
           >
             {entry.title}
           </p>
-          <p
-            style={{
-              fontSize: 11,
-              color: "#5F5E5A",
-              marginBottom: 12,
-              fontFamily: "var(--mono)",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {[entry.creator, entry.year].filter(Boolean).join(" · ")}
-          </p>
-          {entry.rating ? <Stars value={entry.rating} size={12} /> : null}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <p
+              style={{
+                fontSize: 11,
+                color: "#5F5E5A",
+                fontFamily: "var(--mono)",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                minWidth: 0,
+              }}
+            >
+              {[entry.creator, entry.year].filter(Boolean).join(" · ")}
+            </p>
+            <RatingDisplay rating={entry.rating} external={entry.externalRating} />
+          </div>
         </div>
       </div>
     </Link>

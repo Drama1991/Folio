@@ -9,8 +9,6 @@ import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
 import type { UiMedium } from "@/lib/format/verbs";
 import type { NeoDBShelfType } from "@/lib/neodb/types";
 
-export const dynamic = "force-dynamic";
-
 const STATUS_FILTERS: NeoDBShelfType[] = ["complete", "progress", "wishlist", "dropped"];
 
 interface PageProps {

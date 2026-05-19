@@ -6,8 +6,6 @@ import { mediumLabel } from "@/lib/format/verbs";
 import { markToArchiveRow, reviewToUi } from "@/lib/neodb/mappers";
 import { Cover } from "@/components/shared/Cover";
 
-export const dynamic = "force-dynamic";
-
 interface PageProps {
   params: Promise<{ handle: string }>;
 }

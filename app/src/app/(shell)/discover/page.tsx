@@ -4,8 +4,6 @@ import { itemToUi } from "@/lib/neodb/mappers";
 import { Cover } from "@/components/shared/Cover";
 import { mediumLabel, type UiMedium } from "@/lib/format/verbs";
 
-export const dynamic = "force-dynamic";
-
 const TRENDING_SECTIONS: { medium: UiMedium; label: string }[] = [
   { medium: "movie", label: "热门电影" },
   { medium: "series", label: "热门剧集" },
