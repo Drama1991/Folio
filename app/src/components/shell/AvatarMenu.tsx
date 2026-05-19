@@ -7,10 +7,12 @@ interface AvatarMenuProps {
   display: string;
   handle: string;
   initial: string;
+  avatar?: string;
 }
 
-export function AvatarMenu({ display, handle, initial }: AvatarMenuProps) {
+export function AvatarMenu({ display, handle, initial, avatar }: AvatarMenuProps) {
   const [open, setOpen] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -22,10 +24,31 @@ export function AvatarMenu({ display, handle, initial }: AvatarMenuProps) {
     return () => document.removeEventListener("mousedown", close);
   }, [open]);
 
+  const showImg = !!avatar && !imgFailed;
+
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      <button className="avatar" onClick={() => setOpen((v) => !v)} aria-haspopup="true" aria-expanded={open}>
-        {initial}
+      <button
+        className="avatar"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="true"
+        aria-expanded={open}
+        aria-label={display}
+        style={showImg ? { padding: 0, overflow: "hidden" } : undefined}
+      >
+        {showImg ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={avatar}
+            alt={display}
+            width={28}
+            height={28}
+            onError={() => setImgFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        ) : (
+          initial
+        )}
       </button>
       {open && (
         <div

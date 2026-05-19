@@ -5,6 +5,7 @@ import type {
   NeoDBMark,
   NeoDBNote,
   NeoDBPaged,
+  NeoDBPost,
   NeoDBReview,
   NeoDBSearchResult,
   NeoDBShelfType,
@@ -74,6 +75,7 @@ export const tags = {
   myReviews: () => "neodb:my-reviews",
   myNotes: (uuid: string) => `neodb:my-notes:${uuid}`,
   item: (uuid: string) => `neodb:item:${uuid}`,
+  itemPosts: (uuid: string, type: string) => `neodb:item-posts:${uuid}:${type}`,
   trending: (medium: UiMedium) => `neodb:trending:${medium}`,
 };
 
@@ -204,6 +206,32 @@ export async function listMyReviews(opts: { page?: number; category?: UiMedium }
 export async function listMyNotes(uuid: string): Promise<NeoDBPaged<NeoDBNote>> {
   try {
     return await neodb<NeoDBPaged<NeoDBNote>>(`/api/me/note/item/${uuid}/`, cached([tags.myNotes(uuid)]));
+  } catch {
+    return { data: [] };
+  }
+}
+
+// ─── Item posts (community) ─────────────────────────────────────────
+/**
+ * 拉取某 item 上的公开 posts。type 是 NeoDB 文档里的标签集合，逗号分隔：
+ * `comment | review | mark | collection | note`。默认 `comment,review`。
+ * 鉴权：项目 session 存在则带 token（按可见性更宽），否则当作匿名调用——
+ * 后端是 OptionalOAuthAccessTokenAuth，匿名也能取公开 post。
+ */
+export async function listItemPosts(opts: {
+  uuid: string;
+  type?: "comment" | "review" | "mark" | "collection" | "note";
+  page?: number;
+}): Promise<NeoDBPaged<NeoDBPost>> {
+  const params = new URLSearchParams();
+  if (opts.type) params.set("type", opts.type);
+  if (opts.page) params.set("page", String(opts.page));
+  const qs = params.toString();
+  try {
+    return await neodb<NeoDBPaged<NeoDBPost>>(
+      `/api/item/${opts.uuid}/posts/${qs ? "?" + qs : ""}`,
+      cached([tags.itemPosts(opts.uuid, opts.type ?? "default")]),
+    );
   } catch {
     return { data: [] };
   }

@@ -14,7 +14,7 @@ export default async function ShellLayout({ children }: { children: React.ReactN
 
   return (
     <div className="shell">
-      <Header display={display} handle={`@${acct}`} />
+      <Header display={display} handle={`@${acct}`} avatar={session.avatar} />
       <main>{children}</main>
       <RecordModal />
       <AIPanel />

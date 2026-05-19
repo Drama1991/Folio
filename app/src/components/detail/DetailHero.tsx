@@ -72,7 +72,7 @@ export function DetailHero({ ui, medium }: { ui: UiItem; medium: UiMedium }) {
           <a href={`/review/new/${medium}/${ui.uuid}`} className="btn">
             <i className="ti ti-pencil" style={{ fontSize: 12 }} /> 写长评
           </a>
-          <button className="btn" onClick={() => openAI(true, detailContext(medium, ui.title, ui.year))} style={{ borderStyle: "dashed" }}>
+          <button className="btn" onClick={() => openAI(true, detailContext(medium, ui.title, ui.year, ui.creator, ui.brief))} style={{ borderStyle: "dashed" }}>
             <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
               <path d="M7 1L8.5 5.5L13 7L8.5 8.5L7 13L5.5 8.5L1 7L5.5 5.5Z" fill="currentColor" />
             </svg>

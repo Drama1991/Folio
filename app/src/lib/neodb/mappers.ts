@@ -1,9 +1,11 @@
 import { ratingToUi } from "@/components/shared/Stars";
 import { fromNeoDBCategory } from "./mediumMap";
-import type { NeoDBItemBase, NeoDBMark, NeoDBReview, NeoDBShelfType } from "./types";
+import type { NeoDBItemBase, NeoDBMark, NeoDBPost, NeoDBPostRelated, NeoDBReview, NeoDBShelfType } from "./types";
 import type {
   ShelfCounts,
   UiArchiveRow,
+  UiCommunityComment,
+  UiCommunityReview,
   UiItem,
   UiMark,
   UiMedium,
@@ -148,3 +150,61 @@ export function emptyShelfCounts(): ShelfCounts {
 export { STATUSES };
 
 export type { UiShelfStatus, UiMedium };
+
+// ─── Community posts ────────────────────────────────────────────────
+
+function findRelated(rel: NeoDBPostRelated[] | undefined, type: NeoDBPostRelated["type"]) {
+  return rel?.find((r) => r.type === type);
+}
+
+/** 把 ext_neodb.relatedWith 里的 Rating 转成 0-5 */
+function pickPostRating(post: NeoDBPost): number | undefined {
+  const r = findRelated(post.ext_neodb?.relatedWith, "Rating");
+  if (!r || typeof r.value !== "number") return undefined;
+  // NeoDB rating value 默认是 1-10。ratingToUi 走的就是 /2 的换算。
+  return ratingToUi(r.value);
+}
+
+function mapAuthor(post: NeoDBPost) {
+  const a = post.account;
+  return {
+    displayName: a.display_name || a.username || a.acct,
+    handle: a.acct,
+    avatar: a.avatar_static || a.avatar,
+    profileUrl: a.url,
+  };
+}
+
+export function postToUiComment(post: NeoDBPost): UiCommunityComment | null {
+  const c = findRelated(post.ext_neodb?.relatedWith, "Comment");
+  const text = (c?.content ?? "").trim();
+  if (!text) return null;
+  return {
+    kind: "comment",
+    id: post.id,
+    url: post.url || post.uri,
+    author: mapAuthor(post),
+    createdAt: post.created_at,
+    rating: pickPostRating(post),
+    text,
+  };
+}
+
+export function postToUiReview(post: NeoDBPost): UiCommunityReview | null {
+  const r = findRelated(post.ext_neodb?.relatedWith, "Review");
+  if (!r) return null;
+  const title = (r.name ?? "").trim() || "（无标题）";
+  const body = (r.content ?? "").replace(/\s+/g, " ").trim();
+  const excerpt = body.length > 180 ? body.slice(0, 180) + "…" : body;
+  return {
+    kind: "review",
+    id: post.id,
+    url: post.url || post.uri,
+    author: mapAuthor(post),
+    createdAt: post.created_at,
+    rating: pickPostRating(post),
+    title,
+    excerpt,
+    reviewUrl: r.href,
+  };
+}

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getItem, getMyMark } from "@/lib/neodb/client";
-import { itemToUi } from "@/lib/neodb/mappers";
+import { getItem, getMyMark, listItemPosts } from "@/lib/neodb/client";
+import { itemToUi, postToUiComment, postToUiReview } from "@/lib/neodb/mappers";
 import { ratingToUi } from "@/components/shared/Stars";
 import { fromNeoDBCategory } from "@/lib/neodb/mediumMap";
 import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
@@ -10,6 +10,8 @@ import { MyRecordCard } from "@/components/detail/MyRecordCard";
 import { MetaKVList } from "@/components/detail/MetaKVList";
 import { EpisodeTracker } from "@/components/detail/EpisodeTracker";
 import { ReadingProgress } from "@/components/detail/ReadingProgress";
+import { CommunityPosts } from "@/components/detail/CommunityPosts";
+import type { UiCommunityComment, UiCommunityReview } from "@/lib/neodb/ui-types";
 import type { UiMedium } from "@/lib/format/verbs";
 
 interface PageProps {
@@ -33,6 +35,17 @@ export default async function DetailPage({ params }: PageProps) {
   }
 
   const mark = await getMyMark(uuid).catch(() => null);
+
+  const [commentPage, reviewPage] = await Promise.all([
+    listItemPosts({ uuid, type: "comment", page: 1 }).catch(() => ({ data: [], count: 0, pages: 1 })),
+    listItemPosts({ uuid, type: "review", page: 1 }).catch(() => ({ data: [], count: 0, pages: 1 })),
+  ]);
+  const comments: UiCommunityComment[] = commentPage.data
+    .map(postToUiComment)
+    .filter((c): c is UiCommunityComment => c !== null);
+  const reviews: UiCommunityReview[] = reviewPage.data
+    .map(postToUiReview)
+    .filter((r): r is UiCommunityReview => r !== null);
 
   const ui = itemToUi(item);
   const myRecord = mark
@@ -63,6 +76,15 @@ export default async function DetailPage({ params }: PageProps) {
           )}
           {medium === "series" && <EpisodeTracker uuid={uuid} totalHint={pickTotalEpisodes(item)} />}
           {medium === "book" && <ReadingProgress uuid={uuid} totalHint={pickTotalPages(item)} />}
+          <CommunityPosts
+            uuid={uuid}
+            initialComments={comments}
+            initialCommentPages={commentPage.pages ?? 1}
+            commentCount={commentPage.count ?? comments.length}
+            initialReviews={reviews}
+            initialReviewPages={reviewPage.pages ?? 1}
+            reviewCount={reviewPage.count ?? reviews.length}
+          />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <MetaKVList items={meta} />

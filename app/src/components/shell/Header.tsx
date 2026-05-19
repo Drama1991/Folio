@@ -8,6 +8,7 @@ import { BellButton } from "./BellButton";
 interface HeaderProps {
   display: string;
   handle: string;
+  avatar?: string;
 }
 
 function topLevel(pathname: string): "home" | "wishlist" | "discover" | null {
@@ -17,7 +18,7 @@ function topLevel(pathname: string): "home" | "wishlist" | "discover" | null {
   return null;
 }
 
-export function Header({ display, handle }: HeaderProps) {
+export function Header({ display, handle, avatar }: HeaderProps) {
   const pathname = usePathname();
   const cur = topLevel(pathname);
   const initial = display.slice(0, 1) || handle.slice(0, 1).toUpperCase();
@@ -48,7 +49,7 @@ export function Header({ display, handle }: HeaderProps) {
           <span style={{ fontSize: 10, color: "var(--text3)", background: "var(--bg)", border: "0.5px solid var(--border)", borderRadius: 4, padding: "1px 5px", fontFamily: "var(--mono)" }}>⌘K</span>
         </Link>
         <BellButton />
-        <AvatarMenu display={display} handle={handle} initial={initial} />
+        <AvatarMenu display={display} handle={handle} initial={initial} avatar={avatar} />
       </div>
     </header>
   );

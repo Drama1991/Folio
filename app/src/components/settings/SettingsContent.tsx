@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AIConfigForm } from "./AIConfigForm";
 
 type SectionKey = "account" | "neodb" | "ai" | "appearance" | "data" | "about";
 
@@ -53,7 +54,7 @@ export function SettingsContent({ instance, handle, acct, display }: Props) {
       <main style={{ padding: "26px 28px" }}>
         {section === "account" && <AccountPanel display={display} handle={handle} acct={acct} />}
         {section === "neodb" && <NeoDBPanel instance={instance} onSync={() => router.refresh()} />}
-        {section === "ai" && <AIPanel />}
+        {section === "ai" && <AIConfigForm />}
         {section === "appearance" && <AppearancePanel />}
         {section === "data" && <DataPanel />}
         {section === "about" && <AboutPanel />}
@@ -121,19 +122,6 @@ function NeoDBPanel({ instance, onSync }: { instance: string; onSync: () => void
       </div>
       <p style={{ fontSize: 12, color: "var(--text3)", lineHeight: 1.65 }}>
         Token 仅在服务端使用，不会进入浏览器。每个实例的 OAuth 应用注册分别缓存。
-      </p>
-    </>
-  );
-}
-
-function AIPanel() {
-  return (
-    <>
-      <PanelHeader title="AI 助手" hint="Phase 0 阶段使用 mock 回复，不连接 LLM。" />
-      <Row k="状态" v="Mock · 1.1s 延迟" />
-      <Row k="历史保留" v="本机会话" />
-      <p style={{ fontSize: 12, color: "var(--text3)", marginTop: 22, lineHeight: 1.65 }}>
-        Phase 1+ 会接入真实 LLM（可三选一：Anthropic / OpenAI / 本地 Ollama）。
       </p>
     </>
   );

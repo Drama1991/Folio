@@ -77,3 +77,35 @@ export interface UiReviewSummary {
   body: string;
   createdAt: string;
 }
+
+// ─── 社区视图（其他用户在 item 上的发帖） ─────────────────────────
+
+interface UiCommunityAuthor {
+  displayName: string;
+  handle: string;        // user@domain
+  avatar: string;
+  profileUrl: string;
+}
+
+interface UiCommunityPostBase {
+  id: string;
+  /** post 永久链接 */
+  url: string;
+  author: UiCommunityAuthor;
+  createdAt: string;
+  /** UI 0-5 */
+  rating?: number;
+}
+
+export interface UiCommunityComment extends UiCommunityPostBase {
+  kind: "comment";
+  text: string;
+}
+
+export interface UiCommunityReview extends UiCommunityPostBase {
+  kind: "review";
+  title: string;
+  excerpt: string;
+  /** 直链到 NeoDB review 页（href，区分于发帖 url） */
+  reviewUrl?: string;
+}

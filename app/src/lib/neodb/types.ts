@@ -81,4 +81,47 @@ export interface NeoDBPaged<T> {
   page?: number;
 }
 
+// ─── Item posts (Mastodon-compatible, subset) ───────────────────────
+/** /api/item/{uuid}/posts/ 返回的 Mastodon 风格 Post，只保留 UI 用到的字段。 */
+export interface NeoDBPostAccount {
+  id: string;
+  acct: string;          // user@domain
+  username: string;
+  url: string;           // profile URL
+  display_name: string;
+  avatar: string;
+  avatar_static?: string;
+}
+
+/** ext_neodb.relatedWith 内的对象，按 type 区分子结构 */
+export interface NeoDBPostRelated {
+  type: "Status" | "Comment" | "Rating" | "Review" | "Note" | "Collection";
+  href?: string;
+  name?: string;
+  content?: string;
+  status?: string;       // shelf status, when type === "Status"
+  value?: number;        // when type === "Rating"
+  best?: number;
+  worst?: number;
+}
+
+export interface NeoDBPostExt {
+  tag?: { href: string; name: string; type: string; image?: string }[];
+  relatedWith?: NeoDBPostRelated[];
+}
+
+export interface NeoDBPost {
+  id: string;
+  uri: string;
+  url?: string | null;
+  created_at: string;
+  account: NeoDBPostAccount;
+  content: string;        // HTML
+  visibility: "public" | "unlisted" | "private" | "direct";
+  sensitive?: boolean;
+  spoiler_text?: string;
+  language?: string | null;
+  ext_neodb?: NeoDBPostExt | null;
+}
+
 export interface NeoDBTrendingItem extends NeoDBItemBase {}
