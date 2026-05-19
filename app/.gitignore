@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+dist
+build
+.env*.local
+.folio-apps.json
+*.log
+.DS_Store
+next-env.d.ts
+.tsbuildinfo

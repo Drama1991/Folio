@@ -1,0 +1,423 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+@keyframes sh{0%{background-position:-500px 0}100%{background-position:500px 0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes expand{from{opacity:0;max-height:0}to{opacity:1;max-height:400px}}
+
+:root{
+  --bg:#F7F5F0;--bg2:#EEECEA;--text:#1C1C1A;--text2:#5F5E5A;--text3:#9F9D98;
+  --border:#D8D6D0;--border2:#C8C6C0;--gold:#EF9F27;--r:10px;--r2:6px;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+
+body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text)}
+.sk{background:linear-gradient(90deg,rgba(0,0,0,0.07) 25%,rgba(0,0,0,0.03) 50%,rgba(0,0,0,0.07) 75%);background-size:500px 100%;animation:sh 1.8s infinite linear;border-radius:4px}
+
+/* Backdrop */
+#backdrop{position:fixed;inset:0;background:rgba(20,20,18,0.5);z-index:50;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s ease;padding:20px}
+
+/* Modal */
+#modal{background:var(--bg);border-radius:14px;width:100%;max-width:480px;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;animation:fadeUp .2s ease;box-shadow:0 24px 64px rgba(0,0,0,0.2)}
+
+/* Search input */
+.search-wrap{padding:16px 20px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:10px}
+#search-input{flex:1;background:none;border:none;outline:none;font-size:15px;color:var(--text);font-family:inherit}
+#search-input::placeholder{color:var(--text3)}
+.clear-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;line-height:1;padding:0 2px;display:none}
+
+/* Result list */
+#results{overflow-y:auto;flex:1}
+.result-row{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;border-bottom:0.5px solid var(--border);transition:background .08s}
+.result-row:hover{background:var(--bg2)}
+.result-row:last-child{border-bottom:none}
+.cov{width:34px;height:48px;border-radius:4px;flex-shrink:0}
+.type-tag{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:3px;flex-shrink:0}
+
+/* Selected card */
+#selected-card{padding:16px 20px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--bg2);animation:fadeIn .15s ease}
+
+/* Record form */
+#record-form{overflow-y:auto;animation:fadeUp .18s ease}
+
+/* Status buttons */
+.status-btn{flex:1;padding:10px 8px;border-radius:var(--r2);border:0.5px solid var(--border);background:none;cursor:pointer;font-size:13px;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:6px;transition:all .1s}
+.status-btn:hover{border-color:var(--border2);background:var(--bg)}
+.status-btn.on{border-color:var(--text);background:var(--text);color:var(--bg)}
+
+/* Stars */
+.star{font-size:26px;cursor:pointer;color:var(--border);transition:color .1s}
+.star.lit{color:var(--gold)}
+
+/* Note textarea */
+.note-ta{width:100%;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r2);padding:10px 12px;font-size:13px;color:var(--text);font-family:inherit;resize:none;outline:none;line-height:1.6}
+.note-ta:focus{border-color:var(--border2)}
+
+/* Save button */
+.save-btn{width:100%;padding:13px;border-radius:var(--r2);background:var(--text);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:500;transition:opacity .1s}
+.save-btn:hover{opacity:.85}
+.save-btn:disabled{opacity:.35;cursor:default}
+
+/* Toggle link */
+.toggle-link{font-size:12px;color:var(--text3);cursor:pointer;display:flex;align-items:center;gap:4px}
+.toggle-link:hover{color:var(--text2)}
+
+/* Host page */
+#host{max-width:640px;margin:40px auto;border:0.5px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg)}
+.host-header{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:54px;border-bottom:0.5px solid var(--border)}
+.host-body{padding:28px 24px}
+.record-trigger{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:var(--r2);border:0.5px dashed var(--border2);background:none;cursor:pointer;font-size:13px;color:var(--text2);transition:all .1s}
+.record-trigger:hover{background:var(--bg2);color:var(--text);border-color:var(--border)}
+
+/* Success toast */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1C1C1A;color:#F1EFE8;padding:11px 20px;border-radius:999px;font-size:13px;display:none;z-index:99;animation:fadeUp .2s ease;white-space:nowrap}
+</style>
+
+<!-- Host page -->
+<div id="host">
+  <div class="host-header">
+    <div style="display:flex;align-items:center;gap:8px">
+      <svg width="22" height="24" viewBox="0 0 26 28" fill="none">
+        <path d="M2 2 H18 L24 8 V26 H2 Z" fill="var(--bg2)" stroke="var(--border2)" stroke-width="1"/>
+        <path d="M18 2 L24 8 H18 Z" fill="var(--bg)" stroke="var(--border2)" stroke-width="1"/>
+        <line x1="7" y1="12" x2="17" y2="12" stroke="var(--text)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="7" y1="16" x2="14" y2="16" stroke="var(--text)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="7" y1="20" x2="11" y2="20" stroke="var(--text)" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span style="font-size:15px;font-weight:500;letter-spacing:-0.01em">Folio</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r2);padding:5px 12px;width:140px">
+        <i class="ti ti-search" style="font-size:13px;color:var(--text3)"></i>
+        <span style="font-size:12px;color:var(--text3)">搜索...</span>
+      </div>
+      <div style="width:28px;height:28px;border-radius:50%;background:#2C2C2A;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#D3D1C7">默</div>
+    </div>
+  </div>
+  <div class="host-body">
+    <p style="font-size:13px;color:var(--text3);margin-bottom:20px">点击下方按钮，体验「记录新内容」完整流程</p>
+    <button class="record-trigger" onclick="openModal()">
+      <i class="ti ti-plus" style="font-size:15px"></i>
+      记录新内容
+    </button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="backdrop" style="display:none" onclick="handleBackdropClick(event)">
+  <div id="modal" onclick="event.stopPropagation()">
+
+    <!-- Step 1: Search -->
+    <div id="step-search">
+      <div class="search-wrap">
+        <i class="ti ti-search" style="font-size:15px;color:var(--text3);flex-shrink:0"></i>
+        <input id="search-input" placeholder="搜索电影、书籍、剧集、音乐…" oninput="onSearch(this.value)" autofocus/>
+        <button class="clear-btn" id="clear-btn" onclick="clearSearch()">×</button>
+        <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;flex-shrink:0;padding:0 0 0 8px">取消</button>
+      </div>
+
+      <!-- Empty state -->
+      <div id="empty-state" style="padding:40px 24px;text-align:center">
+        <div style="font-size:32px;margin-bottom:12px;opacity:.3">🔍</div>
+        <p style="font-size:13px;color:var(--text3);line-height:1.6">输入电影名、书名、剧集名…<br/>从 NeoDB 数据库实时搜索</p>
+      </div>
+
+      <!-- Loading state -->
+      <div id="loading-state" style="display:none;padding:20px 20px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><div class="sk" style="width:34px;height:48px;border-radius:4px;flex-shrink:0"></div><div style="flex:1"><div class="sk" style="height:13px;width:50%;margin-bottom:7px"></div><div class="sk" style="height:11px;width:70%"></div></div></div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><div class="sk" style="width:34px;height:48px;border-radius:4px;flex-shrink:0"></div><div style="flex:1"><div class="sk" style="height:13px;width:40%;margin-bottom:7px"></div><div class="sk" style="height:11px;width:60%"></div></div></div>
+        <div style="display:flex;align-items:center;gap:12px"><div class="sk" style="width:34px;height:48px;border-radius:4px;flex-shrink:0"></div><div style="flex:1"><div class="sk" style="height:13px;width:55%;margin-bottom:7px"></div><div class="sk" style="height:11px;width:45%"></div></div></div>
+      </div>
+
+      <!-- Results -->
+      <div id="results" style="display:none"></div>
+    </div>
+
+    <!-- Step 2+3: Selected + Form -->
+    <div id="step-record" style="display:none;flex-direction:column;overflow:hidden;flex:1">
+
+      <!-- Selected card -->
+      <div id="selected-card">
+        <div id="sel-cov" class="cov"></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+            <p id="sel-title" style="font-size:14px;font-weight:500"></p>
+            <span id="sel-type" class="type-tag"></span>
+          </div>
+          <p id="sel-meta" style="font-family:var(--mono);font-size:11px;color:var(--text3)"></p>
+        </div>
+        <button onclick="backToSearch()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;flex-shrink:0;padding:4px 6px;border-radius:var(--r2)" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">重选</button>
+      </div>
+
+      <!-- Form -->
+      <div id="record-form">
+
+        <!-- Status -->
+        <div style="padding:18px 20px;border-bottom:0.5px solid var(--border)">
+          <p style="font-size:11px;color:var(--text3);margin-bottom:10px;font-family:var(--mono)">状态</p>
+          <div style="display:flex;gap:8px">
+            <button class="status-btn" id="s-watching" onclick="setStatus('watching')">
+              <i class="ti ti-player-play" style="font-size:13px"></i> 在看
+            </button>
+            <button class="status-btn" id="s-done" onclick="setStatus('done')">
+              <i class="ti ti-check" style="font-size:13px"></i> 看过
+            </button>
+            <button class="status-btn" id="s-wish" onclick="setStatus('wish')">
+              <i class="ti ti-bookmark" style="font-size:13px"></i> 想看
+            </button>
+          </div>
+        </div>
+
+        <!-- Rating (only when done) -->
+        <div id="rating-section" style="display:none;padding:16px 20px;border-bottom:0.5px solid var(--border);animation:expand .2s ease">
+          <p style="font-size:11px;color:var(--text3);margin-bottom:10px;font-family:var(--mono)">评分 <span style="opacity:.5">（可选）</span></p>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="display:flex;gap:4px" id="stars">
+              <span class="star" data-v="1" onclick="setStar(1)">★</span>
+              <span class="star" data-v="2" onclick="setStar(2)">★</span>
+              <span class="star" data-v="3" onclick="setStar(3)">★</span>
+              <span class="star" data-v="4" onclick="setStar(4)">★</span>
+              <span class="star" data-v="5" onclick="setStar(5)">★</span>
+            </div>
+            <span id="star-label" style="font-family:var(--mono);font-size:12px;color:var(--text3)">未评分</span>
+          </div>
+        </div>
+
+        <!-- Date -->
+        <div id="date-section" style="display:none;padding:12px 20px;border-bottom:0.5px solid var(--border);animation:expand .2s ease">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <p style="font-size:11px;color:var(--text3);font-family:var(--mono)">记录日期</p>
+            <span style="font-family:var(--mono);font-size:12px;color:var(--text2);background:var(--bg2);padding:4px 10px;border-radius:var(--r2);cursor:pointer;border:0.5px solid var(--border)">2026-05-14 · 今天</span>
+          </div>
+        </div>
+
+        <!-- Note toggle -->
+        <div id="note-toggle-wrap" style="display:none;padding:14px 20px;border-bottom:0.5px solid var(--border)">
+          <span class="toggle-link" id="note-toggle" onclick="toggleNote()">
+            <i class="ti ti-pencil" style="font-size:12px"></i>
+            添加短评
+          </span>
+        </div>
+
+        <!-- Note area -->
+        <div id="note-section" style="display:none;padding:14px 20px;border-bottom:0.5px solid var(--border);animation:expand .15s ease">
+          <p style="font-size:11px;color:var(--text3);margin-bottom:8px;font-family:var(--mono)">短评 <span style="opacity:.5">（可选）</span></p>
+          <textarea class="note-ta" rows="3" placeholder="写下你的感受…" id="note-input"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:6px">
+            <span style="font-family:var(--mono);font-size:10px;color:var(--text3)" id="note-count">0 / 200</span>
+          </div>
+        </div>
+
+        <!-- Save -->
+        <div style="padding:16px 20px">
+          <button class="save-btn" id="save-btn" onclick="saveRecord()" disabled>保存记录</button>
+          <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px">选择状态后即可保存，评分和短评可以之后补充</p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+var currentStatus = '';
+var currentStar = 0;
+var searchTimer = null;
+var noteOpen = false;
+
+var mockResults = {
+  '肖': [
+    {title:'肖申克的救赎',type:'电影',meta:'Frank Darabont · 1994',cov:'linear-gradient(160deg,#9FE1CB,#0F6E56)'},
+    {title:'肖战：未完待续',type:'音乐',meta:'肖战 · 2021',cov:'linear-gradient(160deg,#D9B5F4,#6B3B8C)'},
+  ],
+  '奥': [
+    {title:'奥本海默',type:'电影',meta:'Christopher Nolan · 2023',cov:'linear-gradient(160deg,#B5D4F4,#3B5E8C)'},
+    {title:'奥德赛',type:'书籍',meta:'荷马 · 公元前8世纪',cov:'linear-gradient(160deg,#F4C88A,#C25B1A)'},
+  ],
+  '漫': [
+    {title:'漫长的季节',type:'剧集',meta:'辛爽 · 2023 · 12集',cov:'linear-gradient(160deg,#C8E6A0,#4A7A28)'},
+    {title:'漫画之神',type:'书籍',meta:'手塚治虫 · 1989',cov:'linear-gradient(160deg,#F4B5C2,#8C3B52)'},
+  ],
+  'default': [
+    {title:'花样年华',type:'电影',meta:'王家卫 · 2000',cov:'linear-gradient(160deg,#D9B5F4,#6B3B8C)'},
+    {title:'挪威的森林',type:'书籍',meta:'村上春树 · 1987',cov:'linear-gradient(160deg,#F4B5C2,#8C3B52)'},
+    {title:'请回答 1988',type:'剧集',meta:'申源浩 · 2015 · 20集',cov:'linear-gradient(160deg,#FAD4A0,#D4882A)'},
+  ]
+};
+
+var typeColors = {
+  '电影':['#EEF3FA','#3B5E8C'],
+  '剧集':['#EEF6E8','#4A7A28'],
+  '书籍':['#FEF4E8','#C25B1A'],
+  '音乐':['#F5EEF8','#6B3B8C'],
+  '播客':['#FEF0F3','#8C3B52'],
+};
+
+var starLabels = {0:'未评分',1:'很差',2:'较差',3:'还行',4:'推荐',5:'力荐'};
+
+function openModal() {
+  document.getElementById('backdrop').style.display = 'flex';
+  setTimeout(() => document.getElementById('search-input').focus(), 50);
+}
+
+function closeModal() {
+  document.getElementById('backdrop').style.display = 'none';
+  resetAll();
+}
+
+function handleBackdropClick(e) {
+  if (e.target === document.getElementById('backdrop')) closeModal();
+}
+
+function resetAll() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('clear-btn').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'block';
+  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('step-search').style.display = 'block';
+  document.getElementById('step-record').style.display = 'none';
+  currentStatus = '';
+  currentStar = 0;
+  noteOpen = false;
+  document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.star').forEach(s => s.classList.remove('lit'));
+  document.getElementById('star-label').textContent = '未评分';
+  document.getElementById('rating-section').style.display = 'none';
+  document.getElementById('date-section').style.display = 'none';
+  document.getElementById('note-toggle-wrap').style.display = 'none';
+  document.getElementById('note-section').style.display = 'none';
+  document.getElementById('note-input').value = '';
+  document.getElementById('save-btn').disabled = true;
+}
+
+function clearSearch() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('clear-btn').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'block';
+  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('search-input').focus();
+}
+
+function onSearch(val) {
+  document.getElementById('clear-btn').style.display = val ? 'block' : 'none';
+  clearTimeout(searchTimer);
+  if (!val.trim()) {
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
+    return;
+  }
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('loading-state').style.display = 'block';
+  document.getElementById('results').style.display = 'none';
+  searchTimer = setTimeout(() => {
+    var key = Object.keys(mockResults).find(k => val.includes(k)) || 'default';
+    renderResults(mockResults[key]);
+  }, 600);
+}
+
+function renderResults(items) {
+  document.getElementById('loading-state').style.display = 'none';
+  var el = document.getElementById('results');
+  el.innerHTML = '';
+  items.forEach(item => {
+    var row = document.createElement('div');
+    row.className = 'result-row';
+    var tc = typeColors[item.type] || ['var(--bg2)','var(--text2)'];
+    row.innerHTML = `
+      <div class="cov" style="background:${item.cov}"></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+          <p style="font-size:14px;font-weight:500;color:var(--text)">${item.title}</p>
+          <span class="type-tag" style="background:${tc[0]};color:${tc[1]}">${item.type}</span>
+        </div>
+        <p style="font-family:var(--mono);font-size:11px;color:var(--text3)">${item.meta}</p>
+      </div>
+      <i class="ti ti-chevron-right" style="font-size:13px;color:var(--text3);flex-shrink:0"></i>
+    `;
+    row.onclick = () => selectItem(item);
+    el.appendChild(row);
+  });
+  el.style.display = 'block';
+}
+
+function selectItem(item) {
+  var tc = typeColors[item.type] || ['var(--bg2)','var(--text2)'];
+  document.getElementById('sel-cov').style.background = item.cov;
+  document.getElementById('sel-title').textContent = item.title;
+  document.getElementById('sel-type').textContent = item.type;
+  document.getElementById('sel-type').style.background = tc[0];
+  document.getElementById('sel-type').style.color = tc[1];
+  document.getElementById('sel-meta').textContent = item.meta;
+  // update verb by type
+  var verb = (item.type === '书籍') ? '读过' : (item.type === '音乐') ? '听过' : '看过';
+  document.getElementById('s-done').innerHTML = `<i class="ti ti-check" style="font-size:13px"></i> ${verb}`;
+  var verb2 = (item.type === '书籍') ? '在读' : (item.type === '音乐') ? '在听' : '在看';
+  document.getElementById('s-watching').innerHTML = `<i class="ti ti-player-play" style="font-size:13px"></i> ${verb2}`;
+  document.getElementById('step-search').style.display = 'none';
+  var sr = document.getElementById('step-record');
+  sr.style.display = 'flex';
+}
+
+function backToSearch() {
+  document.getElementById('step-search').style.display = 'block';
+  document.getElementById('step-record').style.display = 'none';
+  currentStatus = '';
+  document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('rating-section').style.display = 'none';
+  document.getElementById('date-section').style.display = 'none';
+  document.getElementById('note-toggle-wrap').style.display = 'none';
+  document.getElementById('note-section').style.display = 'none';
+  document.getElementById('save-btn').disabled = true;
+}
+
+function setStatus(s) {
+  currentStatus = s;
+  document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('s-' + s).classList.add('on');
+  document.getElementById('rating-section').style.display = s === 'done' ? 'block' : 'none';
+  document.getElementById('date-section').style.display = s !== 'wish' ? 'block' : 'none';
+  document.getElementById('note-toggle-wrap').style.display = s !== 'wish' ? 'block' : 'none';
+  document.getElementById('save-btn').disabled = false;
+}
+
+function setStar(v) {
+  currentStar = v;
+  document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('lit', i < v));
+  document.getElementById('star-label').textContent = starLabels[v];
+}
+
+function toggleNote() {
+  noteOpen = !noteOpen;
+  document.getElementById('note-section').style.display = noteOpen ? 'block' : 'none';
+  document.getElementById('note-toggle').innerHTML = noteOpen
+    ? '<i class="ti ti-x" style="font-size:12px"></i> 收起短评'
+    : '<i class="ti ti-pencil" style="font-size:12px"></i> 添加短评';
+  if (noteOpen) document.getElementById('note-input').focus();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  var ta = document.getElementById('note-input');
+  if (ta) ta.addEventListener('input', function() {
+    document.getElementById('note-count').textContent = this.value.length + ' / 200';
+  });
+});
+
+function saveRecord() {
+  var title = document.getElementById('sel-title').textContent;
+  var statusMap = {done:'看过',watching:'在看',wish:'想看'};
+  closeModal();
+  var toast = document.getElementById('toast');
+  toast.textContent = '✓ 已记录「' + title + '」为' + statusMap[currentStatus];
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', 2800);
+}
+</script>

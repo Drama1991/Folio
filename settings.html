@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>设置 · Folio</title>
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500&display=swap');
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+:root{
+  --bg:#F7F5F0;--bg2:#EEECEA;--text:#1C1C1A;--text2:#5F5E5A;--text3:#9F9D98;
+  --border:#D8D6D0;--border2:#C8C6C0;--gold:#EF9F27;
+  --danger:#A03B3B;--danger-bg:#F5E4E0;--danger-border:#E8C6C0;
+  --ok:#0F6E56;--ok-bg:#EEF6E8;
+  --serif:'Noto Serif SC',Georgia,serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --r:10px;--r2:6px;
+}
+
+body{font-family:-apple-system,sans-serif;background:#EFEDE7;color:var(--text);font-size:14px;padding:20px 0;min-height:100vh}
+
+#shell{max-width:900px;margin:0 auto;border:0.5px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg);animation:fadeUp .2s ease}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:54px;border-bottom:0.5px solid var(--border)}
+.logo{display:flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none;color:var(--text)}
+.logo-word{font-size:15px;font-weight:500;letter-spacing:-0.01em;font-family:var(--serif)}
+nav{display:flex;gap:2px}
+.nl{font-size:12px;color:var(--text2);padding:5px 11px;border-radius:var(--r2);cursor:pointer;text-decoration:none}
+.nl:hover{background:var(--bg2);color:var(--text)}
+.nl.on{color:var(--text);font-weight:500;background:var(--bg2)}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r2);padding:5px 12px;width:148px;cursor:text;text-decoration:none}
+.avatar{width:28px;height:28px;border-radius:50%;background:#2C2C2A;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#D3D1C7;cursor:pointer;text-decoration:none}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--r2);border:0.5px solid var(--border);background:none;cursor:pointer;font-size:12px;color:var(--text2);font-family:inherit;text-decoration:none}
+.btn:hover{background:var(--bg2);color:var(--text)}
+.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn.primary:hover{opacity:.85}
+.btn.danger{color:var(--danger);border-color:var(--danger-border)}
+.btn.danger:hover{background:var(--danger-bg);color:var(--danger)}
+
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--text3);text-transform:uppercase}
+.crumb{font-family:var(--mono);font-size:11px;color:var(--text3);cursor:pointer;text-decoration:none}
+.crumb:hover{color:var(--text)}
+.crumb.cur{color:var(--text);cursor:default}
+
+/* sidebar nav */
+.snav{font-size:13px;color:var(--text2);padding:8px 12px;border-radius:var(--r2);cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:9px;font-family:inherit}
+.snav:hover{background:var(--bg2);color:var(--text)}
+.snav.on{color:var(--text);font-weight:500;background:var(--bg2)}
+.snav i{font-size:14px;color:var(--text3)}
+.snav.on i{color:var(--text)}
+
+/* settings rows */
+.setting-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:0.5px solid var(--border);background:var(--bg)}
+.setting-row:last-child{border-bottom:none}
+.setting-card{border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:8px}
+
+/* toggle */
+.toggle{position:relative;width:36px;height:20px;display:inline-block;cursor:pointer;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;inset:0;background:var(--border2);border-radius:999px;transition:.2s}
+.toggle .slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:white;border-radius:50%;transition:.2s}
+.toggle input:checked + .slider{background:var(--text)}
+.toggle input:checked + .slider:before{transform:translateX(16px)}
+
+/* theme swatch */
+.theme-card{border:0.5px solid var(--border);border-radius:var(--r);padding:12px;cursor:pointer;background:var(--bg)}
+.theme-card.on{border:1px solid var(--text);padding:11.5px}
+.theme-preview{width:100%;height:54px;border-radius:4px;display:flex;align-items:flex-end;padding:6px;border:0.5px solid var(--border)}
+
+/* provider card */
+.prov-card{border:0.5px solid var(--border);border-radius:var(--r2);padding:12px;text-align:center;cursor:pointer;background:var(--bg)}
+.prov-card.on{border:1px solid var(--text);background:var(--bg2);padding:11.5px}
+
+.status-tag{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:999px;letter-spacing:.04em;white-space:nowrap}
+
+.avatar-wrap{position:relative}
+.avatar-menu{position:absolute;top:calc(100% + 10px);right:0;width:224px;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);padding:6px;box-shadow:0 6px 24px rgba(0,0,0,0.07);z-index:50;display:none;animation:fadeUp .15s ease}
+.avatar-menu.open{display:block}
+.am-head{padding:11px 12px 13px;border-bottom:0.5px solid var(--border);margin-bottom:6px}
+.am-name{font-family:var(--serif);font-size:14px;font-weight:500;letter-spacing:-0.01em}
+.am-handle{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:4px;letter-spacing:.02em}
+.am-item{display:flex;align-items:center;gap:11px;padding:8px 12px;border-radius:var(--r2);font-size:13px;color:var(--text2);text-decoration:none;cursor:pointer}
+.am-item:hover{background:var(--bg2);color:var(--text)}
+.am-item i{font-size:14px;color:var(--text3);width:16px;text-align:center}
+.am-item:hover i{color:var(--text)}
+.am-item.danger:hover{color:#A03B3B;background:#F5E4E0}
+.am-item.danger:hover i{color:#A03B3B}
+.am-sep{height:0.5px;background:var(--border);margin:5px 0}
+</style>
+</head>
+<body>
+<div id="shell">
+
+  <!-- HEADER -->
+  <header>
+    <div style="display:flex;align-items:center;gap:20px">
+      <a class="logo" href="folio_full_prototype.html">
+        <svg width="24" height="26" viewBox="0 0 26 28" fill="none">
+          <path d="M2 2 H18 L24 8 V26 H2 Z" fill="var(--bg2)" stroke="var(--border2)" stroke-width="1"/>
+          <path d="M18 2 L24 8 H18 Z" fill="var(--bg)" stroke="var(--border2)" stroke-width="1"/>
+          <line x1="7" y1="12" x2="17" y2="12" stroke="var(--text)" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="7" y1="16" x2="14" y2="16" stroke="var(--text)" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="7" y1="20" x2="11" y2="20" stroke="var(--text)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="logo-word">Folio</span>
+      </a>
+      <nav>
+        <a class="nl" href="folio_full_prototype.html">首页</a>
+        <a class="nl" href="folio_full_prototype.html#wishlist">想看</a>
+        <a class="nl" href="folio_full_prototype.html#discover">发现</a>
+      </nav>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <a class="search-box" href="search.html">
+        <i class="ti ti-search" style="font-size:13px;color:var(--text3)"></i>
+        <span style="font-size:12px;color:var(--text3);flex:1">搜索...</span>
+        <span style="font-size:10px;color:var(--text3);background:var(--bg);border:0.5px solid var(--border);border-radius:4px;padding:1px 5px;font-family:var(--mono)">⌘K</span>
+      </a>
+      <div class="avatar-wrap">
+        <div class="avatar" onclick="toggleAvatarMenu(event)" role="button" aria-haspopup="true" tabindex="0">默</div>
+        <div class="avatar-menu" id="avatar-menu">
+          <div class="am-head">
+            <p class="am-name">默尔索</p>
+            <p class="am-handle">@morsel@neodb.social</p>
+          </div>
+          <a class="am-item" href="profile.html"><i class="ti ti-user"></i><span>个人主页</span></a>
+          <a class="am-item" href="settings.html"><i class="ti ti-settings"></i><span>设置</span></a>
+          <div class="am-sep"></div>
+          <a class="am-item danger" href="login.html"><i class="ti ti-logout"></i><span>登出</span></a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- TWO COLUMN LAYOUT -->
+  <div style="display:grid;grid-template-columns:200px 1fr;min-height:600px">
+
+    <!-- SIDEBAR -->
+    <aside style="border-right:0.5px solid var(--border);padding:22px 14px 22px 20px;display:flex;flex-direction:column;gap:2px">
+      <div style="padding:0 12px 14px">
+        <a class="crumb" href="folio_full_prototype.html">首页</a>
+        <span class="crumb"> / </span>
+        <span class="crumb cur">设置</span>
+      </div>
+      <a href="#account" class="snav on"><i class="ti ti-user"></i> 账户</a>
+      <a href="#neodb" class="snav"><i class="ti ti-cloud-network"></i> NeoDB 联邦</a>
+      <a href="#ai" class="snav"><i class="ti ti-sparkles"></i> AI 助手</a>
+      <a href="#display" class="snav"><i class="ti ti-palette"></i> 外观</a>
+      <a href="#data" class="snav"><i class="ti ti-database"></i> 数据</a>
+      <a href="#about" class="snav"><i class="ti ti-info-circle"></i> 关于</a>
+
+      <div style="margin-top:auto;padding:14px 12px 0;border-top:0.5px solid var(--border)">
+        <p style="font-family:var(--mono);font-size:10px;color:var(--text3);line-height:1.6">已登录</p>
+        <p style="font-family:var(--serif);font-size:13px;font-weight:500;margin-top:3px">默尔索</p>
+        <p style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px">@morsel@neodb.social</p>
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <div style="padding:26px 28px 32px;display:flex;flex-direction:column;gap:32px">
+
+      <!-- ACCOUNT -->
+      <section id="account">
+        <p class="section-label" style="margin-bottom:6px">账户</p>
+        <p style="font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-0.01em;margin-bottom:14px">身份与安全</p>
+
+        <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px">
+          <i class="ti ti-info-circle" style="font-size:14px;color:var(--text2);margin-top:2px;flex-shrink:0"></i>
+          <p style="font-family:var(--serif);font-size:12px;color:var(--text2);line-height:1.7">显示名、个人简介、头像在 <a href="profile.html" style="color:var(--text);text-decoration:underline;text-decoration-color:var(--border2);text-underline-offset:3px;font-weight:500">个人主页</a> 编辑 · 此处仅管理身份验证与隐私设置。</p>
+        </div>
+
+        <div class="setting-card">
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">登录身份</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">@morsel@neodb.social · 由 NeoDB 联邦提供</p>
+            </div>
+            <a class="btn" href="#neodb">管理 →</a>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">主页可见性</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">公开 · 任何人可访问你的主页</p>
+            </div>
+            <button class="btn">修改</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">活跃会话</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">2 个设备 · Chrome (当前) · Safari iOS (3d 前)</p>
+            </div>
+            <button class="btn">查看</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">数据所有权</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">所有记录归你所有 · 可随时导出 · 永不锁仓</p>
+            </div>
+            <a class="btn" href="#data">导出 →</a>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500;color:var(--danger)">登出当前设备</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">仅清除本机会话 · NeoDB 数据保留</p>
+            </div>
+            <button class="btn danger"><i class="ti ti-logout" style="font-size:11px"></i> 登出</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- NEODB -->
+      <section id="neodb">
+        <p class="section-label" style="margin-bottom:6px">NeoDB 联邦</p>
+        <p style="font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-0.01em;margin-bottom:14px">同步与连接</p>
+
+        <!-- Connection card -->
+        <div style="border:0.5px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:10px;background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+            <div>
+              <p style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">已连接到</p>
+              <p style="font-family:var(--serif);font-size:18px;font-weight:500;letter-spacing:-0.01em">neodb.social</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text2);margin-top:5px">@morsel · OAuth 2.0 · 令牌至 2026-08-14</p>
+            </div>
+            <span class="status-tag" style="background:var(--ok-bg);color:var(--ok)">● 已连接</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn primary" style="font-size:11px"><i class="ti ti-refresh" style="font-size:11px"></i> 立即同步</button>
+            <button class="btn" style="font-size:11px"><i class="ti ti-key" style="font-size:11px"></i> 续约令牌</button>
+            <button class="btn danger" style="font-size:11px"><i class="ti ti-plug-off" style="font-size:11px"></i> 断开连接</button>
+          </div>
+        </div>
+
+        <div class="setting-card">
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">同步频率</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">自动 · 每 5 分钟一次</p>
+            </div>
+            <button class="btn">修改</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">同步范围</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">书架 · 评分 · 短评 · 合集</p>
+            </div>
+            <button class="btn">修改</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">联邦广播</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">新标记自动推送到 NeoDB / Mastodon 时间线</p>
+            </div>
+            <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">默认隐私级别</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">公开 · 可被关注者发现</p>
+            </div>
+            <button class="btn">修改</button>
+          </div>
+        </div>
+
+        <p style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:8px;padding-left:6px">最近一次同步 3 分钟前 · <a style="color:var(--text2);cursor:pointer;text-decoration:underline">查看日志</a></p>
+      </section>
+
+      <!-- AI -->
+      <section id="ai">
+        <p class="section-label" style="margin-bottom:6px">AI 助手</p>
+        <p style="font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-0.01em;margin-bottom:14px">推荐与对话</p>
+
+        <!-- Provider -->
+        <div style="border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;background:var(--bg)">
+          <p style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">服务商</p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+            <div class="prov-card on">
+              <p style="font-family:var(--serif);font-size:14px;font-weight:500">Anthropic</p>
+              <p style="font-family:var(--mono);font-size:10px;color:var(--text2);margin-top:3px">Claude</p>
+            </div>
+            <div class="prov-card">
+              <p style="font-family:var(--serif);font-size:14px;font-weight:500;color:var(--text2)">OpenAI</p>
+              <p style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:3px">GPT</p>
+            </div>
+            <div class="prov-card">
+              <p style="font-family:var(--serif);font-size:14px;font-weight:500;color:var(--text2)">关闭</p>
+              <p style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:3px">本地档案</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-card">
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">API Key</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">sk-ant-•••••••••••••••••••••••••Hx2K</p>
+            </div>
+            <button class="btn"><i class="ti ti-key" style="font-size:11px"></i> 更新</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">模型</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">claude-opus-4-7 · 高质量推荐</p>
+            </div>
+            <button class="btn">切换</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">上下文范围</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">全部记录 + 想看清单 + 偏爱标签</p>
+            </div>
+            <button class="btn">修改</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">缓存策略</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">激进 · 5 分钟 TTL · 命中率 87%</p>
+            </div>
+            <button class="btn">修改</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">本月用量</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">14,283 tokens · $0.42 · 缓存节约 $1.83</p>
+            </div>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">5/1 重置</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- DISPLAY -->
+      <section id="display">
+        <p class="section-label" style="margin-bottom:6px">外观</p>
+        <p style="font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-0.01em;margin-bottom:14px">主题与排版</p>
+
+        <p style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">主题</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px">
+          <div class="theme-card on">
+            <div class="theme-preview" style="background:#F7F5F0">
+              <div style="width:60%;height:4px;background:#1C1C1A;border-radius:2px;margin-right:auto"></div>
+              <div style="width:6px;height:6px;background:#EF9F27;border-radius:50%"></div>
+            </div>
+            <p style="font-family:var(--serif);font-size:13px;margin-top:8px;font-weight:500">米白</p>
+            <p style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:1px">默认 · 适合白天</p>
+          </div>
+          <div class="theme-card">
+            <div class="theme-preview" style="background:#1C1C1A;border-color:#2C2C2A">
+              <div style="width:60%;height:4px;background:#F7F5F0;border-radius:2px;margin-right:auto"></div>
+              <div style="width:6px;height:6px;background:#EF9F27;border-radius:50%"></div>
+            </div>
+            <p style="font-family:var(--serif);font-size:13px;margin-top:8px;font-weight:500;color:var(--text2)">深色</p>
+            <p style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:1px">夜晚 · 减少光照</p>
+          </div>
+          <div class="theme-card">
+            <div class="theme-preview" style="background:linear-gradient(90deg,#F7F5F0 0%,#F7F5F0 50%,#1C1C1A 50%,#1C1C1A 100%)">
+              <div style="width:30%;height:4px;background:#1C1C1A;border-radius:2px"></div>
+              <div style="width:30%;height:4px;background:#F7F5F0;border-radius:2px;margin-left:auto"></div>
+            </div>
+            <p style="font-family:var(--serif);font-size:13px;margin-top:8px;font-weight:500;color:var(--text2)">跟随系统</p>
+            <p style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:1px">自动切换</p>
+          </div>
+        </div>
+
+        <div class="setting-card">
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">中文字号</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">14 px · 标准</p>
+            </div>
+            <div style="display:flex;gap:4px">
+              <button class="btn" style="font-size:10px;padding:5px 10px">A-</button>
+              <button class="btn" style="font-size:13px;padding:5px 10px;background:var(--bg2);color:var(--text);font-weight:500">A</button>
+              <button class="btn" style="font-size:15px;padding:5px 10px">A+</button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">界面语言</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">简体中文 · zh-CN</p>
+            </div>
+            <button class="btn">切换</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">信息密度</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">舒适 · 适合长时间阅读</p>
+            </div>
+            <button class="btn">修改</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">动效</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">启用 · 0.18s 渐入</p>
+            </div>
+            <label class="toggle"><input type="checkbox" checked><span class="slider"></span></label>
+          </div>
+        </div>
+      </section>
+
+      <!-- DATA -->
+      <section id="data">
+        <p class="section-label" style="margin-bottom:6px">数据</p>
+        <p style="font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-0.01em;margin-bottom:14px">导入与导出</p>
+
+        <div class="setting-card">
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">导出全部记录</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">CSV · JSON · ActivityPub Archive (.zip)</p>
+            </div>
+            <button class="btn"><i class="ti ti-download" style="font-size:11px"></i> 导出</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">从豆瓣导入</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">支持 douban-takeout 导出包 · 自动匹配 NeoDB 条目</p>
+            </div>
+            <button class="btn"><i class="ti ti-upload" style="font-size:11px"></i> 选择文件</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">从 NeoDB 重建</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">从联邦账户完整重新拉取，覆盖本地档案</p>
+            </div>
+            <button class="btn">重建</button>
+          </div>
+          <div class="setting-row">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500">本地缓存大小</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">142 MB · 含封面图缓存 98 MB</p>
+            </div>
+            <button class="btn">清理</button>
+          </div>
+        </div>
+
+        <p class="section-label" style="margin-top:18px;margin-bottom:6px;color:var(--danger)">⚠ 危险区</p>
+        <div style="border:0.5px solid var(--danger-border);border-radius:var(--r);overflow:hidden;background:var(--bg)">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:0.5px solid var(--danger-border)">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500;color:var(--danger)">清空本地缓存与设置</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">NeoDB 上的记录不会被删除，可重新登录恢复</p>
+            </div>
+            <button class="btn danger">清空</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 18px">
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:500;color:var(--danger)">删除 Folio 账户</p>
+              <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">仅删除 Folio 端的设置与缓存 · NeoDB 数据不受影响</p>
+            </div>
+            <button class="btn danger">删除</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABOUT -->
+      <section id="about">
+        <p class="section-label" style="margin-bottom:6px">关于</p>
+        <p style="font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-0.01em;margin-bottom:14px">Folio</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+          <div style="border:0.5px solid var(--border);border-radius:var(--r);padding:16px 18px;background:var(--bg)">
+            <p style="font-family:var(--mono);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">版本</p>
+            <p style="font-family:var(--serif);font-size:18px;margin-top:6px;font-weight:500">0.1.0 (alpha)</p>
+            <p style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:4px">build 2026.05.14</p>
+          </div>
+          <div style="border:0.5px solid var(--border);border-radius:var(--r);padding:16px 18px;cursor:pointer;background:var(--bg)">
+            <p style="font-family:var(--mono);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">开源</p>
+            <p style="font-family:var(--serif);font-size:18px;margin-top:6px;font-weight:500">GitHub →</p>
+            <p style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:4px">AGPL-3.0 · 87 stars</p>
+          </div>
+        </div>
+        <div style="border:0.5px solid var(--border);border-radius:var(--r);padding:14px 18px;background:var(--bg2)">
+          <p style="font-family:var(--serif);font-size:13px;color:var(--text2);line-height:1.75">Folio 是基于 NeoDB 联邦的个人媒体档案产品 · 数据归属于你 · 可随时导出 · 永不锁仓。</p>
+        </div>
+        <div style="display:flex;gap:14px;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--text3);padding-left:2px">
+          <a style="cursor:pointer">隐私政策</a>
+          <a style="cursor:pointer">服务条款</a>
+          <a style="cursor:pointer">问题反馈</a>
+          <a style="cursor:pointer">更新日志</a>
+          <a style="cursor:pointer">致谢</a>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+<script>
+function toggleAvatarMenu(e){e&&e.stopPropagation();document.getElementById('avatar-menu').classList.toggle('open')}
+document.addEventListener('click',function(e){if(!e.target.closest('.avatar-wrap')){var m=document.getElementById('avatar-menu');if(m)m.classList.remove('open')}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.getElementById('avatar-menu');if(m)m.classList.remove('open')}});
+document.addEventListener('keydown',function(e){if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();window.location.href='search.html'}});
+</script>
+</body>
+</html>
