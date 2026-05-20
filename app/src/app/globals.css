@@ -143,9 +143,40 @@ button { font-family: inherit; }
   cursor: pointer;
   border-bottom: 0.5px solid var(--border);
   transition: background 0.08s;
+  position: relative;
 }
 .row:hover { background: var(--bg2); }
 .row:last-child { border-bottom: none; }
+
+/* hover-reveal action cluster (used by wishlist + archive rows) */
+.row-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity 0.12s, transform 0.12s;
+}
+.row:hover .row-actions,
+.row:focus-within .row-actions { opacity: 1; transform: translateX(0); }
+.row-act-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 0.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.row-act-btn:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+.row-act-btn.good:hover { background: #0F6E56; color: #FFF; border-color: #0F6E56; }
+.row-act-btn.danger:hover { background: #8C3B52; color: #FFF; border-color: #8C3B52; }
+.row-act-btn.warn:hover { background: #A86515; color: #FFF; border-color: #A86515; }
+.row-act-btn:disabled { opacity: 0.4; cursor: default; background: var(--bg); color: var(--text2); border-color: var(--border); }
 
 .cov {
   width: 38px;
@@ -386,3 +417,133 @@ button { font-family: inherit; }
   box-shadow: none;
   opacity: 0.6;
 }
+
+/* ───── chip —— pill 选项，柔金描边 active 态 ───── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 0.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.12s, color 0.12s, border-color 0.12s, box-shadow 0.12s;
+  white-space: nowrap;
+}
+.chip:hover { background: var(--bg2); color: var(--text); }
+.chip.on {
+  background: linear-gradient(180deg, #FCEFD2 0%, #F6E0AE 100%);
+  border-color: #D9A66A;
+  color: #6B3F08;
+  font-weight: 500;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 1px 3px rgba(168, 120, 40, 0.12);
+}
+.chip-count {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  opacity: 0.7;
+}
+.chip.on .chip-count { opacity: 0.85; color: #854F0B; }
+
+/* ───── poster grid (wishlist + archive 共用) ───── */
+.poster-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+@media (max-width: 700px) { .poster-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 500px) { .poster-grid { grid-template-columns: repeat(2, 1fr); } }
+.poster-tile {
+  position: relative;
+  aspect-ratio: 2/3;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--bg2);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.poster-tile:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,0.12); }
+.poster-tile-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.78) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 10px 11px 11px;
+  color: #F1EFE8;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.poster-tile:hover .poster-tile-overlay { opacity: 1; }
+.poster-tile-title {
+  font-family: var(--serif);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.poster-tile-meta {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  opacity: 0.78;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 永久角标（用于 archive grid 状态/评分），不依赖 hover */
+.poster-tile-corner {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0,0,0,0.55);
+  color: #F1EFE8;
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+/* ───── view toggle ───── */
+.view-toggle {
+  display: inline-flex;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r2);
+  overflow: hidden;
+}
+.view-toggle button,
+.view-toggle a {
+  width: 28px;
+  height: 26px;
+  background: var(--bg);
+  border: none;
+  cursor: pointer;
+  color: var(--text3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, color 0.1s;
+  text-decoration: none;
+}
+.view-toggle button:hover,
+.view-toggle a:hover { background: var(--bg2); color: var(--text); }
+.view-toggle button.on,
+.view-toggle a.on { background: var(--text); color: var(--bg); }
+
+/* small chip variant for sort */
+.chip.sm { padding: 3px 8px; font-size: 10px; }

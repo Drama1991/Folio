@@ -5,15 +5,88 @@ import { markToArchiveRow } from "@/lib/neodb/mappers";
 import { ArchiveHeader } from "@/components/archive/ArchiveHeader";
 import { ArchiveTabs } from "@/components/archive/ArchiveTabs";
 import { ArchiveRow } from "@/components/archive/ArchiveRow";
+import { Cover } from "@/components/shared/Cover";
 import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
-import type { UiMedium } from "@/lib/format/verbs";
+import { mediumLabel, statusVerb, type UiMedium } from "@/lib/format/verbs";
 import type { NeoDBShelfType } from "@/lib/neodb/types";
+import type { UiArchiveRow } from "@/lib/neodb/ui-types";
 
 const STATUS_FILTERS: NeoDBShelfType[] = ["complete", "progress", "wishlist", "dropped"];
+const SORT_VALUES = ["time", "rating", "title", "year"] as const;
+type SortBy = typeof SORT_VALUES[number];
+
+interface ArchiveParams {
+  status: NeoDBShelfType;
+  view: "list" | "grid";
+  sort: SortBy;
+  year: string; // "all" | "2025" | ... | "older"
+}
+
+function parseParams(sp: Record<string, string | undefined>): ArchiveParams {
+  return {
+    status: STATUS_FILTERS.includes(sp.status as NeoDBShelfType) ? (sp.status as NeoDBShelfType) : "complete",
+    view: sp.view === "grid" ? "grid" : "list",
+    sort: SORT_VALUES.includes(sp.sort as SortBy) ? (sp.sort as SortBy) : "time",
+    year: sp.year ?? "all",
+  };
+}
+
+function archiveUrl(medium: UiMedium, current: ArchiveParams, override: Partial<ArchiveParams>): string {
+  const next = { ...current, ...override };
+  const qs = new URLSearchParams();
+  if (next.status !== "complete") qs.set("status", next.status);
+  if (next.view !== "list") qs.set("view", next.view);
+  if (next.sort !== "time") qs.set("sort", next.sort);
+  if (next.year !== "all") qs.set("year", next.year);
+  const s = qs.toString();
+  return `/archive/${medium}${s ? `?${s}` : ""}`;
+}
+
+function getReleaseYear(r: UiArchiveRow): number | null {
+  if (typeof r.year === "number") return r.year;
+  if (typeof r.year === "string") {
+    const m = r.year.match(/\d{4}/);
+    return m ? Number(m[0]) : null;
+  }
+  return null;
+}
+
+function applyYearFilter(rows: UiArchiveRow[], year: string, olderThreshold: number): UiArchiveRow[] {
+  if (year === "all") return rows;
+  if (year === "older") {
+    return rows.filter((r) => {
+      const y = getReleaseYear(r);
+      return y !== null && y < olderThreshold;
+    });
+  }
+  const y = Number(year);
+  return rows.filter((r) => getReleaseYear(r) === y);
+}
+
+function applySort(rows: UiArchiveRow[], sort: SortBy): UiArchiveRow[] {
+  const copy = [...rows];
+  if (sort === "rating") {
+    copy.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || +new Date(b.updatedAt) - +new Date(a.updatedAt));
+  } else if (sort === "title") {
+    copy.sort((a, b) => a.title.localeCompare(b.title, "zh-CN"));
+  } else if (sort === "year") {
+    copy.sort((a, b) => (getReleaseYear(b) ?? 0) - (getReleaseYear(a) ?? 0));
+  }
+  // "time" = default order (createdAt desc from API)
+  return copy;
+}
+
+function computeYears(rows: UiArchiveRow[]): { values: number[]; olderThreshold: number | null } {
+  const set = new Set<number>();
+  rows.forEach((r) => { const y = getReleaseYear(r); if (y) set.add(y); });
+  const sorted = Array.from(set).sort((a, b) => b - a);
+  if (sorted.length <= 5) return { values: sorted, olderThreshold: null };
+  return { values: sorted.slice(0, 4), olderThreshold: sorted[3] };
+}
 
 interface PageProps {
   params: Promise<{ medium: string }>;
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }
 
 export default async function ArchivePage({ params, searchParams }: PageProps) {
@@ -22,28 +95,99 @@ export default async function ArchivePage({ params, searchParams }: PageProps) {
 
   if (!ALL_UI_MEDIUMS.includes(rawMedium as UiMedium)) notFound();
   const medium = rawMedium as UiMedium;
-  const status: NeoDBShelfType = STATUS_FILTERS.includes(sp.status as NeoDBShelfType)
-    ? (sp.status as NeoDBShelfType)
-    : "complete";
+  const p = parseParams(sp);
 
-  const page = await listShelf({ type: status, category: medium, page: 1 }).catch(
+  const page = await listShelf({ type: p.status, category: medium, page: 1 }).catch(
     () => ({ data: [], count: 0 }) as { data: never[]; count: number },
   );
-  const rows = (page.data ?? []).map(markToArchiveRow);
+  const allRows = (page.data ?? []).map(markToArchiveRow);
+
+  const yearInfo = computeYears(allRows);
+  const filtered = applyYearFilter(allRows, p.year, yearInfo.olderThreshold ?? 0);
+  const sorted = applySort(filtered, p.sort);
 
   return (
     <div style={{ padding: "20px 24px 28px" }}>
       <Crumbs medium={medium} />
-      <ArchiveHeader medium={medium} status={status} total={page.count ?? rows.length} />
+      <ArchiveHeader medium={medium} status={p.status} total={page.count ?? allRows.length} rows={allRows} />
       <ArchiveTabs current={medium} />
-      <StatusFilters medium={medium} current={status} />
-      <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden", marginTop: 14 }}>
-        {rows.length === 0 ? (
-          <div style={{ padding: "26px 20px", textAlign: "center", color: "var(--text3)", fontSize: 12 }}>
-            还没有内容。
+
+      {/* Row 1: status chips | view toggle */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {STATUS_FILTERS.map((s) => (
+            <Link
+              key={s}
+              href={archiveUrl(medium, p, { status: s, year: "all" })}
+              className={`chip${s === p.status ? " on" : ""}`}
+            >
+              {labelOf(s, medium)}
+            </Link>
+          ))}
+        </div>
+        <div className="view-toggle" role="group" aria-label="视图切换">
+          <Link href={archiveUrl(medium, p, { view: "list" })} className={p.view === "list" ? "on" : ""} title="列表" aria-label="列表视图">
+            <i className="ti ti-list" style={{ fontSize: 14 }} />
+          </Link>
+          <Link href={archiveUrl(medium, p, { view: "grid" })} className={p.view === "grid" ? "on" : ""} title="海报墙" aria-label="海报墙视图">
+            <i className="ti ti-layout-grid" style={{ fontSize: 13 }} />
+          </Link>
+        </div>
+      </div>
+
+      {/* Row 2: year chips（仅在有多个年份时显示） */}
+      {yearInfo.values.length >= 2 && (
+        <div style={{ display: "flex", gap: 5, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginRight: 2 }}>年份</span>
+          <Link href={archiveUrl(medium, p, { year: "all" })} className={`chip sm${p.year === "all" ? " on" : ""}`}>全部</Link>
+          {yearInfo.values.map((y) => (
+            <Link key={y} href={archiveUrl(medium, p, { year: String(y) })} className={`chip sm${p.year === String(y) ? " on" : ""}`}>{y}</Link>
+          ))}
+          {yearInfo.olderThreshold !== null && (
+            <Link href={archiveUrl(medium, p, { year: "older" })} className={`chip sm${p.year === "older" ? " on" : ""}`}>更早</Link>
+          )}
+        </div>
+      )}
+
+      {/* Row 3: sort cluster */}
+      <div style={{ display: "flex", gap: 5, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginRight: 2 }}>排序</span>
+        {([
+          ["time", "最近"],
+          ["rating", "评分"],
+          ["title", "字母"],
+          ["year", "年份"],
+        ] as Array<[SortBy, string]>).map(([v, label]) => (
+          <Link key={v} href={archiveUrl(medium, p, { sort: v })} className={`chip sm${p.sort === v ? " on" : ""}`}>{label}</Link>
+        ))}
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        {sorted.length === 0 ? (
+          <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", padding: "26px 20px", textAlign: "center", color: "var(--text3)", fontSize: 12 }}>
+            没有匹配的内容。
+          </div>
+        ) : p.view === "list" ? (
+          <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden" }}>
+            {sorted.map((r) => <ArchiveRow key={`${r.uuid}-${r.updatedAt}`} row={r} />)}
           </div>
         ) : (
-          rows.map((r) => <ArchiveRow key={`${r.uuid}-${r.updatedAt}`} row={r} />)
+          <div className="poster-grid">
+            {sorted.map((r) => (
+              <Link key={`${r.uuid}-${r.updatedAt}`} href={`/detail/${r.medium}/${r.uuid}`} className="poster-tile">
+                <Cover src={r.cover ?? undefined} seed={r.uuid} width="100%" height="100%" />
+                {r.rating ? (
+                  <span className="poster-tile-corner">{"★".repeat(r.rating)}</span>
+                ) : p.status !== "complete" ? (
+                  <span className="poster-tile-corner">{statusVerb(r.medium, r.status)}</span>
+                ) : null}
+                <div className="poster-tile-overlay">
+                  <p className="poster-tile-title">{r.title}</p>
+                  <p className="poster-tile-meta">{[r.year, r.creator].filter(Boolean).join(" · ")}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -55,36 +199,20 @@ function Crumbs({ medium }: { medium: UiMedium }) {
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
       <Link href="/home" className="crumb">首页</Link>
       <span style={{ color: "var(--text3)", fontFamily: "var(--mono)", fontSize: 11 }}>/</span>
-      <span className="crumb cur">档案 · {medium}</span>
-    </div>
-  );
-}
-
-function StatusFilters({ medium, current }: { medium: UiMedium; current: NeoDBShelfType }) {
-  return (
-    <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-      {STATUS_FILTERS.map((s) => (
-        <Link
-          key={s}
-          href={`/archive/${medium}?status=${s}`}
-          className={`btn${s === current ? " primary" : ""}`}
-          style={{ borderRadius: 999, fontSize: 11, textDecoration: "none" }}
-        >
-          {labelOf(s, medium)}
-        </Link>
-      ))}
+      <span className="crumb cur">档案 · {mediumLabel(medium)}</span>
     </div>
   );
 }
 
 function labelOf(s: NeoDBShelfType, m: UiMedium): string {
-  if (s === "complete") return m === "book" ? "读过" : m === "music" || m === "podcast" ? "听过" : "看过";
+  if (s === "complete") return m === "book" ? "读过" : m === "music" || m === "podcast" ? "听过" : m === "game" ? "玩过" : "看过";
   if (s === "progress") {
     if (m === "series") return "在追";
     if (m === "book") return "在读";
     if (m === "music" || m === "podcast") return "在听";
+    if (m === "game") return "在玩";
     return "在看";
   }
-  if (s === "wishlist") return m === "book" ? "想读" : m === "music" || m === "podcast" ? "想听" : "想看";
+  if (s === "wishlist") return m === "book" ? "想读" : m === "music" || m === "podcast" ? "想听" : m === "game" ? "想玩" : "想看";
   return "弃";
 }

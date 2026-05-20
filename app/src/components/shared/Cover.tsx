@@ -3,8 +3,8 @@ import { gradientFor } from "@/lib/format/cover-gradient";
 interface CoverProps {
   src?: string | null;
   seed: string;
-  width?: number;
-  height?: number;
+  width?: number | string;
+  height?: number | string;
   alt?: string;
   className?: string;
   style?: React.CSSProperties;

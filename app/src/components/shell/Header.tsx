@@ -39,7 +39,7 @@ export function Header({ display, handle, avatar }: HeaderProps) {
         </Link>
         <nav style={{ display: "flex", gap: 2 }}>
           <Link href="/home" className={`nav-link${cur === "home" ? " on" : ""}`}>首页</Link>
-          <Link href="/wishlist" className={`nav-link${cur === "wishlist" ? " on" : ""}`}>想看</Link>
+          <Link href="/wishlist" className={`nav-link${cur === "wishlist" ? " on" : ""}`}>心愿单</Link>
           <Link href="/discover" className={`nav-link${cur === "discover" ? " on" : ""}`}>发现</Link>
         </nav>
       </div>
