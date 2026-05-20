@@ -6,7 +6,7 @@ import { suggs } from "@/lib/ai/replies";
 import { AIHistoryDrawer } from "./AIHistory";
 
 export function AIPanel() {
-  const { open, context, history, typing, setOpen, send } = useAIPanel();
+  const { open, context, history, typing, setOpen, send, newChat } = useAIPanel();
   const [input, setInput] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
   const msgsRef = useRef<HTMLDivElement>(null);
@@ -30,7 +30,7 @@ export function AIPanel() {
     <div
       className="slide-in"
       style={{
-        position: "fixed", right: "max(0px, calc((100vw - 900px) / 2))", top: 54, bottom: 0,
+        position: "fixed", right: "max(0px, calc((100vw - 900px) / 2))", top: 60, bottom: 0,
         width: 290, background: "var(--bg)", borderLeft: "0.5px solid var(--border)",
         display: "flex", flexDirection: "column", zIndex: 30,
       }}
@@ -39,7 +39,10 @@ export function AIPanel() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
           <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500 }}>{context.title}</p>
           <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => setHistoryOpen(true)} className="btn" style={{ fontSize: 11, padding: "4px 9px" }} aria-label="历史">
+            <button onClick={() => newChat()} className="btn" style={{ fontSize: 11, padding: "4px 9px" }} aria-label="新建对话" title="新建对话">
+              <i className="ti ti-plus" style={{ fontSize: 12 }} />
+            </button>
+            <button onClick={() => setHistoryOpen(true)} className="btn" style={{ fontSize: 11, padding: "4px 9px" }} aria-label="历史" title="历史">
               <i className="ti ti-history" style={{ fontSize: 12 }} />
             </button>
             <button onClick={() => setOpen(false)} className="btn" style={{ fontSize: 11, padding: "4px 9px" }} aria-label="关闭">×</button>

@@ -11,7 +11,7 @@ import type {
   NeoDBShelfType,
   NeoDBVisibility,
 } from "./types";
-import { endpointSegment, toNeoDBCategory } from "./mediumMap";
+import { endpointSegment, toNeoDBCategory, trendingSegment } from "./mediumMap";
 import type { UiMedium } from "./ui-types";
 
 class NeoDBError extends Error {
@@ -240,7 +240,7 @@ export async function listItemPosts(opts: {
 // ─── Trending ───────────────────────────────────────────────────────
 export async function listTrending(opts: { medium: UiMedium }): Promise<NeoDBItemBase[]> {
   const cat = toNeoDBCategory(opts.medium);
-  const seg = endpointSegment(cat);
+  const seg = trendingSegment(cat);
   try {
     const res = await neodb<{ data: NeoDBItemBase[] } | NeoDBItemBase[]>(
       `/api/trending/${seg}/`,
@@ -248,7 +248,8 @@ export async function listTrending(opts: { medium: UiMedium }): Promise<NeoDBIte
     );
     if (Array.isArray(res)) return res;
     return res.data ?? [];
-  } catch {
+  } catch (e) {
+    console.warn(`[listTrending] /api/trending/${seg}/ failed:`, e instanceof Error ? e.message : e);
     return [];
   }
 }

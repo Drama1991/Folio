@@ -1,45 +1,5 @@
 import type { UiMedium } from "@/lib/format/verbs";
 
-export interface AIHistoryItem {
-  id: number;
-  ctx: "home" | "detail";
-  ctxLabel: string;
-  date: string;
-  time: string;
-  preview: string;
-  messages: { role: "ai" | "user"; text: string }[];
-}
-
-export const aiHistory: AIHistoryItem[] = [
-  {
-    id: 1, ctx: "home", ctxLabel: "今晚看什么", date: "2026-05-12", time: "21:30",
-    preview: "根据你的观影偏好，今晚可以试试《漫长的季节》——它在你的想看列表里已经放了 3 天…",
-    messages: [
-      { role: "ai", text: "嗨，根据你的记录和想看清单，我来帮你选今晚看什么。" },
-      { role: "user", text: "今晚推荐一部电影" },
-      { role: "ai", text: "根据你的观影偏好，今晚可以试试《漫长的季节》——它在你的想看列表里已经放了 3 天，12 集国剧，今晚看个开头很合适。" },
-    ],
-  },
-  {
-    id: 2, ctx: "detail", ctxLabel: "肖申克的救赎", date: "2026-05-08", time: "20:15",
-    preview: "肖申克的核心是\"希望\"作为生存意志——Andy 在狱中坚持写信、凿墙…",
-    messages: [
-      { role: "ai", text: "关于《肖申克的救赎》，你想聊什么？" },
-      { role: "user", text: "这部片想表达什么" },
-      { role: "ai", text: "《肖申克的救赎》的核心是\"希望\"作为生存意志——Andy 在狱中坚持写信、凿墙，不是为了逃跑，而是在证明希望本身是真实的。" },
-    ],
-  },
-  {
-    id: 3, ctx: "detail", ctxLabel: "挪威的森林", date: "2026-05-05", time: "23:42",
-    preview: "《挪威的森林》读起来像一首很长的钢琴曲——旋律不复杂…",
-    messages: [
-      { role: "ai", text: "关于《挪威的森林》，你想聊什么？" },
-      { role: "user", text: "这本书的核心母题" },
-      { role: "ai", text: "《挪威的森林》读起来像一首很长的钢琴曲——旋律不复杂，但调性始终笼罩在某种半透明的悲伤里。" },
-    ],
-  },
-];
-
 export const replies: Record<UiMedium | "home", string[]> = {
   home: [
     "根据你的观影偏好，今晚试试《漫长的季节》——它在你的想看列表里。",

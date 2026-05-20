@@ -43,4 +43,16 @@ export function endpointSegment(cat: NeoDBCategory): string {
   }
 }
 
+/**
+ * NeoDB trending endpoint segment.
+ * 与 item detail 端点命名不一致：trending 的音乐用 `music`，detail 用 `album`。
+ * /api/trending/{movie|tv|book|music|podcast|game}/
+ */
+export function trendingSegment(cat: NeoDBCategory): string {
+  switch (cat) {
+    case "music": return "music";
+    default: return cat;
+  }
+}
+
 export const ALL_UI_MEDIUMS: UiMedium[] = ["movie", "series", "book", "music", "podcast"];

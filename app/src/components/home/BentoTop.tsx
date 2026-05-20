@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Cover } from "@/components/shared/Cover";
-import { Stars } from "@/components/shared/Stars";
+import { gradientFor } from "@/lib/format/cover-gradient";
 import { statusVerb, mediumLabel, type UiMedium } from "@/lib/format/verbs";
 import type { UiTimelineEntry } from "@/lib/neodb/ui-types";
 
@@ -34,50 +33,25 @@ export function BentoTop({ featured, stats }: { featured: UiTimelineEntry | null
   );
 }
 
-function RatingDisplay({ rating, external }: { rating?: number; external?: number }) {
-  const value = rating || external;
-  if (!value) return null;
-  const isMine = !!rating;
-  return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-      <Stars value={value} size={12} />
-      <span
-        style={{
-          fontFamily: "var(--mono)",
-          fontSize: 11,
-          color: "var(--gold)",
-          opacity: isMine ? 1 : 0.7,
-        }}
-        title={isMine ? "我的评分" : "NeoDB 评分"}
-      >
-        {value.toFixed(1)}
-      </span>
-    </span>
-  );
-}
-
 function ProgressBadge({ progress, medium }: { progress?: string; medium: UiMedium }) {
   const label = progress || mediumLabel(medium);
   const isProgress = !!progress;
   return (
-    <div
+    <span
       style={{
         display: "inline-flex",
         alignItems: "center",
         gap: 4,
-        background: "#2C2C2A",
-        borderRadius: 999,
-        padding: "3px 9px",
         flexShrink: 0,
       }}
     >
       {isProgress ? (
         <span aria-hidden style={{ width: 5, height: 5, borderRadius: 999, background: "var(--gold)" }} />
       ) : null}
-      <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#D3D1C7", letterSpacing: ".05em" }}>
+      <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--gold)", letterSpacing: ".05em" }}>
         {label}
       </span>
-    </div>
+    </span>
   );
 }
 
@@ -121,67 +95,142 @@ function FeaturedCard({ entry }: { entry: UiTimelineEntry | null }) {
     );
   }
 
+  const grad = gradientFor(entry.uuid);
+
   return (
     <Link
       href={`/detail/${entry.medium}/${entry.uuid}`}
       style={{
+        display: "block",
+        position: "relative",
         background: "#1C1C1A",
         borderRadius: "var(--r)",
-        padding: 22,
-        display: "grid",
-        gridTemplateColumns: "auto 1fr",
-        gap: 18,
         minHeight: 196,
-        cursor: "pointer",
+        overflow: "hidden",
         textDecoration: "none",
       }}
     >
-      <Cover
-        src={entry.cover ?? undefined}
-        seed={entry.uuid}
-        width={100}
-        height={150}
-        style={{ borderRadius: 6, aspectRatio: "2/3", height: "auto", alignSelf: "center" }}
+      {/* 1. 模糊海报作为氛围背景 */}
+      {entry.cover && (
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: -24,
+            background: `url(${entry.cover}) center/cover no-repeat`,
+            filter: "blur(28px) saturate(1.15)",
+            transform: "scale(1.08)",
+            opacity: 0.88,
+          }}
+        />
+      )}
+      {/* 2. 暗化渐变（右侧重色保文字可读，因海报在左） */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(280deg, rgba(15,12,8,0.80) 0%, rgba(15,12,8,0.65) 40%, rgba(15,12,8,0.45) 75%, rgba(15,12,8,0.30) 100%)",
+        }}
       />
-      <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-          <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: ".1em", color: "#888780" }}>
-            {statusVerb(entry.medium as UiMedium, entry.status)}
-          </span>
-          <ProgressBadge progress={entry.progressLabel} medium={entry.medium as UiMedium} />
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <p
+      {/* 3. 内容：左侧海报 + 右侧文字 */}
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "stretch",
+          minHeight: 196,
+        }}
+      >
+        <div
+          aria-hidden
+          className={entry.cover ? undefined : grad}
+          style={{
+            flexShrink: 0,
+            width: 125,
+            marginLeft: 22,
+            marginRight: 20,
+            marginTop: 4,
+            marginBottom: 4,
+            borderRadius: "var(--r2)",
+            background: entry.cover ? `url(${entry.cover}) center/cover no-repeat` : undefined,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.45)",
+            border: "0.5px solid rgba(255,255,255,0.10)",
+          }}
+        />
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            padding: "14px 22px 22px 0",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+              {entry.status === "progress" && (
+                <span
+                  aria-hidden
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 999,
+                    background: "#4ADE80",
+                    flexShrink: 0,
+                    boxShadow: "0 0 6px rgba(74,222,128,0.55)",
+                    animation: "pulse 2.4s infinite",
+                  }}
+                />
+              )}
+              <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: ".1em", color: "var(--gold)" }}>
+                {statusVerb(entry.medium as UiMedium, entry.status)}
+              </span>
+            </span>
+            <ProgressBadge progress={entry.progressLabel} medium={entry.medium as UiMedium} />
+          </div>
+          <div
             style={{
-              fontFamily: "var(--serif)",
-              fontSize: 24,
-              fontWeight: 500,
-              color: "#F1EFE8",
-              lineHeight: 1.15,
-              marginBottom: 5,
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              gap: 10,
+              minWidth: 0,
             }}
           >
-            {entry.title}
-          </p>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
             <p
               style={{
-                fontSize: 11,
-                color: "#5F5E5A",
-                fontFamily: "var(--mono)",
-                whiteSpace: "nowrap",
+                fontFamily: "var(--serif)",
+                fontSize: 22,
+                fontWeight: 500,
+                color: "#F1EFE8",
+                lineHeight: 1.15,
                 overflow: "hidden",
-                textOverflow: "ellipsis",
-                minWidth: 0,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
               }}
             >
-              {[entry.creator, entry.year].filter(Boolean).join(" · ")}
+              {entry.title}
             </p>
-            <RatingDisplay rating={entry.rating} external={entry.externalRating} />
+            {entry.brief && (
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "#D6D4CD",
+                  lineHeight: 1.55,
+                  overflow: "hidden",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                }}
+              >
+                {entry.brief.slice(0, 110)}
+                {entry.brief.length > 110 ? "…" : ""}
+              </p>
+            )}
           </div>
         </div>
       </div>

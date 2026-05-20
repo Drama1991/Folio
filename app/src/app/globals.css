@@ -186,7 +186,7 @@ button { font-family: inherit; }
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  height: 54px;
+  height: 60px;
   border-bottom: 0.5px solid var(--border);
   background: var(--bg);
   position: sticky;
@@ -194,12 +194,13 @@ button { font-family: inherit; }
   z-index: 20;
   border-top-left-radius: 14px;
   border-top-right-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .nav-link {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text2);
-  padding: 5px 11px;
+  padding: 6px 12px;
   border-radius: var(--r2);
   cursor: pointer;
   transition: background 0.1s, color 0.1s;
@@ -217,8 +218,8 @@ button { font-family: inherit; }
   background: var(--bg2);
   border: 0.5px solid var(--border);
   border-radius: var(--r2);
-  padding: 5px 12px;
-  width: 148px;
+  padding: 6px 12px;
+  width: 220px;
   cursor: text;
 }
 

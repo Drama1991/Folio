@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AIConfig, ProviderKind } from "@/lib/ai/types";
 
 interface ApiResponse {
@@ -131,16 +131,17 @@ export function AIConfigForm() {
     }
   }
 
-  const aggModelPicker = (
-    <ModelPicker
+  const aggModelField = (
+    <ModelCombobox
+      value={cfg.aggregator.model}
+      onChange={(v) => patch("aggregator", { ...cfg.aggregator, model: v })}
       onFetch={fetchAggregatorModels}
       loading={agLoadingModels}
       err={agModelsErr}
       options={agModels}
       filter={agModelFilter}
       onFilter={setAgModelFilter}
-      currentModel={cfg.aggregator.model}
-      onPick={(id) => patch("aggregator", { ...cfg.aggregator, model: id })}
+      placeholder="gpt-4o-mini / claude-3-5-sonnet-20241022 ..."
     />
   );
 
@@ -198,7 +199,7 @@ export function AIConfigForm() {
         onBaseUrl={(v) => patch("aggregator", { ...cfg.aggregator, baseUrl: v })}
         onModel={(v) => patch("aggregator", { ...cfg.aggregator, model: v })}
         onKey={(v) => setKeyEdit((k) => ({ ...k, aggregator: v }))}
-        modelPicker={aggModelPicker}
+        modelField={aggModelField}
       />
       <ProviderBlock
         title={PROVIDER_META[1].label}
@@ -277,7 +278,7 @@ function ProviderBlock({
   onBaseUrl,
   onModel,
   onKey,
-  modelPicker,
+  modelField,
 }: {
   title: string;
   hint: string;
@@ -288,7 +289,7 @@ function ProviderBlock({
   onBaseUrl: (v: string) => void;
   onModel: (v: string) => void;
   onKey: (v: string) => void;
-  modelPicker?: React.ReactNode;
+  modelField?: React.ReactNode;
 }) {
   return (
     <div
@@ -314,16 +315,17 @@ function ProviderBlock({
           />
         </Field>
       )}
-      <Field label="模型">
-        <input
-          type="text"
-          value={creds.model}
-          placeholder={showBaseUrl ? "gpt-4o-mini / claude-3-5-sonnet-20241022 ..." : "gpt-4o-mini"}
-          onChange={(e) => onModel(e.target.value)}
-          style={inputStyle}
-        />
-      </Field>
-      {modelPicker}
+      {modelField ?? (
+        <Field label="模型">
+          <input
+            type="text"
+            value={creds.model}
+            placeholder={showBaseUrl ? "gpt-4o-mini / claude-3-5-sonnet-20241022 ..." : "gpt-4o-mini"}
+            onChange={(e) => onModel(e.target.value)}
+            style={inputStyle}
+          />
+        </Field>
+      )}
       <Field label="API Key">
         <input
           type="password"
@@ -338,25 +340,57 @@ function ProviderBlock({
   );
 }
 
-function ModelPicker({
+function ModelCombobox({
+  value,
+  onChange,
   onFetch,
   loading,
   err,
   options,
   filter,
   onFilter,
-  currentModel,
-  onPick,
+  placeholder,
 }: {
+  value: string;
+  onChange: (v: string) => void;
   onFetch: () => void;
   loading: boolean;
   err: string | null;
   options: string[] | null;
   filter: string;
   onFilter: (s: string) => void;
-  currentModel: string;
-  onPick: (id: string) => void;
+  placeholder?: string;
 }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const prevOptionsRef = useRef<string[] | null>(options);
+
+  // 拉取成功后自动展开
+  useEffect(() => {
+    const prev = prevOptionsRef.current;
+    if (prev === null && options !== null && options.length > 0) {
+      setOpen(true);
+    }
+    prevOptionsRef.current = options;
+  }, [options]);
+
+  // 点击外部 / ESC 关闭
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   const filtered =
     options === null
       ? []
@@ -364,105 +398,131 @@ function ModelPicker({
         ? options.filter((o) => o.toLowerCase().includes(filter.trim().toLowerCase()))
         : options;
 
+  const hasOptions = options !== null && options.length > 0;
+
   return (
-    <div style={{ marginBottom: 10, marginTop: -2 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <Field label="模型">
+      <div ref={containerRef} style={{ position: "relative" }}>
+        <input
+          type="text"
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => {
+            if (hasOptions) setOpen(true);
+          }}
+          style={{ ...inputStyle, paddingRight: 32 }}
+        />
         <button
           type="button"
           onClick={onFetch}
           disabled={loading}
-          className="btn"
-          style={{ fontSize: 11, padding: "5px 10px" }}
-        >
-          <i className="ti ti-refresh" style={{ fontSize: 11 }} />
-          {loading ? "拉取中…" : "请求模型"}
-        </button>
-        {options && (
-          <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>
-            共 {options.length} 个模型
-          </span>
-        )}
-        {err && (
-          <span style={{ fontSize: 11, color: "#A03B3B" }}>
-            失败：{err}
-          </span>
-        )}
-      </div>
-
-      {options !== null && options.length > 0 && (
-        <div
+          title={loading ? "拉取中…" : "请求模型列表"}
+          aria-label="请求模型列表"
           style={{
-            marginTop: 8,
-            border: "0.5px solid var(--border)",
-            borderRadius: "var(--r2)",
-            background: "var(--bg2)",
+            position: "absolute",
+            right: 4,
+            top: "50%",
+            transform: "translateY(-50%)",
+            border: "none",
+            background: "transparent",
+            cursor: loading ? "default" : "pointer",
+            padding: 6,
+            color: "var(--text2)",
+            display: "flex",
+            alignItems: "center",
+            opacity: loading ? 0.5 : 1,
           }}
         >
-          <input
-            type="text"
-            value={filter}
-            onChange={(e) => onFilter(e.target.value)}
-            placeholder={`搜索 / 过滤（共 ${options.length} 个）`}
-            style={{
-              width: "100%",
-              padding: "7px 10px",
-              border: "none",
-              borderBottom: "0.5px solid var(--border)",
-              background: "transparent",
-              fontSize: 11,
-              fontFamily: "var(--mono)",
-              outline: "none",
-              color: "var(--text)",
-            }}
-          />
+          <i className="ti ti-refresh" style={{ fontSize: 13 }} />
+        </button>
+
+        {open && hasOptions && (
           <div
             style={{
-              maxHeight: 200,
-              overflowY: "auto",
-              padding: 6,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 4,
+              position: "absolute",
+              top: "calc(100% + 4px)",
+              left: 0,
+              right: 0,
+              border: "0.5px solid var(--border)",
+              borderRadius: "var(--r2)",
+              background: "var(--bg)",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+              zIndex: 20,
+              overflow: "hidden",
             }}
           >
-            {filtered.length === 0 ? (
-              <span style={{ fontSize: 11, color: "var(--text3)", padding: "6px 8px" }}>
-                没有匹配的模型
-              </span>
-            ) : (
-              filtered.map((id) => {
-                const on = id === currentModel;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => onPick(id)}
-                    style={{
-                      fontSize: 10,
-                      padding: "4px 8px",
-                      borderRadius: 4,
-                      border: `0.5px solid ${on ? "var(--text)" : "var(--border)"}`,
-                      background: on ? "var(--text)" : "var(--bg)",
-                      color: on ? "var(--bg)" : "var(--text2)",
-                      cursor: "pointer",
-                      fontFamily: "var(--mono)",
-                    }}
-                    title={id}
-                  >
-                    {id}
-                  </button>
-                );
-              })
-            )}
+            <input
+              type="text"
+              value={filter}
+              onChange={(e) => onFilter(e.target.value)}
+              placeholder={`搜索 / 过滤（共 ${options!.length} 个）`}
+              style={{
+                width: "100%",
+                padding: "7px 10px",
+                border: "none",
+                borderBottom: "0.5px solid var(--border)",
+                background: "var(--bg2)",
+                fontSize: 11,
+                fontFamily: "var(--mono)",
+                outline: "none",
+                color: "var(--text)",
+              }}
+            />
+            <div style={{ maxHeight: 220, overflowY: "auto", padding: 4 }}>
+              {filtered.length === 0 ? (
+                <p style={{ fontSize: 11, color: "var(--text3)", padding: "8px 10px" }}>
+                  没有匹配的模型
+                </p>
+              ) : (
+                filtered.map((id) => {
+                  const on = id === value;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => {
+                        onChange(id);
+                        setOpen(false);
+                      }}
+                      title={id}
+                      style={{
+                        display: "block",
+                        width: "100%",
+                        textAlign: "left",
+                        padding: "6px 10px",
+                        fontSize: 11,
+                        fontFamily: "var(--mono)",
+                        border: "none",
+                        borderRadius: 4,
+                        background: on ? "var(--text)" : "transparent",
+                        color: on ? "var(--bg)" : "var(--text2)",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {id}
+                    </button>
+                  );
+                })
+              )}
+            </div>
           </div>
-        </div>
+        )}
+      </div>
+      {err && (
+        <p style={{ fontSize: 11, color: "#A03B3B", marginTop: 4 }}>
+          拉取失败：{err}
+        </p>
       )}
       {options !== null && options.length === 0 && !err && (
-        <p style={{ fontSize: 11, color: "var(--text3)", marginTop: 6 }}>
+        <p style={{ fontSize: 11, color: "var(--text3)", marginTop: 4 }}>
           上游返回了空列表。
         </p>
       )}
-    </div>
+    </Field>
   );
 }
 
