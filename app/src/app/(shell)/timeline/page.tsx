@@ -4,8 +4,8 @@ import { markToTimelineEntry } from "@/lib/neodb/mappers";
 import { formatMonthLabel, relativeTime } from "@/lib/format/dates";
 import { statusVerb, mediumLabel, type UiMedium } from "@/lib/format/verbs";
 import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
-import { gradientFor } from "@/lib/format/cover-gradient";
-import { Stars } from "@/components/shared/Stars";
+import { Cover } from "@/components/shared/Cover";
+import { RatingTag } from "@/components/shared/RatingTag";
 
 interface PageProps {
   searchParams: Promise<{ filter?: string }>;
@@ -70,7 +70,7 @@ export default async function TimelinePage({ searchParams }: PageProps) {
           <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden" }}>
             {list.map((e) => (
               <Link key={`${e.uuid}-${e.createdAt}`} href={`/detail/${e.medium}/${e.uuid}`} className="row" style={{ textDecoration: "none", color: "inherit" }}>
-                <div className={gradientFor(e.uuid)} style={{ width: 3, height: 34, borderRadius: 2 }} />
+                <Cover src={e.cover ?? undefined} seed={e.uuid} width={38} height={54} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500 }}>{e.title}</p>
                   <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 2 }}>
@@ -78,7 +78,7 @@ export default async function TimelinePage({ searchParams }: PageProps) {
                   </p>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  {e.rating ? <Stars value={e.rating} size={11} /> : null}
+                  <RatingTag own={e.rating} external={e.externalRating} />
                   <span style={{ fontSize: 10, color: "var(--text3)", fontFamily: "var(--mono)" }}>{statusVerb(e.medium, e.status)}</span>
                   <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>{relativeTime(e.createdAt)}</span>
                 </div>

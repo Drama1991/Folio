@@ -35,6 +35,30 @@ export interface AIConfig {
   aggregator: ProviderCreds;
   openai: ProviderCreds;
   gemini: ProviderCreds;
+  search: SearchConfig;
+}
+
+// ─── 联网搜索 ───────────────────────────────────────────────────────
+
+export type SearchProviderKind = "brave";
+
+export interface SearchConfig {
+  provider: SearchProviderKind;
+  brave: { apiKey: string };
+}
+
+/** 注入到 LLM 的搜索结果项；也是返回前端 sources chips 的数据结构 */
+export interface SearchResult {
+  title: string;
+  url: string;
+  snippet: string;
+  /** 用于前端取 favicon */
+  domain: string;
+}
+
+export interface SearchProvider {
+  readonly name: SearchProviderKind;
+  search(query: string, opts?: { count?: number; signal?: AbortSignal }): Promise<SearchResult[]>;
 }
 
 export const DEFAULT_AI_CONFIG: AIConfig = {
@@ -42,4 +66,5 @@ export const DEFAULT_AI_CONFIG: AIConfig = {
   aggregator: { baseUrl: "", apiKey: "", model: "" },
   openai: { baseUrl: "https://api.openai.com/v1", apiKey: "", model: "gpt-4o-mini" },
   gemini: { baseUrl: "https://generativelanguage.googleapis.com", apiKey: "", model: "gemini-2.0-flash" },
+  search: { provider: "brave", brave: { apiKey: "" } },
 };

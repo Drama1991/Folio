@@ -30,9 +30,17 @@ export interface AIContextInfo {
   };
 }
 
+export interface SourceLink {
+  title: string;
+  url: string;
+  domain: string;
+}
+
 export interface ChatMsg {
   role: "ai" | "user";
   text: string;
+  /** 联网搜索注入的来源链接，仅 AI 消息可能携带 */
+  sources?: SourceLink[];
 }
 
 interface AIPanelState {
@@ -41,7 +49,16 @@ interface AIPanelState {
   history: ChatMsg[];
   typing: boolean;
   sessionId: string | null;
-  setOpen: (open: boolean, ctx?: AIContextInfo | "home" | UiMedium) => void;
+  /** 触发点视口坐标（DraggableWindow 用来做展开动画与首次定位） */
+  origin: { x: number; y: number } | null;
+  /** 联网搜索开关（sticky：用户切换后保持） */
+  webSearch: boolean;
+  setOpen: (
+    open: boolean,
+    ctx?: AIContextInfo | "home" | UiMedium,
+    origin?: { x: number; y: number } | null,
+  ) => void;
+  setWebSearch: (on: boolean) => void;
   send: (text: string) => Promise<void>;
   newChat: () => void;
   loadSession: (s: AISession) => void;
@@ -91,10 +108,14 @@ export const useAIPanel = create<AIPanelState>((set, get) => ({
   history: [],
   typing: false,
   sessionId: null,
+  origin: null,
+  webSearch: false,
 
-  setOpen: (open, ctx) => {
+  setWebSearch: (on) => set({ webSearch: on }),
+
+  setOpen: (open, ctx, origin) => {
     if (!open) {
-      set({ open: false });
+      set({ open: false, origin: null });
       return;
     }
     let nextCtx: AIContextInfo;
@@ -106,13 +127,42 @@ export const useAIPanel = create<AIPanelState>((set, get) => ({
     } else {
       nextCtx = ctx;
     }
-    set({
-      open: true,
-      context: nextCtx,
-      history: [{ role: "ai", text: welcomeFor(nextCtx) }],
-      sessionId: null,
-      typing: false,
-    });
+
+    // A 选项：同一 itemKey（或 home 上下文）打开时恢复最近一次会话；找不到才走欢迎语
+    const itemKey = buildItemKey(nextCtx);
+    const all = loadSessions(); // 已按 updatedAt desc 排序
+    let restored: AISession | undefined;
+    if (itemKey) {
+      restored = all.find((s) => s.contextItemKey === itemKey);
+    } else if (nextCtx.key === "home") {
+      restored = all.find((s) => s.contextKey === "home" && !s.contextItemKey);
+    }
+
+    if (restored) {
+      sessionMeta.set(restored.id, restored.createdAt);
+      set({
+        open: true,
+        context: {
+          key: restored.contextKey,
+          title: restored.contextTitle,
+          subtitle: restored.contextSubtitle,
+          item: restored.item,
+        },
+        history: restored.messages,
+        sessionId: restored.id,
+        typing: false,
+        origin: origin ?? null,
+      });
+    } else {
+      set({
+        open: true,
+        context: nextCtx,
+        history: [{ role: "ai", text: welcomeFor(nextCtx) }],
+        sessionId: null,
+        typing: false,
+        origin: origin ?? null,
+      });
+    }
   },
 
   send: async (text) => {
@@ -147,16 +197,17 @@ export const useAIPanel = create<AIPanelState>((set, get) => ({
       .history.slice(0, -1) // 去掉刚才追加的 user
       .filter((m) => m.text.length > 0);
 
-    const body =
-      ctx.key === "home"
-        ? { history: historyForRequest, user: trimmed, context: { kind: "home" as const } }
-        : ctx.item
-          ? {
-              history: historyForRequest,
-              user: trimmed,
-              context: { kind: "item" as const, item: ctx.item },
-            }
-          : { history: historyForRequest, user: trimmed, context: { kind: "home" as const } };
+    const webSearch = get().webSearch;
+    const ctxPart =
+      ctx.key === "home" || !ctx.item
+        ? { kind: "home" as const }
+        : { kind: "item" as const, item: ctx.item };
+    const body = {
+      history: historyForRequest,
+      user: trimmed,
+      context: ctxPart,
+      webSearch,
+    };
 
     try {
       const res = await fetch("/api/ai/chat", {
@@ -179,6 +230,50 @@ export const useAIPanel = create<AIPanelState>((set, get) => ({
 
       const decoder = new TextDecoder();
       const reader = res.body.getReader();
+
+      // 首行 sentinel 解析：`__SOURCES__:{json}\n` 仅在 webSearch 命中时由服务端写入。
+      // 缓冲到能判断是否为 sentinel 前缀为止；不是就直接 flush 当普通文本。
+      const SP = "__SOURCES__:";
+      let firstLineBuf = "";
+      let firstLineDone = false;
+
+      const consumeFirstLine = (chunk: string): { rest: string; done: boolean } => {
+        firstLineBuf += chunk;
+        if (firstLineBuf.length < SP.length) {
+          // 还短，但已经偏离 prefix 就提前 flush
+          if (!SP.startsWith(firstLineBuf)) {
+            const out = firstLineBuf;
+            firstLineBuf = "";
+            return { rest: out, done: true };
+          }
+          return { rest: "", done: false };
+        }
+        if (!firstLineBuf.startsWith(SP)) {
+          // 已确认不是 sentinel
+          const out = firstLineBuf;
+          firstLineBuf = "";
+          return { rest: out, done: true };
+        }
+        const nlIdx = firstLineBuf.indexOf("\n");
+        if (nlIdx < 0) return { rest: "", done: false };
+        const firstLine = firstLineBuf.slice(0, nlIdx);
+        const rest = firstLineBuf.slice(nlIdx + 1);
+        firstLineBuf = "";
+        try {
+          const parsed = JSON.parse(firstLine.slice(SP.length)) as { sources?: SourceLink[] };
+          const sources = parsed.sources ?? [];
+          if (sources.length > 0) {
+            set((s) => ({
+              history: [...s.history, { role: "ai" as const, text: "", sources }],
+            }));
+          }
+        } catch {
+          // sentinel 解析失败：当普通文本回吐
+          return { rest: firstLine + (rest.length ? "\n" + rest : ""), done: true };
+        }
+        return { rest, done: true };
+      };
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -188,8 +283,17 @@ export const useAIPanel = create<AIPanelState>((set, get) => ({
           break;
         }
         const chunk = decoder.decode(value, { stream: true });
-        if (chunk) pushOrAppendAi(set, chunk);
+        if (!chunk) continue;
+        if (!firstLineDone) {
+          const r = consumeFirstLine(chunk);
+          if (r.done) firstLineDone = true;
+          if (r.rest) pushOrAppendAi(set, r.rest);
+        } else {
+          pushOrAppendAi(set, chunk);
+        }
       }
+      // stream 结束但缓冲仍有内容（理论不会发生，defensive）
+      if (firstLineBuf) pushOrAppendAi(set, firstLineBuf);
     } catch (e) {
       if (get().sessionId === capturedSid) {
         pushOrAppendAi(set, `\n\n[网络错误] ${e instanceof Error ? e.message : ""}`);
@@ -249,7 +353,8 @@ function pushOrAppendAi(
   set((s) => {
     const last = s.history[s.history.length - 1];
     if (last && last.role === "ai") {
-      return { history: [...s.history.slice(0, -1), { role: "ai" as const, text: last.text + text }] };
+      // 保留 sources 等其他字段（spread last 而不是只塞 text）
+      return { history: [...s.history.slice(0, -1), { ...last, text: last.text + text }] };
     }
     return { history: [...s.history, { role: "ai" as const, text }] };
   });

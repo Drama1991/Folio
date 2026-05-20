@@ -25,9 +25,10 @@ export function Stars({ value, size = 13, style, className }: StarsProps) {
 
 /**
  * UI 0–5 ↔ NeoDB rating_grade 0–10
+ * 无评分（null/undefined/0）返回 undefined，让 nullish-coalescing 能正确 fallback。
  */
-export function ratingToUi(grade: number | null | undefined): number {
-  if (!grade) return 0;
+export function ratingToUi(grade: number | null | undefined): number | undefined {
+  if (!grade) return undefined;
   return Math.round((grade / 2) * 10) / 10;
 }
 

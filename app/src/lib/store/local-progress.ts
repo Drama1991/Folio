@@ -9,12 +9,12 @@ interface State {
 }
 
 function load(uuid: string): State {
-  if (typeof window === "undefined") return { episodes: {}, total: 12, lastUpdate: "" };
+  if (typeof window === "undefined") return { episodes: {}, total: 0, lastUpdate: "" };
   try {
     const raw = localStorage.getItem(`folio:ep:${uuid}`);
     if (raw) return JSON.parse(raw) as State;
   } catch {}
-  return { episodes: {}, total: 12, lastUpdate: "" };
+  return { episodes: {}, total: 0, lastUpdate: "" };
 }
 
 function save(uuid: string, s: State): void {

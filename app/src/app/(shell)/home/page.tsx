@@ -3,28 +3,34 @@ import { listMyNotes, listShelf, shelfCount } from "@/lib/neodb/client";
 import { markToTimelineEntry } from "@/lib/neodb/mappers";
 import { formatProgress } from "@/lib/format/progress";
 import { HomeHero } from "@/components/home/HomeHero";
-import { ActionBar } from "@/components/home/ActionBar";
 import { BentoTop } from "@/components/home/BentoTop";
 import { ActivityStrip } from "@/components/home/ActivityStrip";
 import { CategoryCells } from "@/components/home/CategoryCells";
-import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
+import { ALL_UI_MEDIUMS, fromNeoDBCategory } from "@/lib/neodb/mediumMap";
+import type { UiMedium } from "@/lib/format/verbs";
 
 export default async function HomePage() {
   const session = await getSession();
   const display = session?.display || session?.handle || "你";
 
-  const [progressList, complete, wishlistCount, droppedCount] = await Promise.all([
-    listShelf({ type: "progress", page: 1 }).catch(() => ({ data: [] as never[] })),
-    shelfCount({ type: "complete" }).catch(() => 0),
-    shelfCount({ type: "wishlist" }).catch(() => 0),
-    shelfCount({ type: "dropped" }).catch(() => 0),
-  ]);
+  // 并行拉四个 shelf 的最新一页；首页"最近动态"要包含所有标记动作（在看/看过/想看/弃）
+  const SHELF_TYPES = ["progress", "complete", "wishlist", "dropped"] as const;
+  const shelfLists = await Promise.all(
+    SHELF_TYPES.map((type) =>
+      listShelf({ type, page: 1 }).catch(() => ({ data: [] as never[] })),
+    ),
+  );
+  const [progressList] = shelfLists;
 
-  // 最近 5 条 mark：合并 progress + complete，取前 5
-  const recentMarks = (progressList.data ?? [])
-    .map(markToTimelineEntry)
-    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
-    .slice(0, 5);
+  // 跨 shelf 按 created_time 倒序的全量 mark；featured / continueWatching / recentMarks 都从这里派生
+  const allMarks = shelfLists
+    .flatMap((p) => p.data ?? [])
+    .sort((a, b) => +new Date(b.created_time) - +new Date(a.created_time));
+  const progressMarks = progressList.data ?? [];
+  const isProgressMode = progressMarks.length > 0;
+
+  // 最近 5 条 mark：跨所有 shelf type
+  const recentMarks = allMarks.slice(0, 5).map(markToTimelineEntry);
 
   // 5 类计数（complete 维度）—— per category 并发
   const categoryCounts = await Promise.all(
@@ -34,12 +40,27 @@ export default async function HomePage() {
     })),
   );
 
-  // featured 在看项（progress 中第一条）
-  const featured = (progressList.data ?? [])[0];
+  // 每个分类的最近 3 张封面：复用 allMarks，按 medium 分组，零额外 fetch
+  const coversByMedium = new Map<UiMedium, { src?: string | null; uuid: string }[]>();
+  for (const m of ALL_UI_MEDIUMS) coversByMedium.set(m, []);
+  for (const mark of allMarks) {
+    const medium = fromNeoDBCategory(mark.item.category);
+    const list = coversByMedium.get(medium);
+    if (list && list.length < 3) {
+      list.push({ src: mark.item.cover_image_url, uuid: mark.item.uuid });
+    }
+  }
+  const categoryCells = categoryCounts.map((c) => ({
+    ...c,
+    covers: coversByMedium.get(c.medium) ?? [],
+  }));
+
+  // featured：progress 模式取最新在看；否则 fallback 到最新一条任意 mark
+  const featured = isProgressMode ? progressMarks[0] : allMarks[0];
   const featuredUi = featured ? markToTimelineEntry(featured) : null;
 
-  // featured 的最新一条带 progress 的 note → 派生右上角徽章文本
-  if (featuredUi) {
+  // 仅对 progress 项查 progress label（fallback 模式下省一次 notes fetch）
+  if (featuredUi && featuredUi.status === "progress") {
     const notes = await listMyNotes(featuredUi.uuid).catch(() => ({ data: [] }));
     const latest = notes.data
       .filter((n) => n.progress_type && n.progress_value)
@@ -47,20 +68,20 @@ export default async function HomePage() {
     featuredUi.progressLabel = formatProgress(latest, featuredUi.medium);
   }
 
-  const stats = {
-    progress: progressList.data?.length ?? 0,
-    wishlist: wishlistCount,
-    complete,
-    dropped: droppedCount,
-  };
+  // 右栏：progress 模式取 progress 第 2-3 条；fallback 模式取 allMarks 第 2-3 条
+  const continueItems = isProgressMode ? progressMarks.slice(1, 3) : allMarks.slice(1, 3);
+  const continueWatching = continueItems.map(markToTimelineEntry);
 
   return (
     <div style={{ padding: "28px 24px 24px" }}>
       <HomeHero display={display} />
-      <ActionBar />
-      <BentoTop featured={featuredUi} stats={stats} />
+      <BentoTop
+        featured={featuredUi}
+        continueWatching={continueWatching}
+        continuePanelTitle={isProgressMode ? "继续看" : "最近记录"}
+      />
       <ActivityStrip recent={recentMarks} />
-      <CategoryCells counts={categoryCounts} />
+      <CategoryCells cells={categoryCells} />
     </div>
   );
 }

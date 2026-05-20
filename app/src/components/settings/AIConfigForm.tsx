@@ -28,6 +28,7 @@ export function AIConfigForm() {
     openai: "",
     gemini: "",
   });
+  const [searchKeyEdit, setSearchKeyEdit] = useState("");
 
   // 聚合站模型选择器状态
   const [agModels, setAgModels] = useState<string[] | null>(null);
@@ -109,6 +110,10 @@ export function AIConfigForm() {
         aggregator: { ...cfg.aggregator, apiKey: keyEdit.aggregator },
         openai: { ...cfg.openai, apiKey: keyEdit.openai },
         gemini: { ...cfg.gemini, apiKey: keyEdit.gemini },
+        search: {
+          provider: cfg.search.provider,
+          brave: { apiKey: searchKeyEdit },
+        },
       };
       const res = await fetch("/api/ai/config", {
         method: "POST",
@@ -123,6 +128,7 @@ export function AIConfigForm() {
       setCfg(j.config);
       setReady(j.ready);
       setKeyEdit({ aggregator: "", openai: "", gemini: "" });
+      setSearchKeyEdit("");
       setOkMsg("已保存");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "save_failed");
@@ -222,6 +228,12 @@ export function AIConfigForm() {
         onBaseUrl={() => undefined}
         onModel={(v) => patch("gemini", { ...cfg.gemini, model: v })}
         onKey={(v) => setKeyEdit((k) => ({ ...k, gemini: v }))}
+      />
+
+      <SearchBlock
+        currentKeyMasked={cfg.search.brave.apiKey}
+        keyEdit={searchKeyEdit}
+        onKey={setSearchKeyEdit}
       />
 
       <div style={{ marginTop: 22, display: "flex", alignItems: "center", gap: 12 }}>
@@ -523,6 +535,56 @@ function ModelCombobox({
         </p>
       )}
     </Field>
+  );
+}
+
+function SearchBlock({
+  currentKeyMasked,
+  keyEdit,
+  onKey,
+}: {
+  currentKeyMasked: string;
+  keyEdit: string;
+  onKey: (v: string) => void;
+}) {
+  return (
+    <div
+      style={{
+        border: "0.5px solid var(--border)",
+        borderRadius: "var(--r2)",
+        padding: "14px 16px",
+        marginTop: 18,
+        marginBottom: 12,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <i className="ti ti-world" style={{ fontSize: 14, color: "var(--gold)" }} />
+        <p style={{ fontSize: 13, fontWeight: 500 }}>联网搜索（Brave Search）</p>
+      </div>
+      <p style={{ fontSize: 11, color: "var(--text3)", marginTop: 4, lineHeight: 1.55, marginBottom: 10 }}>
+        填好之后，AI 对话框输入栏左侧的 🌐 按钮才会生效。开启时每条消息会先去 Brave 抓 5 条网页结果，注入到 LLM 上下文，并在回答下方展示来源链接。
+        免费额度 2000 次/月，
+        <a
+          href="https://api-dashboard.search.brave.com/app/keys"
+          target="_blank"
+          rel="noreferrer noopener"
+          style={{ color: "var(--text2)", textDecoration: "underline" }}
+        >
+          在这里申请 key
+        </a>
+        。
+      </p>
+      <Field label="Brave API Key">
+        <input
+          type="password"
+          value={keyEdit}
+          placeholder={currentKeyMasked ? `当前: ${currentKeyMasked} (留空保留)` : "BSA..."}
+          onChange={(e) => onKey(e.target.value)}
+          style={inputStyle}
+          autoComplete="off"
+        />
+      </Field>
+    </div>
   );
 }
 

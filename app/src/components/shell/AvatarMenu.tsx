@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 interface AvatarMenuProps {
@@ -14,6 +15,7 @@ export function AvatarMenu({ display, handle, initial, avatar }: AvatarMenuProps
   const [open, setOpen] = useState(false);
   const [imgFailed, setImgFailed] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!open) return;
@@ -23,6 +25,10 @@ export function AvatarMenu({ display, handle, initial, avatar }: AvatarMenuProps
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   const showImg = !!avatar && !imgFailed;
 

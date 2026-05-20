@@ -1,7 +1,7 @@
 import "server-only";
 import { listShelf } from "@/lib/neodb/client";
 import { markToTimelineEntry } from "@/lib/neodb/mappers";
-import type { ChatMessage } from "./types";
+import type { ChatMessage, SearchResult } from "./types";
 import type { UiMedium } from "@/lib/format/verbs";
 
 const FOLIO_INTRO = `你是 Folio 的 AI 助手。Folio 是一个基于 NeoDB 的个人影音书游记录工具。用户通过你聊正在看 / 想看 / 看过的内容，或就某一部具体作品和你深聊。
@@ -75,4 +75,19 @@ export function buildItemSystemPrompt(item: {
 
 export function makeSystemMessage(content: string): ChatMessage {
   return { role: "system", content };
+}
+
+/** 把 search 结果格式化为 system prompt 末尾的补充段。让 LLM 基于这些信息回答并在合适处引用 URL。 */
+export function buildSearchContextSection(results: SearchResult[]): string {
+  if (results.length === 0) return "";
+  const lines: string[] = [];
+  lines.push("# 联网搜索结果（来自实时网页，可作为最新信息来源）");
+  lines.push(`用户开启了"联网搜索"。以下是针对用户最新一条提问刚刚检索到的网页摘要。回答时优先采纳这些事实，并在表述具体事实/数字/事件时自然提及对应来源（如「据 X 网站」或括号给出链接）；如果搜索结果不相关或不够，请说明并基于已有知识回答。`);
+  lines.push("");
+  results.forEach((r, i) => {
+    lines.push(`[${i + 1}] ${r.title}`);
+    lines.push(`    URL: ${r.url}`);
+    if (r.snippet) lines.push(`    摘要：${r.snippet}`);
+  });
+  return lines.join("\n");
 }

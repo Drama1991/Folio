@@ -14,7 +14,7 @@ interface Props {
   creator?: string;
   myRecord: {
     status: UiShelfStatus;
-    rating: number;
+    rating?: number;
     comment: string;
     visibility: 0 | 1 | 2;
     createdAt: string;
@@ -82,7 +82,7 @@ export function MyRecordCard({ uuid, medium, myRecord, title, cover, year, creat
 
       <div style={{ padding: "12px 16px", borderBottom: "0.5px solid var(--border)" }}>
         <p style={{ fontSize: 11, color: "var(--text3)", marginBottom: 8 }}>我的评分</p>
-        {myRecord && myRecord.rating > 0 ? (
+        {myRecord?.rating ? (
           <Stars value={myRecord.rating} size={18} />
         ) : (
           <button onClick={() => open()} style={{ background: "none", border: "none", color: "var(--text3)", fontSize: 12, fontStyle: "italic", cursor: "pointer", padding: 0 }}>

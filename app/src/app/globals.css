@@ -277,3 +277,112 @@ button { font-family: inherit; }
 .cell-link { transition: background 0.1s; }
 .cell-link:hover { background: var(--bg2) !important; }
 .cell-link.cur { background: var(--bg2); }
+
+/* ───── HomeHero AI logo button ───── */
+.ai-logo-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin-top: 4px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0.5px solid #D9A66A;
+  background: radial-gradient(circle at 30% 28%, #FAF1DA 0%, #F2E7CB 70%, #E8D8B3 100%);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(168, 120, 40, 0.20),
+    0 2px 6px rgba(168, 120, 40, 0.10);
+  transition: box-shadow 0.18s, transform 0.15s;
+}
+.ai-logo-btn:hover {
+  border-color: #C97A0F;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.60),
+    inset 0 -1px 0 rgba(168, 120, 40, 0.20),
+    0 0 0 5px rgba(211, 138, 48, 0.16),
+    0 4px 10px rgba(168, 120, 40, 0.16);
+}
+.ai-logo-btn:active { transform: scale(0.96); }
+
+/* ───── Record FAB —— 跟随 shell 内容右下，陶土橙立体浮雕 ───── */
+.record-fab {
+  position: fixed;
+  bottom: 28px;
+  /* 小屏贴视口右 28px；宽屏（>900px）紧贴 shell 容器右内侧 28px */
+  right: max(28px, calc((100vw - 900px) / 2 + 28px));
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 28%, #E0B270 0%, #D38A30 50%, #A86515 100%);
+  box-shadow:
+    0 12px 26px rgba(150, 88, 18, 0.35),
+    0 5px 10px rgba(110, 65, 12, 0.25),
+    inset 0 1.5px 0 rgba(255, 245, 220, 0.50),
+    inset 0 -2px 0 rgba(110, 65, 12, 0.30),
+    inset 0 0 10px rgba(232, 178, 112, 0.22);
+  z-index: 60;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.record-fab:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 32px rgba(150, 88, 18, 0.42),
+    0 7px 14px rgba(110, 65, 12, 0.28),
+    inset 0 1.5px 0 rgba(255, 245, 220, 0.60),
+    inset 0 -2px 0 rgba(110, 65, 12, 0.30),
+    inset 0 0 12px rgba(238, 192, 130, 0.30);
+}
+.record-fab:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow:
+    0 5px 12px rgba(150, 88, 18, 0.32),
+    0 2px 5px rgba(110, 65, 12, 0.22),
+    inset 0 2px 4px rgba(110, 65, 12, 0.40),
+    inset 0 -1px 0 rgba(255, 245, 220, 0.18);
+}
+
+/* ───── RecordModal 保存按钮（陶土橙渐变，与 FAB 呼应） ───── */
+.modal-save-btn {
+  padding: 13px;
+  border-radius: var(--r2);
+  border: none;
+  background: linear-gradient(135deg, #E0B270 0%, #D38A30 50%, #A86515 100%);
+  color: #FFF6E6;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow:
+    0 6px 16px rgba(150, 88, 18, 0.30),
+    inset 0 1px 0 rgba(255, 245, 220, 0.40),
+    inset 0 -1px 0 rgba(110, 65, 12, 0.20);
+  transition: transform 0.12s ease, box-shadow 0.15s ease, opacity 0.15s;
+}
+.modal-save-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 9px 22px rgba(150, 88, 18, 0.36),
+    inset 0 1px 0 rgba(255, 245, 220, 0.48),
+    inset 0 -1px 0 rgba(110, 65, 12, 0.20);
+}
+.modal-save-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow:
+    0 3px 8px rgba(150, 88, 18, 0.28),
+    inset 0 2px 4px rgba(110, 65, 12, 0.30);
+}
+.modal-save-btn:disabled {
+  background: var(--text3);
+  cursor: default;
+  box-shadow: none;
+  opacity: 0.6;
+}

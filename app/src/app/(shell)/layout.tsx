@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth/cookie";
 import { Header } from "@/components/shell/Header";
 import { ToastHost } from "@/components/shared/Toast";
 import { RecordModal } from "@/components/record-modal/RecordModal";
+import { RecordFAB } from "@/components/shell/RecordFAB";
 import { AIPanel } from "@/components/ai-panel/AIPanel";
 
 export default async function ShellLayout({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,7 @@ export default async function ShellLayout({ children }: { children: React.ReactN
       <main>{children}</main>
       <RecordModal />
       <AIPanel />
+      <RecordFAB />
       <ToastHost />
     </div>
   );

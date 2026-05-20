@@ -1,69 +1,102 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useAIPanel } from "@/lib/store/ai-panel";
+import { useAIPanel, type SourceLink } from "@/lib/store/ai-panel";
 import { suggs } from "@/lib/ai/replies";
 import { AIHistoryDrawer } from "./AIHistory";
+import { DraggableWindow } from "@/components/shared/DraggableWindow";
 
 export function AIPanel() {
-  const { open, context, history, typing, setOpen, send, newChat } = useAIPanel();
+  const open = useAIPanel((s) => s.open);
+  const context = useAIPanel((s) => s.context);
+  const history = useAIPanel((s) => s.history);
+  const typing = useAIPanel((s) => s.typing);
+  const origin = useAIPanel((s) => s.origin);
+  const webSearch = useAIPanel((s) => s.webSearch);
+  const setOpen = useAIPanel((s) => s.setOpen);
+  const setWebSearch = useAIPanel((s) => s.setWebSearch);
+  const send = useAIPanel((s) => s.send);
+  const newChat = useAIPanel((s) => s.newChat);
+
   const [input, setInput] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
   const msgsRef = useRef<HTMLDivElement>(null);
+  const taRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight;
   }, [history.length, typing]);
 
+  // textarea 自适应高度：内容变化时重置后取 scrollHeight；空时回到单行
   useEffect(() => {
-    if (!open) return;
-    const h = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [open, setOpen]);
+    const ta = taRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = `${ta.scrollHeight}px`;
+  }, [input]);
 
   if (!open) return null;
 
   const list = suggs[context.key] ?? suggs.home;
 
-  return (
-    <div
-      className="slide-in"
-      style={{
-        position: "fixed", right: "max(0px, calc((100vw - 900px) / 2))", top: 60, bottom: 0,
-        width: 290, background: "var(--bg)", borderLeft: "0.5px solid var(--border)",
-        display: "flex", flexDirection: "column", zIndex: 30,
-      }}
-    >
-      <div style={{ padding: "12px 16px", borderBottom: "0.5px solid var(--border)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-          <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500 }}>{context.title}</p>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => newChat()} className="btn" style={{ fontSize: 11, padding: "4px 9px" }} aria-label="新建对话" title="新建对话">
-              <i className="ti ti-plus" style={{ fontSize: 12 }} />
-            </button>
-            <button onClick={() => setHistoryOpen(true)} className="btn" style={{ fontSize: 11, padding: "4px 9px" }} aria-label="历史" title="历史">
-              <i className="ti ti-history" style={{ fontSize: 12 }} />
-            </button>
-            <button onClick={() => setOpen(false)} className="btn" style={{ fontSize: 11, padding: "4px 9px" }} aria-label="关闭">×</button>
-          </div>
+  const header = (
+    <div style={{ padding: "12px 16px", borderBottom: "0.5px solid var(--border)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+        <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500 }}>{context.title}</p>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button onClick={() => newChat()} className="btn" style={{ fontSize: 11, padding: "4px 9px" }} aria-label="新建对话" title="新建对话">
+            <i className="ti ti-plus" style={{ fontSize: 12 }} />
+          </button>
+          <button onClick={() => setHistoryOpen(true)} className="btn" style={{ fontSize: 11, padding: "4px 9px" }} aria-label="历史" title="历史">
+            <i className="ti ti-history" style={{ fontSize: 12 }} />
+          </button>
+          <button onClick={() => setOpen(false)} className="btn" style={{ fontSize: 11, padding: "4px 9px" }} aria-label="关闭">×</button>
         </div>
-        <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 4 }}>{context.subtitle}</p>
       </div>
+      <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 4 }}>{context.subtitle}</p>
+    </div>
+  );
 
-      <div ref={msgsRef} style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+  return (
+    <DraggableWindow
+      origin={origin}
+      storageKey="ai-panel"
+      defaultSize={{ w: 380, h: 540 }}
+      minSize={{ w: 320, h: 360 }}
+      onClose={() => setOpen(false)}
+      header={header}
+    >
+      <div
+        ref={msgsRef}
+        style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, minHeight: 0 }}
+      >
         {history.map((m, i) => (
           <div
             key={i}
             className="fade-up"
             style={{
-              padding: "9px 13px", borderRadius: "var(--r2)", fontSize: 12, lineHeight: 1.65,
-              maxWidth: 210, background: m.role === "ai" ? "var(--bg2)" : "var(--text)",
-              color: m.role === "ai" ? "var(--text)" : "var(--bg)",
               alignSelf: m.role === "ai" ? "flex-start" : "flex-end",
+              maxWidth: "85%",
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
             }}
           >
-            {m.text}
+            {m.text && (
+              <div
+                style={{
+                  padding: "9px 13px", borderRadius: "var(--r2)", fontSize: 12, lineHeight: 1.65,
+                  background: m.role === "ai" ? "var(--bg2)" : "var(--text)",
+                  color: m.role === "ai" ? "var(--text)" : "var(--bg)",
+                  whiteSpace: "pre-wrap", wordBreak: "break-word",
+                }}
+              >
+                {m.text}
+              </div>
+            )}
+            {m.role === "ai" && m.sources && m.sources.length > 0 && (
+              <SourceChips sources={m.sources} />
+            )}
           </div>
         ))}
         {typing && (
@@ -101,25 +134,119 @@ export function AIPanel() {
             send(input);
             setInput("");
           }}
-          style={{ display: "flex", gap: 6 }}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            background: "var(--bg2)",
+            border: `0.5px solid ${webSearch ? "var(--gold)" : "var(--border)"}`,
+            borderRadius: "var(--r)",
+            padding: "8px 10px 8px 12px",
+            transition: "border-color .12s",
+          }}
         >
-          <input
+          <textarea
+            ref={taRef}
+            rows={1}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="问点什么…"
+            onKeyDown={(e) => {
+              // Enter 发送 / Shift+Enter 换行；IME 组合输入中的 Enter 不当作发送
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                if (input.trim()) {
+                  send(input);
+                  setInput("");
+                }
+              }
+            }}
+            placeholder={webSearch ? "联网搜索 + AI…" : "问点什么…"}
             style={{
-              flex: 1, padding: "8px 11px", border: "0.5px solid var(--border)",
-              borderRadius: "var(--r2)", background: "var(--bg2)", fontSize: 12,
-              outline: "none", fontFamily: "inherit",
+              width: "100%", padding: "2px 0",
+              border: "none", background: "transparent",
+              fontSize: 13, outline: "none", fontFamily: "inherit",
+              color: "var(--text)",
+              resize: "none",
+              lineHeight: 1.5,
+              maxHeight: 160,
+              overflowY: "auto",
             }}
           />
-          <button type="submit" className="btn primary" style={{ fontSize: 12, padding: "8px 12px" }}>
-            发送
-          </button>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => setWebSearch(!webSearch)}
+              title={webSearch ? "联网搜索已开启 · 点击关闭" : "联网搜索（基于实时网页，需先在设置里填 Brave API key）"}
+              aria-label={webSearch ? "关闭联网搜索" : "开启联网搜索"}
+              aria-pressed={webSearch}
+              style={{
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                width: 26, height: 26,
+                border: "none",
+                background: "transparent",
+                color: webSearch ? "var(--gold)" : "var(--text2)",
+                cursor: "pointer", fontFamily: "inherit", padding: 0,
+                transition: "color .12s",
+              }}
+            >
+              <i className="ti ti-world" style={{ fontSize: 16 }} />
+            </button>
+            <button
+              type="submit"
+              disabled={!input.trim()}
+              aria-label="发送"
+              style={{
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                width: 28, height: 28, borderRadius: 999,
+                border: "none",
+                background: input.trim() ? "var(--gold)" : "var(--border)",
+                color: input.trim() ? "#1C1C1A" : "var(--text3)",
+                cursor: input.trim() ? "pointer" : "default",
+                transition: "background .12s, color .12s",
+              }}
+            >
+              <i className="ti ti-arrow-up" style={{ fontSize: 14 }} />
+            </button>
+          </div>
         </form>
       </div>
 
       <AIHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
+    </DraggableWindow>
+  );
+}
+
+function SourceChips({ sources }: { sources: SourceLink[] }) {
+  return (
+    <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+      {sources.map((s, i) => (
+        <a
+          key={i}
+          href={s.url}
+          target="_blank"
+          rel="noreferrer noopener"
+          title={s.title}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 4,
+            padding: "3px 8px 3px 4px", borderRadius: 999,
+            background: "var(--bg)", border: "0.5px solid var(--border)",
+            color: "var(--text2)", textDecoration: "none",
+            fontSize: 10, fontFamily: "var(--mono)",
+            cursor: "pointer", maxWidth: 160,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}
+        >
+          <img
+            src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(s.domain)}&sz=32`}
+            alt=""
+            width={12}
+            height={12}
+            style={{ borderRadius: 2, flexShrink: 0 }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{`[${i + 1}] ${s.domain}`}</span>
+        </a>
+      ))}
     </div>
   );
 }

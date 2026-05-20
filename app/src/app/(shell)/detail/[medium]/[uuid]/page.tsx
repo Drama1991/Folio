@@ -167,8 +167,8 @@ function extractMetaKV(item: Record<string, unknown>, medium: UiMedium): [string
 }
 
 function pickTotalEpisodes(item: Record<string, unknown>): number | undefined {
-  const v = item.episode_count ?? item.season_count;
-  return typeof v === "number" ? v : undefined;
+  const v = item.episode_count;
+  return typeof v === "number" && v > 0 ? v : undefined;
 }
 
 function pickTotalPages(item: Record<string, unknown>): number | undefined {

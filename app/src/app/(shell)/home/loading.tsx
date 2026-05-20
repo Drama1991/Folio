@@ -3,14 +3,14 @@ import { Skeleton } from "@/components/shared/Skeleton";
 export default function HomeLoading() {
   return (
     <div style={{ padding: "28px 24px 24px" }}>
-      {/* HomeHero 问候语 */}
-      <div style={{ marginBottom: 22 }}>
-        <Skeleton width={180} height={11} radius={3} style={{ marginBottom: 8 }} />
-        <Skeleton width={260} height={28} radius={4} />
+      {/* HomeHero 问候语 + 右侧 AI logo */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 22 }}>
+        <div style={{ flex: 1 }}>
+          <Skeleton width={260} height={36} radius={4} style={{ marginBottom: 8 }} />
+          <Skeleton width={180} height={11} radius={3} />
+        </div>
+        <Skeleton width={44} height={44} radius={22} />
       </div>
-
-      {/* ActionBar */}
-      <Skeleton width="100%" height={64} radius={10} style={{ marginBottom: 14 }} />
 
       {/* BentoTop: featured + 4 stat boxes */}
       <div
@@ -60,9 +60,9 @@ export default function HomeLoading() {
       </div>
 
       {/* CategoryCells */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8 }}>
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} width="100%" height={70} radius={6} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} width="100%" height={138} radius={6} />
         ))}
       </div>
     </div>

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { statusVerb, type UiMedium } from "@/lib/format/verbs";
-import { gradientFor } from "@/lib/format/cover-gradient";
 import { relativeTime } from "@/lib/format/dates";
+import { RatingTag } from "@/components/shared/RatingTag";
+import { Cover } from "@/components/shared/Cover";
 import type { UiTimelineEntry } from "@/lib/neodb/ui-types";
 
 const STATUS_PILL: Record<string, { bg: string; fg: string }> = {
@@ -37,11 +38,9 @@ export function ActivityStrip({ recent }: { recent: UiTimelineEntry[] }) {
 
 function ActivityRow({ e }: { e: UiTimelineEntry }) {
   const pill = STATUS_PILL[e.status] ?? STATUS_PILL.complete;
-  const grad = gradientFor(e.uuid);
-  // Use the gradient first color via class via parent computed; simpler: use the gradient class on the bar
   return (
     <Link href={`/detail/${e.medium}/${e.uuid}`} className="row" style={{ textDecoration: "none", color: "inherit" }}>
-      <div className={grad} style={{ width: 3, height: 34, borderRadius: 2, flexShrink: 0 }} />
+      <Cover src={e.cover ?? undefined} seed={e.uuid} width={32} height={46} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500 }}>{e.title}</p>
         <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 2 }}>
@@ -49,9 +48,7 @@ function ActivityRow({ e }: { e: UiTimelineEntry }) {
         </p>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text2)" }}>
-          {e.rating ? `★ ${e.rating.toFixed(1)}` : "—"}
-        </span>
+        <RatingTag own={e.rating} external={e.externalRating} />
         <span className="badge" style={{ background: pill.bg, color: pill.fg }}>
           {statusVerb(e.medium as UiMedium, e.status)}
         </span>

@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { gradientFor } from "@/lib/format/cover-gradient";
-import { statusVerb, mediumLabel, type UiMedium } from "@/lib/format/verbs";
+import { relativeTime } from "@/lib/format/dates";
+import { statusVerb, mediumLabel, type UiMedium, type ShelfStatus } from "@/lib/format/verbs";
 import type { UiTimelineEntry } from "@/lib/neodb/ui-types";
 
-interface Stats {
-  progress: number;
-  wishlist: number;
-  complete: number;
-  dropped: number;
-}
-
-export function BentoTop({ featured, stats }: { featured: UiTimelineEntry | null; stats: Stats }) {
+export function BentoTop({
+  featured,
+  continueWatching,
+  continuePanelTitle = "继续看",
+}: {
+  featured: UiTimelineEntry | null;
+  continueWatching: UiTimelineEntry[];
+  continuePanelTitle?: string;
+}) {
   return (
     <div
       style={{
@@ -18,18 +20,137 @@ export function BentoTop({ featured, stats }: { featured: UiTimelineEntry | null
         gridTemplateColumns: "minmax(0,3fr) minmax(0,2fr)",
         gap: 10,
         marginBottom: 10,
+        alignItems: "stretch",
       }}
     >
       <FeaturedCard entry={featured} />
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <StatBox label="在看" value={stats.progress} />
-          <StatBox label="想看" value={stats.wishlist} />
-          <StatBox label="累计" value={stats.complete} muted />
-          <StatBox label="弃" value={stats.dropped} muted />
-        </div>
+      <ContinuePanel items={continueWatching} title={continuePanelTitle} />
+    </div>
+  );
+}
+
+function ContinuePanel({ items, title }: { items: UiTimelineEntry[]; title: string }) {
+  const slots: (UiTimelineEntry | null)[] = [items[0] ?? null, items[1] ?? null];
+  return (
+    <div
+      style={{
+        border: "0.5px solid var(--border)",
+        borderRadius: "var(--r)",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        minHeight: 196,
+        background: "var(--bg)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "10px 14px",
+          borderBottom: "0.5px solid var(--border)",
+        }}
+      >
+        <span className="section-label">{title}</span>
+        <Link
+          href="/timeline"
+          style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", textDecoration: "none" }}
+        >
+          全部 →
+        </Link>
+      </div>
+      <div style={{ flex: 1, display: "grid", gridTemplateRows: "1fr 1fr" }}>
+        {slots.map((it, i) =>
+          it ? (
+            <ContinueCard key={it.uuid} entry={it} divider={i === 0} />
+          ) : (
+            <EmptySlot key={`empty-${i}`} divider={i === 0} />
+          ),
+        )}
       </div>
     </div>
+  );
+}
+
+function ContinueCard({ entry, divider }: { entry: UiTimelineEntry; divider: boolean }) {
+  const grad = gradientFor(entry.uuid);
+  return (
+    <Link
+      href={`/detail/${entry.medium}/${entry.uuid}`}
+      className="cell-link"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "10px 14px",
+        borderBottom: divider ? "0.5px solid var(--border)" : "none",
+        minWidth: 0,
+        textDecoration: "none",
+        color: "inherit",
+      }}
+    >
+      <div
+        aria-hidden
+        className={entry.cover ? undefined : grad}
+        style={{
+          flexShrink: 0,
+          width: 38,
+          height: 54,
+          borderRadius: 4,
+          background: entry.cover ? `url(${entry.cover}) center/cover no-repeat` : undefined,
+          border: "0.5px solid var(--border)",
+        }}
+      />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p
+          style={{
+            fontFamily: "var(--serif)",
+            fontSize: 14,
+            fontWeight: 500,
+            lineHeight: 1.25,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {entry.title}
+        </p>
+        <p
+          style={{
+            fontFamily: "var(--mono)",
+            fontSize: 10,
+            color: "var(--text3)",
+            marginTop: 4,
+          }}
+        >
+          {statusVerb(entry.medium as UiMedium, entry.status as ShelfStatus)} · {mediumLabel(entry.medium as UiMedium)} · {relativeTime(entry.createdAt)}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+function EmptySlot({ divider }: { divider: boolean }) {
+  return (
+    <Link
+      href="/discover"
+      className="cell-link"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        padding: "10px 14px",
+        borderBottom: divider ? "0.5px solid var(--border)" : "none",
+        color: "var(--text3)",
+        fontFamily: "var(--mono)",
+        fontSize: 11,
+        textDecoration: "none",
+      }}
+    >
+      + 再追一部
+    </Link>
   );
 }
 
@@ -52,23 +173,6 @@ function ProgressBadge({ progress, medium }: { progress?: string; medium: UiMedi
         {label}
       </span>
     </span>
-  );
-}
-
-function StatBox({ label, value, muted }: { label: string; value: number; muted?: boolean }) {
-  return (
-    <div
-      style={{
-        background: muted ? "var(--bg2)" : "#FAEEDA",
-        borderRadius: "var(--r2)",
-        padding: "12px 14px",
-      }}
-    >
-      <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: muted ? "var(--text3)" : "#854F0B", marginBottom: 4 }}>
-        {label}
-      </p>
-      <p style={{ fontSize: 20, fontWeight: 500, color: muted ? "var(--text)" : "#412402" }}>{value}</p>
-    </div>
   );
 }
 

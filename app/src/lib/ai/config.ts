@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
-import { DEFAULT_AI_CONFIG, type AIConfig, type ProviderKind } from "./types";
+import { DEFAULT_AI_CONFIG, type AIConfig, type ProviderKind, type SearchConfig, type SearchProviderKind } from "./types";
 
 const AI_COOKIE_NAME = "folio_ai";
 const TTL_SECONDS = 365 * 24 * 60 * 60;
@@ -55,6 +55,10 @@ export function maskedConfig(cfg: AIConfig): AIConfig {
     aggregator: { ...cfg.aggregator, apiKey: maskKey(cfg.aggregator.apiKey) },
     openai: { ...cfg.openai, apiKey: maskKey(cfg.openai.apiKey) },
     gemini: { ...cfg.gemini, apiKey: maskKey(cfg.gemini.apiKey) },
+    search: {
+      provider: cfg.search.provider,
+      brave: { apiKey: maskKey(cfg.search.brave.apiKey) },
+    },
   };
 }
 
@@ -65,6 +69,7 @@ export function mergeForUpdate(current: AIConfig, patch: Partial<AIConfig>): AIC
     aggregator: mergeCreds(current.aggregator, patch.aggregator),
     openai: mergeCreds(current.openai, patch.openai),
     gemini: mergeCreds(current.gemini, patch.gemini),
+    search: mergeSearch(current.search, patch.search),
   };
   return next;
 }
@@ -78,6 +83,19 @@ function mergeCreds(cur: AIConfig["aggregator"], patch: Partial<AIConfig["aggreg
   };
 }
 
+function mergeSearch(cur: SearchConfig, patch: Partial<SearchConfig> | undefined): SearchConfig {
+  if (!patch) return cur;
+  return {
+    provider: (patch.provider as SearchProviderKind) || cur.provider,
+    brave: {
+      apiKey:
+        patch.brave?.apiKey && patch.brave.apiKey.length > 0
+          ? patch.brave.apiKey
+          : cur.brave.apiKey,
+    },
+  };
+}
+
 function mergeWithDefaults(data: unknown): AIConfig {
   if (!data || typeof data !== "object") return DEFAULT_AI_CONFIG;
   const d = data as Partial<AIConfig>;
@@ -86,6 +104,10 @@ function mergeWithDefaults(data: unknown): AIConfig {
     aggregator: { ...DEFAULT_AI_CONFIG.aggregator, ...(d.aggregator || {}) },
     openai: { ...DEFAULT_AI_CONFIG.openai, ...(d.openai || {}) },
     gemini: { ...DEFAULT_AI_CONFIG.gemini, ...(d.gemini || {}) },
+    search: {
+      provider: (d.search?.provider as SearchProviderKind) || DEFAULT_AI_CONFIG.search.provider,
+      brave: { ...DEFAULT_AI_CONFIG.search.brave, ...(d.search?.brave || {}) },
+    },
   };
 }
 
