@@ -120,10 +120,38 @@ export function markToTimelineEntry(mark: NeoDBMark): UiTimelineEntry {
   };
 }
 
+/**
+ * NeoDB review API 不返回 uuid 字段，需要从 url / api_url 提取。
+ * 兼容：
+ *   - 绝对 URL：https://x/review/{uuid}/
+ *   - 相对路径：/review/{uuid}  ← NeoDB /me/review 实际返回这种
+ *   - 双斜杠 bug：/api//review/{uuid}
+ * 策略：剥 query/hash → split("/") → 取最后一个非空段。
+ */
+function parseReviewUuid(url?: string): string {
+  if (!url) return "";
+  const path = url.split("?")[0].split("#")[0];
+  const parts = path.split("/").filter(Boolean);
+  return parts[parts.length - 1] ?? "";
+}
+
 export function reviewToUi(review: NeoDBReview): UiReviewSummary {
   const ui = itemToUi(review.item);
+  const uuid = review.uuid || parseReviewUuid(review.url) || parseReviewUuid(review.api_url);
+  if (!uuid) {
+    console.warn(
+      "[reviewToUi] uuid empty — raw review payload:\n" +
+      JSON.stringify({
+        keys: Object.keys(review),
+        url: review.url,
+        api_url: review.api_url,
+        title: review.title,
+        item_uuid: review.item?.uuid,
+      }, null, 2),
+    );
+  }
   return {
-    uuid: review.uuid,
+    uuid,
     itemUuid: ui.uuid,
     itemMedium: ui.medium,
     itemTitle: ui.title,

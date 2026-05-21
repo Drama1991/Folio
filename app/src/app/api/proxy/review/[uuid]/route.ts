@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/cookie";
-import { postReview, tags as cacheTags } from "@/lib/neodb/client";
+import { deleteReview, postReview, tags as cacheTags } from "@/lib/neodb/client";
 import type { NeoDBVisibility } from "@/lib/neodb/types";
 import { revalidateTag } from "next/cache";
 
@@ -21,6 +21,20 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ uuid: stri
     return NextResponse.json({ ok: true, review: res ?? null });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "post_failed";
+    return NextResponse.json({ error: msg }, { status: 502 });
+  }
+}
+
+export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ uuid: string }> }) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const { uuid } = await ctx.params; // 这里是 item_uuid（NeoDB delete 端点按 item 索引）
+  try {
+    await deleteReview(uuid);
+    revalidateTag(cacheTags.myReviews());
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "delete_failed";
     return NextResponse.json({ error: msg }, { status: 502 });
   }
 }

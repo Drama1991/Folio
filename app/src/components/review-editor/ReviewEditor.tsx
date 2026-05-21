@@ -15,14 +15,31 @@ interface Props {
   cover?: string;
   year?: number | string;
   creator?: string;
+  /** 编辑模式预填字段；不传则为新建 */
+  initialTitle?: string;
+  initialBody?: string;
+  initialVisibility?: 0 | 1 | 2;
+  /** 编辑模式下用于面包屑显示和成功后回跳目标 */
+  mode?: "new" | "edit";
 }
 
-export function ReviewEditor({ uuid, medium, title, cover, year, creator }: Props) {
+export function ReviewEditor({
+  uuid,
+  medium,
+  title,
+  cover,
+  year,
+  creator,
+  initialTitle = "",
+  initialBody = "",
+  initialVisibility = 0,
+  mode = "new",
+}: Props) {
   const router = useRouter();
   const show = useToast((s) => s.show);
-  const [t, setT] = useState("");
-  const [body, setBody] = useState("");
-  const [visibility, setVisibility] = useState<0 | 1 | 2>(0);
+  const [t, setT] = useState(initialTitle);
+  const [body, setBody] = useState(initialBody);
+  const [visibility, setVisibility] = useState<0 | 1 | 2>(initialVisibility);
   const [saving, setSaving] = useState(false);
 
   const len = body.length;
@@ -42,10 +59,10 @@ export function ReviewEditor({ uuid, medium, title, cover, year, creator }: Prop
         const j = await res.json().catch(() => null);
         throw new Error(j?.error ?? "post_failed");
       }
-      show("已发布长评");
+      show(mode === "edit" ? "已保存" : "已发布长评");
       router.push(`/detail/${medium}/${uuid}`);
     } catch (err) {
-      show(`发布失败：${err instanceof Error ? err.message : ""}`);
+      show(`${mode === "edit" ? "保存" : "发布"}失败：${err instanceof Error ? err.message : ""}`);
     } finally {
       setSaving(false);
     }
@@ -58,7 +75,7 @@ export function ReviewEditor({ uuid, medium, title, cover, year, creator }: Prop
         <span style={{ color: "var(--text3)", fontFamily: "var(--mono)", fontSize: 11 }}>/</span>
         <Link href={`/detail/${medium}/${uuid}`} className="crumb">{title}</Link>
         <span style={{ color: "var(--text3)", fontFamily: "var(--mono)", fontSize: 11 }}>/</span>
-        <span className="crumb cur">写长评</span>
+        <span className="crumb cur">{mode === "edit" ? "编辑长评" : "写长评"}</span>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, background: "var(--bg2)", borderRadius: "var(--r)", marginBottom: 18 }}>
@@ -113,7 +130,7 @@ export function ReviewEditor({ uuid, medium, title, cover, year, creator }: Prop
           </label>
           <Link href={`/detail/${medium}/${uuid}`} className="btn" style={{ fontSize: 12 }}>取消</Link>
           <button onClick={publish} disabled={saving} className="btn primary" style={{ fontSize: 13 }}>
-            {saving ? "发布中…" : "发布"}
+            {saving ? (mode === "edit" ? "保存中…" : "发布中…") : (mode === "edit" ? "保存" : "发布")}
           </button>
         </div>
       </div>

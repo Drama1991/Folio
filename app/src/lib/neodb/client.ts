@@ -1,6 +1,8 @@
 import "server-only";
 import { getSession } from "@/lib/auth/cookie";
 import type {
+  NeoDBCollection,
+  NeoDBCollectionItem,
   NeoDBItemBase,
   NeoDBMark,
   NeoDBNote,
@@ -9,6 +11,7 @@ import type {
   NeoDBReview,
   NeoDBSearchResult,
   NeoDBShelfType,
+  NeoDBTag,
   NeoDBVisibility,
 } from "./types";
 import { endpointSegment, toNeoDBCategory, trendingSegment } from "./mediumMap";
@@ -73,10 +76,14 @@ export const tags = {
   shelfAny: () => "neodb:shelf",
   myMark: (uuid: string) => `neodb:my-mark:${uuid}`,
   myReviews: () => "neodb:my-reviews",
+  review: (uuid: string) => `neodb:review:${uuid}`,
   myNotes: (uuid: string) => `neodb:my-notes:${uuid}`,
   item: (uuid: string) => `neodb:item:${uuid}`,
   itemPosts: (uuid: string, type: string) => `neodb:item-posts:${uuid}:${type}`,
   trending: (medium: UiMedium) => `neodb:trending:${medium}`,
+  myCollections: () => "neodb:my-collections",
+  collectionItems: (uuid: string) => `neodb:collection-items:${uuid}`,
+  myTags: () => "neodb:my-tags",
 };
 
 // ─── Account ─────────────────────────────────────────────────────────
@@ -202,6 +209,31 @@ export async function listMyReviews(opts: { page?: number; category?: UiMedium }
   }
 }
 
+/**
+ * 取当前用户对某 item 的 review（用于 ownership 检测 + 预填编辑器）。
+ * 没有则返回 null（NeoDB 通常 404 或 403）。
+ */
+export async function getMyReviewOfItem(itemUuid: string): Promise<NeoDBReview | null> {
+  try {
+    return await neodb<NeoDBReview>(`/api/me/review/item/${itemUuid}`, noStore());
+  } catch (err) {
+    if (err instanceof NeoDBError && (err.status === 404 || err.status === 403)) return null;
+    throw err;
+  }
+}
+
+export async function deleteReview(itemUuid: string): Promise<void> {
+  await neodb<void>(`/api/me/review/item/${itemUuid}`, { method: "DELETE", ...noStore() });
+}
+
+/**
+ * 公共 review 取详情（含 html_content）。NeoDB endpoint: GET /api/review/{uuid}/
+ * 鉴权：OptionalOAuthAccessTokenAuth — 带 token 看私密可见性更宽，匿名也能取公开。
+ */
+export async function getReview(uuid: string): Promise<NeoDBReview> {
+  return neodb<NeoDBReview>(`/api/review/${uuid}`, cached([tags.review(uuid)]));
+}
+
 // ─── Notes ──────────────────────────────────────────────────────────
 export async function listMyNotes(uuid: string): Promise<NeoDBPaged<NeoDBNote>> {
   try {
@@ -250,6 +282,52 @@ export async function listTrending(opts: { medium: UiMedium }): Promise<NeoDBIte
     return res.data ?? [];
   } catch (e) {
     console.warn(`[listTrending] /api/trending/${seg}/ failed:`, e instanceof Error ? e.message : e);
+    return [];
+  }
+}
+
+// ─── Collections (合集) ─────────────────────────────────────────────
+export async function listMyCollections(opts: { page?: number } = {}): Promise<NeoDBPaged<NeoDBCollection>> {
+  const params = new URLSearchParams();
+  if (opts.page) params.set("page", String(opts.page));
+  const qs = params.toString();
+  try {
+    return await neodb<NeoDBPaged<NeoDBCollection>>(
+      `/api/me/collection/${qs ? "?" + qs : ""}`,
+      cached([tags.myCollections()]),
+    );
+  } catch {
+    return { data: [] };
+  }
+}
+
+export async function listCollectionItems(
+  uuid: string,
+  opts: { page?: number } = {},
+): Promise<NeoDBPaged<NeoDBCollectionItem>> {
+  const params = new URLSearchParams();
+  if (opts.page) params.set("page", String(opts.page));
+  const qs = params.toString();
+  try {
+    return await neodb<NeoDBPaged<NeoDBCollectionItem>>(
+      `/api/me/collection/${uuid}/item/${qs ? "?" + qs : ""}`,
+      cached([tags.collectionItems(uuid)]),
+    );
+  } catch {
+    return { data: [] };
+  }
+}
+
+// ─── Tags ───────────────────────────────────────────────────────────
+export async function listMyTags(): Promise<NeoDBTag[]> {
+  try {
+    const res = await neodb<NeoDBPaged<NeoDBTag> | NeoDBTag[]>(
+      `/api/me/tag/`,
+      cached([tags.myTags()]),
+    );
+    if (Array.isArray(res)) return res;
+    return res.data ?? [];
+  } catch {
     return [];
   }
 }

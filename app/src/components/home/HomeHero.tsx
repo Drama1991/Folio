@@ -10,22 +10,15 @@ export function HomeHero({ display }: { display: string }) {
   const g = now ? greeting(now) : "夜安";
   const hd = now ? todayHeader(now) : "";
   return (
-    <div style={{ marginBottom: 16, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontFamily: "var(--serif)", fontSize: 40, fontWeight: 500, lineHeight: 1, letterSpacing: "-0.02em" }}>
-          {g}。
-        </p>
-        <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", letterSpacing: ".06em", marginTop: 8 }}>
-          {display} · {hd}
-        </p>
-      </div>
+    <div style={{ marginBottom: 16 }}>
       <button
         onClick={(e) => openAI(true, "home", { x: e.clientX, y: e.clientY })}
-        aria-label="AI 建议"
-        title="AI 建议"
-        className="ai-logo-btn"
+        aria-label="和 AI 聊聊"
+        title="和 AI 聊聊"
+        className="hero-greet"
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <span className="hero-greet__text">{g}</span>
+        <svg className="hero-greet__spark" width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
           {/* 主 sparkle —— 四角星，AI 行业视觉锚点 */}
           <path
             d="M12 2.5 L13.7 9.6 L20.8 11.3 L13.7 13.0 L12 20.1 L10.3 13.0 L3.2 11.3 L10.3 9.6 Z"
@@ -46,6 +39,9 @@ export function HomeHero({ display }: { display: string }) {
           </defs>
         </svg>
       </button>
+      <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", letterSpacing: ".06em", marginTop: 8 }}>
+        {display} · {hd}
+      </p>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { Stars } from "@/components/shared/Stars";
 import { relativeTime } from "@/lib/format/dates";
 import type { UiCommunityComment, UiCommunityReview } from "@/lib/neodb/ui-types";
@@ -13,6 +14,21 @@ interface Props {
   initialReviews: UiCommunityReview[];
   initialReviewPages: number;
   reviewCount: number;
+  /** 当前 session 绑定的 NeoDB 实例 host；用于判断 reviewUrl 是否同站可以内部路由 */
+  homeInstance: string | null;
+}
+
+/** 同站 review URL 提取 uuid → 内部 /review/{uuid} 可达；联邦或解析失败返回 null。 */
+function localReviewUuid(reviewUrl: string | undefined, homeInstance: string | null): string | null {
+  if (!reviewUrl || !homeInstance) return null;
+  try {
+    const u = new URL(reviewUrl);
+    if (u.hostname !== homeInstance) return null;
+    const m = u.pathname.match(/^\/review\/([^/]+)\/?$/);
+    return m?.[1] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function CommunityPosts({
@@ -23,6 +39,7 @@ export function CommunityPosts({
   initialReviews,
   initialReviewPages,
   reviewCount,
+  homeInstance,
 }: Props) {
   if (initialComments.length === 0 && initialReviews.length === 0) return null;
 
@@ -42,6 +59,7 @@ export function CommunityPosts({
           initial={initialReviews}
           initialPages={initialReviewPages}
           total={reviewCount}
+          homeInstance={homeInstance}
         />
       )}
     </div>
@@ -106,11 +124,13 @@ function ReviewsCard({
   initial,
   initialPages,
   total,
+  homeInstance,
 }: {
   uuid: string;
   initial: UiCommunityReview[];
   initialPages: number;
   total: number;
+  homeInstance: string | null;
 }) {
   const [list, setList] = useState<UiCommunityReview[]>(initial);
   const [page, setPage] = useState(1);
@@ -140,7 +160,7 @@ function ReviewsCard({
   return (
     <Card title="社区长评" shown={list.length} total={total}>
       {list.map((r, i) => (
-        <ReviewRow key={r.id} r={r} isLast={i === list.length - 1 && page >= pages} />
+        <ReviewRow key={r.id} r={r} isLast={i === list.length - 1 && page >= pages} homeInstance={homeInstance} />
       ))}
       <LoadMoreFooter
         canLoad={page < pages}
@@ -350,17 +370,9 @@ function CommentRow({ c, isLast }: { c: UiCommunityComment; isLast: boolean }) {
   );
 }
 
-function ReviewRow({ r, isLast }: { r: UiCommunityReview; isLast: boolean }) {
-  return (
-    <div
-      style={{
-        padding: "12px 16px",
-        borderBottom: isLast ? undefined : "0.5px solid var(--border)",
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-      }}
-    >
+function ReviewRow({ r, isLast, homeInstance }: { r: UiCommunityReview; isLast: boolean; homeInstance: string | null }) {
+  const body = (
+    <>
       <AuthorLine author={r.author} createdAt={r.createdAt} rating={r.rating} />
       <p style={{ fontFamily: "var(--serif)", fontSize: 15, fontWeight: 500, lineHeight: 1.3, color: "var(--text)" }}>
         {r.title}
@@ -378,6 +390,34 @@ function ReviewRow({ r, isLast }: { r: UiCommunityReview; isLast: boolean }) {
           {r.excerpt}
         </p>
       )}
-    </div>
+    </>
   );
+
+  const wrapStyle: React.CSSProperties = {
+    padding: "12px 16px",
+    borderBottom: isLast ? undefined : "0.5px solid var(--border)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    textDecoration: "none",
+    color: "inherit",
+  };
+
+  // 同站 → 内部全文阅读；联邦/解析失败 → 外链
+  const localUuid = localReviewUuid(r.reviewUrl, homeInstance);
+  if (localUuid) {
+    return (
+      <Link href={`/review/${localUuid}`} style={wrapStyle} title="阅读全文">
+        {body}
+      </Link>
+    );
+  }
+  if (r.reviewUrl) {
+    return (
+      <a href={r.reviewUrl} target="_blank" rel="noreferrer noopener" style={wrapStyle} title="在 NeoDB 阅读全文">
+        {body}
+      </a>
+    );
+  }
+  return <div style={wrapStyle}>{body}</div>;
 }

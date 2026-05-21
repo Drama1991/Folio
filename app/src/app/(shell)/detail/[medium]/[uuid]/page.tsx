@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { getSession } from "@/lib/auth/cookie";
 import { getItem, getMyMark, listItemPosts } from "@/lib/neodb/client";
 import { itemToUi, postToUiComment, postToUiReview } from "@/lib/neodb/mappers";
 import { ratingToUi } from "@/components/shared/Stars";
@@ -22,6 +23,8 @@ export default async function DetailPage({ params }: PageProps) {
   const { medium: rawMedium, uuid } = await params;
   if (!ALL_UI_MEDIUMS.includes(rawMedium as UiMedium)) notFound();
   const medium = rawMedium as UiMedium;
+  const session = await getSession();
+  const homeInstance = session?.instance ?? null;
 
   let item;
   try {
@@ -84,6 +87,7 @@ export default async function DetailPage({ params }: PageProps) {
             initialReviews={reviews}
             initialReviewPages={reviewPage.pages ?? 1}
             reviewCount={reviewPage.count ?? reviews.length}
+            homeInstance={homeInstance}
           />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

@@ -50,9 +50,9 @@ export default async function TimelinePage({ searchParams }: PageProps) {
       </p>
 
       <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
-        <Link href={`/timeline`} className={`btn${!filterMedium ? " primary" : ""}`} style={{ borderRadius: 999, fontSize: 11, textDecoration: "none" }}>全部</Link>
+        <Link href={`/timeline`} className={`chip${!filterMedium ? " on" : ""}`}>全部</Link>
         {ALL_UI_MEDIUMS.map((m) => (
-          <Link key={m} href={`/timeline?filter=${m}`} className={`btn${filterMedium === m ? " primary" : ""}`} style={{ borderRadius: 999, fontSize: 11, textDecoration: "none" }}>
+          <Link key={m} href={`/timeline?filter=${m}`} className={`chip${filterMedium === m ? " on" : ""}`}>
             {mediumLabel(m)}
           </Link>
         ))}

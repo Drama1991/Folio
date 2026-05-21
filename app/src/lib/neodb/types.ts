@@ -42,8 +42,10 @@ export interface NeoDBMark {
 }
 
 export interface NeoDBReview {
-  uuid: string;
+  /** NeoDB API 实际并不返回此字段，从 url 提取。保留为可选以便未来兼容。 */
+  uuid?: string;
   url: string;
+  api_url?: string;
   title: string;
   body: string;
   html_content?: string;
@@ -79,6 +81,32 @@ export interface NeoDBPaged<T> {
   pages?: number;
   count?: number;
   page?: number;
+}
+
+// ─── Collection (合集) ──────────────────────────────────────────────
+export interface NeoDBCollection {
+  uuid: string;
+  url: string;
+  api_url?: string;
+  visibility: NeoDBVisibility;
+  title: string;
+  brief: string;
+  cover_image_url?: string | null;
+  is_dynamic?: boolean;
+  item_count_by_category?: Record<string, number>;
+  created_time: string;
+}
+
+export interface NeoDBCollectionItem {
+  item: NeoDBItemBase;
+  note?: string;
+}
+
+// ─── Tag ────────────────────────────────────────────────────────────
+export interface NeoDBTag {
+  uuid: string;
+  title: string;
+  visibility: NeoDBVisibility;
 }
 
 // ─── Item posts (Mastodon-compatible, subset) ───────────────────────
