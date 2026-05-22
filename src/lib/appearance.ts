@@ -6,12 +6,14 @@ export type Theme = "light" | "dark" | "auto";
 export type FontScale = "compact" | "normal" | "relaxed";
 export type Density = "cozy" | "compact";
 export type MotionPref = "auto" | "on" | "off";
+export type Grain = "off" | "on";
 
 export interface Appearance {
   theme: Theme;
   fontScale: FontScale;
   density: Density;
   motion: MotionPref;
+  grain: Grain;
 }
 
 export const DEFAULT_APPEARANCE: Appearance = {
@@ -19,6 +21,7 @@ export const DEFAULT_APPEARANCE: Appearance = {
   fontScale: "normal",
   density: "cozy",
   motion: "auto",
+  grain: "off",
 };
 
 const KEY = "folio:appearance";
@@ -41,6 +44,7 @@ function apply(a: Appearance) {
   d.dataset.fontScale = a.fontScale;
   d.dataset.density = a.density;
   d.dataset.motion = a.motion;
+  d.dataset.grain = a.grain;
 }
 
 export function useAppearance(): {

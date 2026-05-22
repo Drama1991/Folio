@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #F7F5F0;
-  --color-bg2: #EEECEA;
+  --color-bg: #F5F2EA;
+  --color-bg2: #ECE9E4;
   --color-text: #1C1C1A;
   --color-text2: #5F5E5A;
   --color-text3: #9F9D98;
@@ -19,8 +19,8 @@
 
 :root {
   /* 米白主题（默认） */
-  --bg: #F7F5F0;
-  --bg2: #EEECEA;
+  --bg: #F5F2EA;
+  --bg2: #ECE9E4;
   --text: #1C1C1A;
   --text2: #5F5E5A;
   --text3: #9F9D98;
@@ -100,6 +100,31 @@
   --density-row-y: 8px;
   --density-card-y: 10px;
   --density-card-x: 14px;
+}
+
+/* 纸纹噪点 —— 默认关。开启时在最顶层平铺一张极轻黑色噪点；
+   米白 multiply 呈墨点；深色 invert(1) + screen 让它呈白色纤维。pointer-events:none 不挡交互。 */
+:root[data-grain="on"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("/noise.svg");
+  opacity: 0.08;
+  mix-blend-mode: multiply;
+}
+:root[data-theme="dark"][data-grain="on"] body::before {
+  filter: invert(1);
+  mix-blend-mode: screen;
+  opacity: 0.12;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"][data-grain="on"] body::before {
+    filter: invert(1);
+    mix-blend-mode: screen;
+    opacity: 0.12;
+  }
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

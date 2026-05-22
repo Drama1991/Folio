@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AIConfigForm } from "./AIConfigForm";
-import { useAppearance, type FontScale, type Density, type MotionPref } from "@/lib/appearance";
+import { useAppearance, type FontScale, type Density, type MotionPref, type Grain } from "@/lib/appearance";
 import {
   scanLocalCache,
   clearFolioLocal,
@@ -21,11 +21,11 @@ import {
 type SectionKey = "account" | "neodb" | "ai" | "appearance" | "data" | "about";
 
 const SECTIONS: { key: SectionKey; label: string; icon: string }[] = [
-  { key: "account", label: "账号", icon: "ti-user" },
-  { key: "neodb", label: "NeoDB", icon: "ti-database" },
-  { key: "ai", label: "AI", icon: "ti-sparkles" },
   { key: "appearance", label: "外观", icon: "ti-palette" },
+  { key: "ai", label: "AI", icon: "ti-sparkles" },
+  { key: "neodb", label: "NeoDB", icon: "ti-database" },
   { key: "data", label: "数据", icon: "ti-package" },
+  { key: "account", label: "账号", icon: "ti-user" },
   { key: "about", label: "关于", icon: "ti-info-circle" },
 ];
 
@@ -45,7 +45,7 @@ export function SettingsContent({
   instance, handle, acct, display, version, buildDate,
   sessionIat, sessionExp, userAgent,
 }: Props) {
-  const [section, setSection] = useState<SectionKey>("account");
+  const [section, setSection] = useState<SectionKey>("appearance");
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", minHeight: "calc(100vh - 54px)" }}>
@@ -559,7 +559,7 @@ function AppearancePanel() {
           on={appearance.theme === "light"}
           label="米白"
           sub="默认 · 适合白天"
-          previewBg="#F7F5F0"
+          previewBg="#F5F2EA"
           barColor="#1C1C1A"
           onClick={() => set("theme", "light")}
         />
@@ -575,7 +575,7 @@ function AppearancePanel() {
           on={appearance.theme === "auto"}
           label="跟随系统"
           sub="自动切换"
-          previewBg="linear-gradient(90deg,#F7F5F0 50%,#1A1816 50%)"
+          previewBg="linear-gradient(90deg,#F5F2EA 50%,#1A1816 50%)"
           barColor="transparent"
           onClick={() => set("theme", "auto")}
           split
@@ -614,6 +614,17 @@ function AppearancePanel() {
           { value: "auto", label: "自动", hint: "尊重系统无障碍偏好" },
           { value: "on", label: "开启", hint: "0.18s 渐入" },
           { value: "off", label: "关闭", hint: "无过渡动画" },
+        ]}
+      />
+
+      {/* 纸纹 */}
+      <SubLabel style={{ marginTop: 22 }}>纸纹</SubLabel>
+      <Segmented<Grain>
+        value={appearance.grain}
+        onChange={(v) => set("grain", v)}
+        options={[
+          { value: "off", label: "关闭", hint: "纯色背景" },
+          { value: "on", label: "开启", hint: "极轻噪点 · 模拟纸感" },
         ]}
       />
 

@@ -31,9 +31,10 @@ const APPEARANCE_BOOT = `(function(){try{
   d.dataset.fontScale=p.fontScale||'normal';
   d.dataset.density=p.density||'cozy';
   d.dataset.motion=p.motion||'auto';
+  d.dataset.grain=p.grain||'off';
 }catch(e){
   var d=document.documentElement;
-  d.dataset.theme='auto';d.dataset.fontScale='normal';d.dataset.density='cozy';d.dataset.motion='auto';
+  d.dataset.theme='auto';d.dataset.fontScale='normal';d.dataset.density='cozy';d.dataset.motion='auto';d.dataset.grain='off';
 }})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
