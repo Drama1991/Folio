@@ -6,22 +6,40 @@ import { statusVerb, mediumLabel, type UiMedium } from "@/lib/format/verbs";
 import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
 import { Cover } from "@/components/shared/Cover";
 import { RatingTag } from "@/components/shared/RatingTag";
+import { TimelineStatusFilter, type TimelineStatus } from "@/components/timeline/TimelineStatusFilter";
+
+const STATUS_VALUES: TimelineStatus[] = ["all", "complete", "progress", "wishlist"];
 
 interface PageProps {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; status?: string }>;
+}
+
+function timelineUrl(filter: UiMedium | undefined, status: TimelineStatus): string {
+  const qs = new URLSearchParams();
+  if (filter) qs.set("filter", filter);
+  if (status !== "all") qs.set("status", status);
+  const s = qs.toString();
+  return `/timeline${s ? `?${s}` : ""}`;
 }
 
 export default async function TimelinePage({ searchParams }: PageProps) {
-  const { filter } = await searchParams;
-  const filterMedium = ALL_UI_MEDIUMS.includes(filter as UiMedium) ? (filter as UiMedium) : undefined;
+  const sp = await searchParams;
+  const filterMedium = ALL_UI_MEDIUMS.includes(sp.filter as UiMedium) ? (sp.filter as UiMedium) : undefined;
+  const status: TimelineStatus = STATUS_VALUES.includes(sp.status as TimelineStatus) ? (sp.status as TimelineStatus) : "all";
 
-  const [complete, progress, wishlist] = await Promise.all([
-    listShelf({ type: "complete", category: filterMedium, page: 1 }).catch(() => ({ data: [] as never[] })),
-    listShelf({ type: "progress", category: filterMedium, page: 1 }).catch(() => ({ data: [] as never[] })),
-    listShelf({ type: "wishlist", category: filterMedium, page: 1 }).catch(() => ({ data: [] as never[] })),
-  ]);
+  const shelves =
+    status === "all"
+      ? (["complete", "progress", "wishlist"] as const)
+      : ([status] as const);
 
-  const all = [...(complete.data ?? []), ...(progress.data ?? []), ...(wishlist.data ?? [])]
+  const results = await Promise.all(
+    shelves.map((t) =>
+      listShelf({ type: t, category: filterMedium, page: 1 }).catch(() => ({ data: [] as never[] })),
+    ),
+  );
+
+  const all = results
+    .flatMap((r) => r.data ?? [])
     .map(markToTimelineEntry)
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 
@@ -37,6 +55,13 @@ export default async function TimelinePage({ searchParams }: PageProps) {
   }
   const sortedGroups = Array.from(groups.entries()).sort((a, b) => (a[0] < b[0] ? 1 : -1));
 
+  const statusUrls: Record<TimelineStatus, string> = {
+    all: timelineUrl(filterMedium, "all"),
+    complete: timelineUrl(filterMedium, "complete"),
+    progress: timelineUrl(filterMedium, "progress"),
+    wishlist: timelineUrl(filterMedium, "wishlist"),
+  };
+
   return (
     <div style={{ padding: "20px 24px 28px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
@@ -49,13 +74,16 @@ export default async function TimelinePage({ searchParams }: PageProps) {
         共 {all.length} 条 · 按月分组
       </p>
 
-      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
-        <Link href={`/timeline`} className={`chip${!filterMedium ? " on" : ""}`}>全部</Link>
-        {ALL_UI_MEDIUMS.map((m) => (
-          <Link key={m} href={`/timeline?filter=${m}`} className={`chip${filterMedium === m ? " on" : ""}`}>
-            {mediumLabel(m)}
-          </Link>
-        ))}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <Link href={timelineUrl(undefined, status)} className={`chip${!filterMedium ? " on" : ""}`}>全部</Link>
+          {ALL_UI_MEDIUMS.map((m) => (
+            <Link key={m} href={timelineUrl(m, status)} className={`chip${filterMedium === m ? " on" : ""}`}>
+              {mediumLabel(m)}
+            </Link>
+          ))}
+        </div>
+        <TimelineStatusFilter current={status} urls={statusUrls} />
       </div>
 
       {sortedGroups.length === 0 && (

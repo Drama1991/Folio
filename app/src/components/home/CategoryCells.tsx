@@ -16,7 +16,6 @@ const LABELS: Record<UiMedium, string> = {
 
 interface Cell {
   medium: UiMedium;
-  count: number;
   covers: { src?: string | null; uuid: string }[];
 }
 
@@ -37,7 +36,7 @@ const TILE_LAYOUT = [
   { x: 1, y: -4, rotate: -1, z: 3 },
 ];
 
-function CategoryCell({ medium, count, covers }: Cell) {
+function CategoryCell({ medium, covers }: Cell) {
   // 补足 3 张：缺位用稳定 seed 派生不同色的渐变，避免三张同色
   const tiles = TILE_LAYOUT.map((_, i) =>
     covers[i] ?? { src: null, uuid: `${medium}-fill-${i}` },
@@ -61,21 +60,6 @@ function CategoryCell({ medium, count, covers }: Cell) {
         flexDirection: "column",
       }}
     >
-      <span
-        style={{
-          position: "absolute",
-          top: 8,
-          right: 11,
-          fontFamily: "var(--mono)",
-          fontSize: 11,
-          color: "var(--text2)",
-          fontWeight: 600,
-          letterSpacing: ".02em",
-          zIndex: 10,
-        }}
-      >
-        {count}
-      </span>
 
       <div style={{ position: "relative", flex: 1, minHeight: 78, marginBottom: 8 }}>
         {tiles.map((t, i) => {

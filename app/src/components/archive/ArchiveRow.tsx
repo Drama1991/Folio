@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Cover } from "@/components/shared/Cover";
-import { Stars } from "@/components/shared/Stars";
+import { RatingTag } from "@/components/shared/RatingTag";
 import { useToast } from "@/components/shared/Toast";
 import { useRecordModal } from "@/lib/store/record-modal";
 import { relativeTime } from "@/lib/format/dates";
@@ -100,7 +100,7 @@ export function ArchiveRow({ row }: { row: UiArchiveRow }) {
         </p>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-        {row.rating ? <Stars value={row.rating} size={12} /> : null}
+        <RatingTag own={row.rating} external={row.externalRating} size={11} />
         <span className="badge" style={{ background: pill.bg, color: pill.fg }}>{statusVerb(row.medium, row.status)}</span>
         <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>{relativeTime(row.updatedAt)}</span>
       </div>

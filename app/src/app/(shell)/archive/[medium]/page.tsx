@@ -3,8 +3,8 @@ import Link from "next/link";
 import { listShelf } from "@/lib/neodb/client";
 import { markToArchiveRow } from "@/lib/neodb/mappers";
 import { ArchiveHeader } from "@/components/archive/ArchiveHeader";
-import { ArchiveTabs } from "@/components/archive/ArchiveTabs";
 import { ArchiveRow } from "@/components/archive/ArchiveRow";
+import { SortDropdown, type SortBy } from "@/components/archive/SortDropdown";
 import { Cover } from "@/components/shared/Cover";
 import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
 import { mediumLabel, statusVerb, type UiMedium } from "@/lib/format/verbs";
@@ -13,7 +13,6 @@ import type { UiArchiveRow } from "@/lib/neodb/ui-types";
 
 const STATUS_FILTERS: NeoDBShelfType[] = ["complete", "progress", "wishlist", "dropped"];
 const SORT_VALUES = ["time", "rating", "title", "year"] as const;
-type SortBy = typeof SORT_VALUES[number];
 
 interface ArchiveParams {
   status: NeoDBShelfType;
@@ -106,14 +105,20 @@ export default async function ArchivePage({ params, searchParams }: PageProps) {
   const filtered = applyYearFilter(allRows, p.year, yearInfo.olderThreshold ?? 0);
   const sorted = applySort(filtered, p.sort);
 
+  const sortUrls: Record<SortBy, string> = {
+    time: archiveUrl(medium, p, { sort: "time" }),
+    rating: archiveUrl(medium, p, { sort: "rating" }),
+    title: archiveUrl(medium, p, { sort: "title" }),
+    year: archiveUrl(medium, p, { sort: "year" }),
+  };
+
   return (
     <div style={{ padding: "20px 24px 28px" }}>
       <Crumbs medium={medium} />
       <ArchiveHeader medium={medium} status={p.status} total={page.count ?? allRows.length} rows={allRows} />
-      <ArchiveTabs current={medium} />
 
-      {/* Row 1: status chips | view toggle */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
+      {/* Row 1: status chips | sort + view toggle */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 14, flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {STATUS_FILTERS.map((s) => (
             <Link
@@ -125,13 +130,16 @@ export default async function ArchivePage({ params, searchParams }: PageProps) {
             </Link>
           ))}
         </div>
-        <div className="view-toggle" role="group" aria-label="视图切换">
-          <Link href={archiveUrl(medium, p, { view: "list" })} className={p.view === "list" ? "on" : ""} title="列表" aria-label="列表视图">
-            <i className="ti ti-list" style={{ fontSize: 14 }} />
-          </Link>
-          <Link href={archiveUrl(medium, p, { view: "grid" })} className={p.view === "grid" ? "on" : ""} title="海报墙" aria-label="海报墙视图">
-            <i className="ti ti-layout-grid" style={{ fontSize: 13 }} />
-          </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <SortDropdown current={p.sort} urls={sortUrls} />
+          <div className="view-toggle" role="group" aria-label="视图切换">
+            <Link href={archiveUrl(medium, p, { view: "list" })} className={p.view === "list" ? "on" : ""} title="列表" aria-label="列表视图">
+              <i className="ti ti-list" style={{ fontSize: 14 }} />
+            </Link>
+            <Link href={archiveUrl(medium, p, { view: "grid" })} className={p.view === "grid" ? "on" : ""} title="海报墙" aria-label="海报墙视图">
+              <i className="ti ti-layout-grid" style={{ fontSize: 13 }} />
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -149,19 +157,6 @@ export default async function ArchivePage({ params, searchParams }: PageProps) {
         </div>
       )}
 
-      {/* Row 3: sort cluster */}
-      <div style={{ display: "flex", gap: 5, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginRight: 2 }}>排序</span>
-        {([
-          ["time", "最近"],
-          ["rating", "评分"],
-          ["title", "字母"],
-          ["year", "年份"],
-        ] as Array<[SortBy, string]>).map(([v, label]) => (
-          <Link key={v} href={archiveUrl(medium, p, { sort: v })} className={`chip sm${p.sort === v ? " on" : ""}`}>{label}</Link>
-        ))}
-      </div>
-
       <div style={{ marginTop: 14 }}>
         {sorted.length === 0 ? (
           <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", padding: "26px 20px", textAlign: "center", color: "var(--text3)", fontSize: 12 }}>
@@ -177,7 +172,9 @@ export default async function ArchivePage({ params, searchParams }: PageProps) {
               <Link key={`${r.uuid}-${r.updatedAt}`} href={`/detail/${r.medium}/${r.uuid}`} className="poster-tile">
                 <Cover src={r.cover ?? undefined} seed={r.uuid} width="100%" height="100%" />
                 {r.rating ? (
-                  <span className="poster-tile-corner">{"★".repeat(r.rating)}</span>
+                  <span className="poster-tile-corner own">★ {r.rating.toFixed(1)}</span>
+                ) : r.externalRating ? (
+                  <span className="poster-tile-corner">★ {r.externalRating.toFixed(1)}</span>
                 ) : p.status !== "complete" ? (
                   <span className="poster-tile-corner">{statusVerb(r.medium, r.status)}</span>
                 ) : null}

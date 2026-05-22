@@ -86,8 +86,8 @@ export function AIPanel() {
               <div
                 style={{
                   padding: "9px 13px", borderRadius: "var(--r2)", fontSize: 12, lineHeight: 1.65,
-                  background: m.role === "ai" ? "var(--bg2)" : "var(--text)",
-                  color: m.role === "ai" ? "var(--text)" : "var(--bg)",
+                  background: m.role === "ai" ? "var(--bg2)" : "linear-gradient(135deg, #E0B270 0%, #D38A30 50%, #A86515 100%)",
+                  color: m.role === "ai" ? "var(--text)" : "#FFF6E6",
                   whiteSpace: "pre-wrap", wordBreak: "break-word",
                 }}
               >

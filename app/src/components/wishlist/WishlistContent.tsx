@@ -1,17 +1,29 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Cover } from "@/components/shared/Cover";
+import { RatingTag } from "@/components/shared/RatingTag";
 import { useToast } from "@/components/shared/Toast";
 import { useRecordModal } from "@/lib/store/record-modal";
 import { relativeTime } from "@/lib/format/dates";
-import { mediumLabel } from "@/lib/format/verbs";
+import { mediumLabel, type UiMedium } from "@/lib/format/verbs";
 import type { UiArchiveRow } from "@/lib/neodb/ui-types";
 
 const DAY = 86_400_000;
 
-export function WishlistContent({ rows, totalCount }: { rows: UiArchiveRow[]; totalCount: number }) {
+export function WishlistContent({
+  rows,
+  totalCount,
+  counts,
+  filterMedium,
+}: {
+  rows: UiArchiveRow[];
+  totalCount: number;
+  counts: Array<{ medium: UiMedium; count: number }>;
+  filterMedium?: UiMedium;
+}) {
   const router = useRouter();
   const showToast = useToast((s) => s.show);
   const showModal = useRecordModal((s) => s.show);
@@ -19,7 +31,13 @@ export function WishlistContent({ rows, totalCount }: { rows: UiArchiveRow[]; to
   const [pick, setPick] = useState<UiArchiveRow | null>(null);
   const [view, setView] = useState<"list" | "grid">("list");
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [rolling, setRolling] = useState(false);
+  const rollTimerRef = useRef<number | null>(null);
   const [, startTransition] = useTransition();
+
+  useEffect(() => () => {
+    if (rollTimerRef.current) window.clearTimeout(rollTimerRef.current);
+  }, []);
 
   // 「语调」统计（基于当前页 rows；总数走 totalCount）
   const stats = useMemo(() => {
@@ -37,12 +55,15 @@ export function WishlistContent({ rows, totalCount }: { rows: UiArchiveRow[]; to
   }, [rows]);
 
   function rollPick() {
-    if (!rows.length) return;
+    if (!rows.length || rolling) return;
+    setRolling(true);
     let next: UiArchiveRow;
     do {
       next = rows[Math.floor(Math.random() * rows.length)];
     } while (rows.length > 1 && pick && next.uuid === pick.uuid);
     setPick(next);
+    if (rollTimerRef.current) window.clearTimeout(rollTimerRef.current);
+    rollTimerRef.current = window.setTimeout(() => setRolling(false), 650);
   }
 
   function go(row: UiArchiveRow) {
@@ -88,6 +109,42 @@ export function WishlistContent({ rows, totalCount }: { rows: UiArchiveRow[]; to
 
   return (
     <>
+      {/* 标题：点一下摇一摇 */}
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 16, gap: 16 }}>
+        <div>
+          <button
+            type="button"
+            onClick={rollPick}
+            disabled={!rows.length}
+            aria-label={rows.length ? "心愿单 · 点一下随机选一个" : "心愿单为空"}
+            title={rows.length ? "点一下，摇一摇" : "心愿单为空"}
+            className={`wishlist-title-btn${rolling ? " rolling" : ""}`}
+          >
+            <span>心愿单</span>
+            <i className="ti ti-dice-5 wishlist-title-dice" aria-hidden />
+          </button>
+          <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 5 }}>
+            想看 · 想读 · 想听 — 我准备走入的世界
+          </p>
+        </div>
+      </div>
+
+      {/* 类别筛选 */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 14, overflowX: "auto", paddingBottom: 2 }}>
+        <Link href="/wishlist" className={`chip${!filterMedium ? " on" : ""}`}>
+          全部 <span className="chip-count">{totalCount}</span>
+        </Link>
+        {counts.map((c) => (
+          <Link
+            key={c.medium}
+            href={`/wishlist?filter=${c.medium}`}
+            className={`chip${filterMedium === c.medium ? " on" : ""}`}
+          >
+            {mediumLabel(c.medium)} <span className="chip-count">{c.count}</span>
+          </Link>
+        ))}
+      </div>
+
       {/* 语调 + 操作行 */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
         <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
@@ -132,9 +189,6 @@ export function WishlistContent({ rows, totalCount }: { rows: UiArchiveRow[]; to
               <i className="ti ti-layout-grid" style={{ fontSize: 13 }} />
             </button>
           </div>
-          <button onClick={rollPick} className="btn" disabled={!rows.length}>
-            <i className="ti ti-dice" style={{ fontSize: 13 }} /> 今晚随机选一个
-          </button>
         </div>
       </div>
 
@@ -220,8 +274,9 @@ export function WishlistContent({ rows, totalCount }: { rows: UiArchiveRow[]; to
                     </p>
                   )}
                 </div>
-                <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", flexShrink: 0 }}>
-                  {relativeTime(r.updatedAt)}
+                <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", flexShrink: 0, display: "flex", alignItems: "center", gap: 10 }}>
+                  <RatingTag own={r.rating} external={r.externalRating} size={11} />
+                  <span>{relativeTime(r.updatedAt)}</span>
                 </span>
                 <div className="row-actions" onClick={(e) => e.stopPropagation()}>
                   <button
@@ -268,6 +323,11 @@ export function WishlistContent({ rows, totalCount }: { rows: UiArchiveRow[]; to
               style={{ opacity: pendingId === r.uuid ? 0.55 : 1 }}
             >
               <Cover src={r.cover ?? undefined} seed={r.uuid} width="100%" height="100%" />
+              {r.rating ? (
+                <span className="poster-tile-corner own">★ {r.rating.toFixed(1)}</span>
+              ) : r.externalRating ? (
+                <span className="poster-tile-corner">★ {r.externalRating.toFixed(1)}</span>
+              ) : null}
               <div className="poster-tile-overlay">
                 <p className="poster-tile-title">{r.title}</p>
                 <p className="poster-tile-meta">

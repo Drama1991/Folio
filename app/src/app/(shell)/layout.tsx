@@ -5,6 +5,7 @@ import { ToastHost } from "@/components/shared/Toast";
 import { RecordModal } from "@/components/record-modal/RecordModal";
 import { RecordFAB } from "@/components/shell/RecordFAB";
 import { AIPanel } from "@/components/ai-panel/AIPanel";
+import { SyncTicker } from "@/components/shell/SyncTicker";
 
 export default async function ShellLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -20,6 +21,7 @@ export default async function ShellLayout({ children }: { children: React.ReactN
       <RecordModal />
       <AIPanel />
       <RecordFAB />
+      <SyncTicker />
       <ToastHost />
     </div>
   );

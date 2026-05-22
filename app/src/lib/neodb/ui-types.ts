@@ -40,6 +40,8 @@ export interface UiArchiveRow {
   creator?: string;
   status: UiShelfStatus;
   rating?: number;
+  /** NeoDB 社区评分（0-5），当用户自己未评分时作为 fallback */
+  externalRating?: number;
   comment?: string;
   updatedAt: string;
 }

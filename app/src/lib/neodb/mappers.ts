@@ -97,6 +97,7 @@ export function markToArchiveRow(mark: NeoDBMark): UiArchiveRow {
     creator: ui.creator,
     status: mark.shelf_type,
     rating: ratingToUi(mark.rating_grade ?? undefined),
+    externalRating: ui.externalRating ? ui.externalRating / 2 : undefined,
     comment: mark.comment_text ?? undefined,
     updatedAt: mark.created_time,
   };

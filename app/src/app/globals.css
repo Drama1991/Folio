@@ -18,6 +18,7 @@
 }
 
 :root {
+  /* 米白主题（默认） */
   --bg: #F7F5F0;
   --bg2: #EEECEA;
   --text: #1C1C1A;
@@ -26,10 +27,79 @@
   --border: #D8D6D0;
   --border2: #C8C6C0;
   --gold: #EF9F27;
+
+  /* 浮层 / 阴影 / 蒙版 —— dark 下会覆写 */
+  --shadow-soft: rgba(0, 0, 0, 0.07);
+  --shadow-card: rgba(0, 0, 0, 0.12);
+  --overlay: rgba(0, 0, 0, 0.55);
+  --sk-base: rgba(0, 0, 0, 0.07);
+  --sk-shine: rgba(0, 0, 0, 0.03);
+
   --serif: "Noto Serif SC", Georgia, serif;
   --mono: "JetBrains Mono", "Courier New", monospace;
   --r: 10px;
   --r2: 6px;
+
+  /* 字号档位 —— [data-font-scale] 覆写 */
+  --fs-base: 14px;
+  /* 信息密度 —— [data-density] 覆写 */
+  --density-row-y: 12px;       /* row 纵向 padding */
+  --density-card-y: 14px;      /* setting-card row 纵向 padding */
+  --density-card-x: 18px;      /* setting-card row 横向 padding */
+}
+
+/* 纸墨深色 —— 暖墨而非纯黑，金色 accent 保留 */
+[data-theme="dark"] {
+  --bg: #1A1816;
+  --bg2: #24211E;
+  --text: #E8E4DA;
+  --text2: #A6A29A;
+  --text3: #6E6B65;
+  --border: #2F2C28;
+  --border2: #3D3935;
+  --gold: #EF9F27;
+
+  --shadow-soft: rgba(0, 0, 0, 0.4);
+  --shadow-card: rgba(0, 0, 0, 0.55);
+  --overlay: rgba(0, 0, 0, 0.7);
+  --sk-base: rgba(255, 255, 255, 0.06);
+  --sk-shine: rgba(255, 255, 255, 0.02);
+}
+
+/* 跟随系统：仅当用户未显式选择主题时（root 上没有 data-theme 时） */
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    --bg: #1A1816;
+    --bg2: #24211E;
+    --text: #E8E4DA;
+    --text2: #A6A29A;
+    --text3: #6E6B65;
+    --border: #2F2C28;
+    --border2: #3D3935;
+
+    --shadow-soft: rgba(0, 0, 0, 0.4);
+    --shadow-card: rgba(0, 0, 0, 0.55);
+    --overlay: rgba(0, 0, 0, 0.7);
+    --sk-base: rgba(255, 255, 255, 0.06);
+    --sk-shine: rgba(255, 255, 255, 0.02);
+  }
+}
+
+/* 字号档位 */
+:root[data-font-scale="compact"] { --fs-base: 13px; }
+:root[data-font-scale="normal"]  { --fs-base: 14px; }
+:root[data-font-scale="relaxed"] { --fs-base: 15px; }
+
+/* 信息密度 */
+:root[data-density="cozy"] {
+  --density-row-y: 12px;
+  --density-card-y: 14px;
+  --density-card-x: 18px;
+}
+:root[data-density="compact"] {
+  --density-row-y: 8px;
+  --density-card-y: 10px;
+  --density-card-x: 14px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,7 +108,7 @@ html, body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
-  font-size: 14px;
+  font-size: var(--fs-base);
   line-height: 1.5;
 }
 
@@ -75,9 +145,29 @@ button { font-family: inherit; }
 .slide-in  { animation: slideIn 0.18s ease; }
 .fade-in   { animation: fadeIn 0.15s ease; }
 
+/* 动效关：覆盖所有过渡与动画（含 prefers-reduced-motion 自动跟随时） */
+:root[data-motion="off"] *,
+:root[data-motion="off"] *::before,
+:root[data-motion="off"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-motion="auto"] *,
+  :root[data-motion="auto"] *::before,
+  :root[data-motion="auto"] *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ───── shimmer skeleton ───── */
 .sk {
-  background: linear-gradient(90deg, rgba(0,0,0,0.07) 25%, rgba(0,0,0,0.03) 50%, rgba(0,0,0,0.07) 75%);
+  background: linear-gradient(90deg, var(--sk-base) 25%, var(--sk-shine) 50%, var(--sk-base) 75%);
   background-size: 500px 100%;
   animation: sh 1.8s infinite linear;
   border-radius: 4px;
@@ -238,9 +328,112 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   transition: background 0.1s, color 0.1s, border-color 0.1s;
 }
 .btn:hover { background: var(--bg2); color: var(--text); }
-.btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
-.btn.primary:hover { opacity: 0.85; background: var(--text); color: var(--bg); }
+.btn.primary {
+  background: linear-gradient(135deg, #E0B270 0%, #D38A30 50%, #A86515 100%);
+  color: #FFF6E6;
+  border-color: transparent;
+}
+
+/* ───── Folio wordmark logo（用户提供的设计图，PNG） ───── */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text);
+  cursor: pointer;
+  line-height: 1;
+}
+.brand-mark {
+  display: block;
+  height: 44px;
+  width: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+  transform: translateY(-1px);
+  transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), filter .25s ease;
+}
+.brand:hover .brand-mark {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+}
+[data-theme="dark"] .brand-mark {
+  /* 原图为深色字 + 橙色丝带，暗色下把字反相为亮色，丝带颜色靠 hue-rotate 保留 */
+  filter: invert(0.92) hue-rotate(180deg);
+}
+[data-theme="dark"] .brand:hover .brand-mark {
+  filter: invert(0.92) hue-rotate(180deg) brightness(1.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] .brand-mark {
+    filter: invert(0.92) hue-rotate(180deg);
+  }
+  :root[data-theme="auto"] .brand:hover .brand-mark {
+    filter: invert(0.92) hue-rotate(180deg) brightness(1.06);
+  }
+}
+.btn.primary:hover {
+  filter: brightness(1.06);
+  background: linear-gradient(135deg, #E0B270 0%, #D38A30 50%, #A86515 100%);
+  color: #FFF6E6;
+}
 .btn:disabled { opacity: 0.4; cursor: default; }
+
+/* 心愿单标题"摇一摇" —— hover 渐变为暖金 + 骰子图标淡入，点击短暂摇晃 */
+.wishlist-title-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: color .25s ease, transform .25s ease;
+}
+.wishlist-title-btn:disabled {
+  cursor: default;
+}
+.wishlist-title-dice {
+  font-size: 19px;
+  color: var(--text3);
+  opacity: 0;
+  transform: translateX(-6px) rotate(-18deg);
+  transition: opacity .25s ease, transform .35s cubic-bezier(.34, 1.56, .64, 1), color .25s ease;
+}
+.wishlist-title-btn:not(:disabled):hover {
+  color: #A86515;
+}
+.wishlist-title-btn:not(:disabled):hover .wishlist-title-dice {
+  opacity: 1;
+  transform: translateX(0) rotate(0);
+  color: #A86515;
+}
+.wishlist-title-btn.rolling {
+  animation: wishlistTitleShake .55s cubic-bezier(.34, 1.56, .64, 1);
+}
+.wishlist-title-btn.rolling .wishlist-title-dice {
+  opacity: 1;
+  color: #A86515;
+  animation: wishlistTitleDice .65s cubic-bezier(.5, 0, .5, 1);
+}
+@keyframes wishlistTitleShake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-3px); }
+  50%      { transform: translateX(3px); }
+  80%      { transform: translateX(-2px); }
+}
+@keyframes wishlistTitleDice {
+  0%   { transform: rotate(0) scale(1); }
+  60%  { transform: rotate(540deg) scale(1.18); }
+  100% { transform: rotate(720deg) scale(1); }
+}
 
 .tab {
   font-size: 12px;
@@ -261,7 +454,7 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 20px;
+  padding: var(--density-row-y) 20px;
   cursor: pointer;
   border-bottom: 0.5px solid var(--border);
   transition: background 0.08s;
@@ -651,6 +844,7 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   border-radius: 999px;
   backdrop-filter: blur(4px);
 }
+.poster-tile-corner.own { color: var(--gold); }
 
 /* ───── view toggle ───── */
 .view-toggle {
@@ -676,7 +870,73 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
 .view-toggle button:hover,
 .view-toggle a:hover { background: var(--bg2); color: var(--text); }
 .view-toggle button.on,
-.view-toggle a.on { background: var(--text); color: var(--bg); }
+.view-toggle a.on {
+  background: linear-gradient(180deg, #FCEFD2 0%, #F6E0AE 100%);
+  color: #6B3F08;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 1px 3px rgba(168, 120, 40, 0.12);
+}
 
 /* small chip variant for sort */
 .chip.sm { padding: 3px 8px; font-size: 10px; }
+
+/* Archive 排序触发按钮 + 下拉菜单（取代原来的 sort chip 行） */
+.sort-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r2);
+  background: var(--bg);
+  color: var(--text2);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .1s, color .1s, border-color .1s;
+}
+.sort-trigger:hover {
+  background: var(--bg2);
+  color: var(--text);
+  border-color: var(--border2);
+}
+.sort-trigger[aria-expanded="true"] {
+  background: var(--bg2);
+  color: var(--text);
+  border-color: var(--border2);
+}
+.sort-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 168px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r2);
+  background: var(--bg);
+  box-shadow: 0 8px 24px var(--shadow-soft);
+  padding: 4px;
+  z-index: 30;
+  animation: sortMenuIn .12s ease-out;
+}
+@keyframes sortMenuIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.sort-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 5px;
+  text-decoration: none;
+  color: var(--text2);
+  cursor: pointer;
+  transition: background .08s, color .08s;
+}
+.sort-item:hover { background: var(--bg2); color: var(--text); }
+.sort-item.on { background: var(--bg2); color: var(--text); }
+.sort-item__label { font-size: 12px; font-weight: 500; }
+.sort-item__hint { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+.sort-item.on .sort-item__hint { color: var(--text2); }

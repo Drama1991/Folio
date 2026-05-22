@@ -8,10 +8,12 @@ export function BentoTop({
   featured,
   continueWatching,
   continuePanelTitle = "继续看",
+  continuePanelHref = "/timeline",
 }: {
   featured: UiTimelineEntry | null;
   continueWatching: UiTimelineEntry[];
   continuePanelTitle?: string;
+  continuePanelHref?: string;
 }) {
   return (
     <div
@@ -24,12 +26,12 @@ export function BentoTop({
       }}
     >
       <FeaturedCard entry={featured} />
-      <ContinuePanel items={continueWatching} title={continuePanelTitle} />
+      <ContinuePanel items={continueWatching} title={continuePanelTitle} href={continuePanelHref} />
     </div>
   );
 }
 
-function ContinuePanel({ items, title }: { items: UiTimelineEntry[]; title: string }) {
+function ContinuePanel({ items, title, href }: { items: UiTimelineEntry[]; title: string; href: string }) {
   const slots: (UiTimelineEntry | null)[] = [items[0] ?? null, items[1] ?? null];
   return (
     <div
@@ -54,7 +56,7 @@ function ContinuePanel({ items, title }: { items: UiTimelineEntry[]; title: stri
       >
         <span className="section-label">{title}</span>
         <Link
-          href="/timeline"
+          href={href}
           style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", textDecoration: "none" }}
         >
           全部 →

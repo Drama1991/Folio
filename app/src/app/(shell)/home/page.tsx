@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth/cookie";
-import { listMyNotes, listShelf, shelfCount } from "@/lib/neodb/client";
+import { listMyNotes, listShelf } from "@/lib/neodb/client";
 import { markToTimelineEntry } from "@/lib/neodb/mappers";
 import { formatProgress } from "@/lib/format/progress";
 import { HomeHero } from "@/components/home/HomeHero";
@@ -32,14 +32,6 @@ export default async function HomePage() {
   // 最近 5 条 mark：跨所有 shelf type
   const recentMarks = allMarks.slice(0, 5).map(markToTimelineEntry);
 
-  // 5 类计数（complete 维度）—— per category 并发
-  const categoryCounts = await Promise.all(
-    ALL_UI_MEDIUMS.map(async (m) => ({
-      medium: m,
-      count: await shelfCount({ type: "complete", category: m }).catch(() => 0),
-    })),
-  );
-
   // 每个分类的最近 3 张封面：复用 allMarks，按 medium 分组，零额外 fetch
   const coversByMedium = new Map<UiMedium, { src?: string | null; uuid: string }[]>();
   for (const m of ALL_UI_MEDIUMS) coversByMedium.set(m, []);
@@ -50,9 +42,9 @@ export default async function HomePage() {
       list.push({ src: mark.item.cover_image_url, uuid: mark.item.uuid });
     }
   }
-  const categoryCells = categoryCounts.map((c) => ({
-    ...c,
-    covers: coversByMedium.get(c.medium) ?? [],
+  const categoryCells = ALL_UI_MEDIUMS.map((m) => ({
+    medium: m,
+    covers: coversByMedium.get(m) ?? [],
   }));
 
   // featured：progress 模式取最新在看；否则 fallback 到最新一条任意 mark
@@ -79,6 +71,7 @@ export default async function HomePage() {
         featured={featuredUi}
         continueWatching={continueWatching}
         continuePanelTitle={isProgressMode ? "继续看" : "最近记录"}
+        continuePanelHref={isProgressMode ? "/timeline?status=progress" : "/timeline"}
       />
       <ActivityStrip recent={recentMarks} />
       <CategoryCells cells={categoryCells} />

@@ -34,16 +34,13 @@ export function LoginCard({ initialError }: { initialError?: string }) {
     <div style={{ maxWidth: 460, width: "100%", animation: "fadeUp .35s ease" }}>
       {/* Logo */}
       <div style={{ textAlign: "center", marginBottom: 36 }}>
-        <svg width="36" height="40" viewBox="0 0 26 28" fill="none" style={{ margin: "0 auto", display: "block" }}>
-          <path d="M2 2 H18 L24 8 V26 H2 Z" fill="var(--bg2)" stroke="var(--border2)" strokeWidth="1" />
-          <path d="M18 2 L24 8 H18 Z" fill="var(--bg)" stroke="var(--border2)" strokeWidth="1" />
-          <line x1="7" y1="12" x2="17" y2="12" stroke="var(--text)" strokeWidth="1.5" strokeLinecap="round" />
-          <line x1="7" y1="16" x2="14" y2="16" stroke="var(--text)" strokeWidth="1.5" strokeLinecap="round" />
-          <line x1="7" y1="20" x2="11" y2="20" stroke="var(--text)" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-        <p style={{ fontFamily: "var(--serif)", fontSize: 18, fontWeight: 500, marginTop: 10, letterSpacing: "-0.01em" }}>
-          Folio
-        </p>
+        <img
+          src="/folio-logo.png"
+          alt="Folio"
+          className="brand-mark"
+          draggable={false}
+          style={{ height: 56, margin: "0 auto" }}
+        />
       </div>
 
       {/* Hero */}
