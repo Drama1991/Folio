@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { listShelf } from "@/lib/neodb/client";
+import { listShelfAll } from "@/lib/neodb/client";
 import { markToArchiveRow } from "@/lib/neodb/mappers";
 import { ArchiveHeader } from "@/components/archive/ArchiveHeader";
 import { ArchiveRow } from "@/components/archive/ArchiveRow";
@@ -96,7 +96,7 @@ export default async function ArchivePage({ params, searchParams }: PageProps) {
   const medium = rawMedium as UiMedium;
   const p = parseParams(sp);
 
-  const page = await listShelf({ type: p.status, category: medium, page: 1 }).catch(
+  const page = await listShelfAll({ type: p.status, category: medium }).catch(
     () => ({ data: [], count: 0 }) as { data: never[]; count: number },
   );
   const allRows = (page.data ?? []).map(markToArchiveRow);
@@ -113,12 +113,12 @@ export default async function ArchivePage({ params, searchParams }: PageProps) {
   };
 
   return (
-    <div style={{ padding: "20px 24px 28px" }}>
+    <div className="archive-page">
       <Crumbs medium={medium} />
       <ArchiveHeader medium={medium} status={p.status} total={page.count ?? allRows.length} rows={allRows} />
 
       {/* Row 1: status chips | sort + view toggle */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 14, flexWrap: "wrap" }}>
+      <div className="archive-filter-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 14, flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {STATUS_FILTERS.map((s) => (
             <Link
@@ -132,11 +132,25 @@ export default async function ArchivePage({ params, searchParams }: PageProps) {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <SortDropdown current={p.sort} urls={sortUrls} />
-          <div className="view-toggle" role="group" aria-label="视图切换">
-            <Link href={archiveUrl(medium, p, { view: "list" })} className={p.view === "list" ? "on" : ""} title="列表" aria-label="列表视图">
+          <div className="view-toggle" role="tablist" aria-label="视图切换">
+            <Link
+              href={archiveUrl(medium, p, { view: "list" })}
+              className={p.view === "list" ? "on" : ""}
+              title="列表"
+              role="tab"
+              aria-selected={p.view === "list"}
+              aria-label="列表视图"
+            >
               <i className="ti ti-list" style={{ fontSize: 14 }} />
             </Link>
-            <Link href={archiveUrl(medium, p, { view: "grid" })} className={p.view === "grid" ? "on" : ""} title="海报墙" aria-label="海报墙视图">
+            <Link
+              href={archiveUrl(medium, p, { view: "grid" })}
+              className={p.view === "grid" ? "on" : ""}
+              title="海报墙"
+              role="tab"
+              aria-selected={p.view === "grid"}
+              aria-label="海报墙视图"
+            >
               <i className="ti ti-layout-grid" style={{ fontSize: 13 }} />
             </Link>
           </div>
@@ -146,7 +160,7 @@ export default async function ArchivePage({ params, searchParams }: PageProps) {
       {/* Row 2: year chips（仅在有多个年份时显示） */}
       {yearInfo.values.length >= 2 && (
         <div style={{ display: "flex", gap: 5, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginRight: 2 }}>年份</span>
+          <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginRight: 2 }}>年份</span>
           <Link href={archiveUrl(medium, p, { year: "all" })} className={`chip sm${p.year === "all" ? " on" : ""}`}>全部</Link>
           {yearInfo.values.map((y) => (
             <Link key={y} href={archiveUrl(medium, p, { year: String(y) })} className={`chip sm${p.year === String(y) ? " on" : ""}`}>{y}</Link>

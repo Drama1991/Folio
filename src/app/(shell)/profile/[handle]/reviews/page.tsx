@@ -47,9 +47,10 @@ export default async function ReviewsArchivePage({ params, searchParams }: PageP
   const pages = res.pages ?? 1;
 
   // 各 category 的篇数（page=1 只为拿 count；并发）
+  // P2-7：listMyReviews 内部已 catch，这里再加 .catch 是双重保险，未来 callee 变化也不致命
   const perCategoryCounts = await Promise.all(
     ALL_UI_MEDIUMS.map(async (m) => {
-      const r = await listMyReviews({ page: 1, category: m });
+      const r = await listMyReviews({ page: 1, category: m }).catch(() => ({ data: [], count: 0 }));
       return [m, r.count ?? r.data?.length ?? 0] as const;
     }),
   );
@@ -57,7 +58,7 @@ export default async function ReviewsArchivePage({ params, searchParams }: PageP
   const totalAll = perCategoryCounts.reduce((a, [, n]) => a + n, 0);
 
   return (
-    <div style={{ padding: "28px 24px 36px", maxWidth: 820, margin: "0 auto" }}>
+    <div className="reviews-archive-page">
       {/* 顶部：面包屑 + 标题 + 计数 */}
       <Link
         href={`/profile/${handle}`}
@@ -65,7 +66,7 @@ export default async function ReviewsArchivePage({ params, searchParams }: PageP
       >
         ← 个人主页
       </Link>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+      <div className="reviews-archive-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
         <h1 style={{ fontFamily: "var(--serif)", fontSize: 28, fontWeight: 500, letterSpacing: "-0.02em" }}>
           {displayHandle} · 的长评
         </h1>
@@ -115,7 +116,7 @@ export default async function ReviewsArchivePage({ params, searchParams }: PageP
                 color: "inherit",
               }}
             >
-              <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {new Date(rv.createdAt).toLocaleDateString("zh-CN")} · {rv.itemTitle} · {mediumLabel(rv.itemMedium)}
               </p>
               <p style={{ fontFamily: "var(--serif)", fontSize: 17, fontWeight: 500, letterSpacing: "-0.01em", marginTop: 6, lineHeight: 1.3 }}>
@@ -126,7 +127,7 @@ export default async function ReviewsArchivePage({ params, searchParams }: PageP
                   {rv.body.slice(0, 140)}{rv.body.length > 140 ? "…" : ""}
                 </p>
               )}
-              <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 8 }}>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 8 }}>
                 {rv.body.length} 字
               </p>
             </Link>

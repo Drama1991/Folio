@@ -18,6 +18,8 @@ import { endpointSegment, toNeoDBCategory, trendingSegment } from "./mediumMap";
 import type { UiMedium } from "./ui-types";
 
 class NeoDBError extends Error {
+  /** 上游响应头 Retry-After 的原始值（仅 429 时填充）。proxy 层透传给前端。 */
+  retryAfter?: string;
   constructor(public status: number, message: string) {
     super(message);
   }
@@ -42,8 +44,26 @@ async function authBaseAndHeaders(): Promise<{ base: string; headers: Record<str
   };
 }
 
+/** 匿名可用：session 存在则带 token + 用户 home instance；否则裸调 neodb.social。
+ *  专给 NeoDB 后端是 `OptionalOAuthAccessTokenAuth` 的端点用，如 item posts。 */
+async function optionalAuthBaseAndHeaders(): Promise<{ base: string; headers: Record<string, string> }> {
+  const session = await getSession();
+  if (session) {
+    return {
+      base: `https://${session.instance}`,
+      headers: { Authorization: `Bearer ${session.token}` },
+    };
+  }
+  return {
+    base: "https://neodb.social",
+    headers: {},
+  };
+}
+
 async function neodb<T>(path: string, opts: RequestOpts = {}): Promise<T> {
-  const { base, headers } = await authBaseAndHeaders();
+  const { base, headers } = opts.publicOk
+    ? await optionalAuthBaseAndHeaders()
+    : await authBaseAndHeaders();
   const res = await fetch(`${base}${path}`, {
     method: opts.method ?? "GET",
     headers: { ...headers, ...(opts.headers ?? {}) },
@@ -53,7 +73,12 @@ async function neodb<T>(path: string, opts: RequestOpts = {}): Promise<T> {
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new NeoDBError(res.status, text || `${res.status} ${res.statusText}`);
+    const err = new NeoDBError(res.status, text || `${res.status} ${res.statusText}`);
+    if (res.status === 429) {
+      const ra = res.headers.get("retry-after");
+      if (ra) err.retryAfter = ra;
+    }
+    throw err;
   }
   // 204 / empty
   if (res.status === 204) return undefined as T;
@@ -118,12 +143,63 @@ export async function listShelf(opts: {
   );
 }
 
+/**
+ * 完整拉取某分区 shelf。
+ *
+ * 解决 P0-3：wishlist / archive / timeline 之前只取 page=1，超过 20 项后第 21+ 静默丢失。
+ *
+ * 算法：先取 page=1，按 count 字段推算总页数后并发取 2..N；
+ * 没 count 时降级为「按 page=1 的 length 推断 perPage，sequential 探测直到 data.length < perPage」。
+ * cap 默认 500 项，防止极端账户把 SSR 打爆。
+ */
+export async function listShelfAll(opts: {
+  type: NeoDBShelfType;
+  category?: UiMedium;
+  cap?: number;
+}): Promise<{ data: NeoDBMark[]; count: number }> {
+  const cap = opts.cap ?? 500;
+  const first = await listShelf({ type: opts.type, category: opts.category, page: 1 });
+  const data = [...(first.data ?? [])];
+  const total = typeof first.count === "number" ? first.count : data.length;
+
+  if (data.length === 0 || data.length >= total) {
+    return { data: data.slice(0, cap), count: total };
+  }
+
+  const perPage = data.length;
+  const lastPage = Math.min(
+    Math.ceil(total / perPage),
+    Math.ceil(cap / perPage),
+  );
+
+  if (lastPage <= 1) {
+    return { data: data.slice(0, cap), count: total };
+  }
+
+  const more = await Promise.all(
+    Array.from({ length: lastPage - 1 }, (_, i) =>
+      listShelf({ type: opts.type, category: opts.category, page: i + 2 })
+        .catch(() => ({ data: [] as NeoDBMark[] })),
+    ),
+  );
+  for (const p of more) data.push(...(p.data ?? []));
+  return { data: data.slice(0, cap), count: total };
+}
+
 export async function shelfCount(opts: { type: NeoDBShelfType; category?: UiMedium }): Promise<number> {
-  // 取 page=1 读 count 字段；NeoDB 通常返回 count；若无则用 data.length
+  // P1-6：count 缺失时不再用 data.length 兜底（封顶 20，统计低估）。
+  // 改为按 pages 字段拉最后一页，得到 (pages-1)*perPage + lastPage.data.length 的精确值。
   try {
-    const p = await listShelf({ type: opts.type, category: opts.category, page: 1 });
-    if (typeof p.count === "number") return p.count;
-    return p.data.length;
+    const first = await listShelf({ type: opts.type, category: opts.category, page: 1 });
+    if (typeof first.count === "number") return first.count;
+    const perPage = first.data?.length ?? 0;
+    if (typeof first.pages === "number" && first.pages > 1 && perPage > 0) {
+      const last = await listShelf({ type: opts.type, category: opts.category, page: first.pages })
+        .catch(() => null);
+      const lastLen = last?.data?.length ?? 0;
+      return (first.pages - 1) * perPage + lastLen;
+    }
+    return perPage;
   } catch {
     return 0;
   }
@@ -212,10 +288,14 @@ export async function listMyReviews(opts: { page?: number; category?: UiMedium }
 /**
  * 取当前用户对某 item 的 review（用于 ownership 检测 + 预填编辑器）。
  * 没有则返回 null（NeoDB 通常 404 或 403）。
+ *
+ * P1-12：原先 noStore() —— 每个登录用户访问任意长评页都多打一次 API。
+ * 改用 tag cache：postReview / deleteReview 走的 proxy 都已 revalidate
+ * `tags.myReviews()`，所以缓存命中期间数据不会陈旧。
  */
 export async function getMyReviewOfItem(itemUuid: string): Promise<NeoDBReview | null> {
   try {
-    return await neodb<NeoDBReview>(`/api/me/review/item/${itemUuid}`, noStore());
+    return await neodb<NeoDBReview>(`/api/me/review/item/${itemUuid}`, cached([tags.myReviews()]));
   } catch (err) {
     if (err instanceof NeoDBError && (err.status === 404 || err.status === 403)) return null;
     throw err;
@@ -262,7 +342,7 @@ export async function listItemPosts(opts: {
   try {
     return await neodb<NeoDBPaged<NeoDBPost>>(
       `/api/item/${opts.uuid}/posts/${qs ? "?" + qs : ""}`,
-      cached([tags.itemPosts(opts.uuid, opts.type ?? "default")]),
+      { ...cached([tags.itemPosts(opts.uuid, opts.type ?? "default")]), publicOk: true },
     );
   } catch {
     return { data: [] };

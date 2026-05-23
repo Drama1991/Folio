@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import DOMPurify from "isomorphic-dompurify";
 import { getMyReviewOfItem, getReview, NeoDBError } from "@/lib/neodb/client";
 import { itemToUi } from "@/lib/neodb/mappers";
 import { getSession } from "@/lib/auth/cookie";
@@ -21,6 +23,28 @@ function lastPathSegment(url?: string): string {
   const path = url.split("?")[0].split("#")[0];
   const parts = path.split("/").filter(Boolean);
   return parts[parts.length - 1] ?? "";
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { uuid } = await params;
+  try {
+    const review = await getReview(uuid);
+    const ui = itemToUi(review.item);
+    const title = `${review.title} · 长评`;
+    const description = (review.body || "").replace(/\s+/g, " ").slice(0, 160) || `${ui.title} 的长评`;
+    const images = ui.cover ? [{ url: ui.cover }] : undefined;
+    // 仅当 review 公开时才让搜索引擎跟踪；followers/mentioned 可见性视作不可索引
+    const robots = review.visibility === 0 ? undefined : { index: false, follow: false };
+    return {
+      title,
+      description,
+      openGraph: { title, description, type: "article", images },
+      twitter: { card: "summary_large_image", title, description, images: images?.map((i) => i.url) },
+      ...(robots ? { robots } : {}),
+    };
+  } catch {
+    return { title: "长评 · Folio" };
+  }
 }
 
 export default async function ReviewPage({ params }: PageProps) {
@@ -64,7 +88,7 @@ export default async function ReviewPage({ params }: PageProps) {
             在 NeoDB 打开 ↗
           </a>
         )}
-        <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 22, opacity: 0.6 }}>
+        <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 22, opacity: 0.6 }}>
           {msg.slice(0, 200)}
         </p>
       </div>
@@ -93,8 +117,22 @@ export default async function ReviewPage({ params }: PageProps) {
     }
   }
 
+  // P0-2 纵深防御：NeoDB 上游通常已 sanitize，但绝不在客户端假设上游永远完美。
+  // 白名单只放正文需要的标签 + a/img 的最小属性集。
+  const safeHtml = review.html_content
+    ? DOMPurify.sanitize(review.html_content, {
+        ALLOWED_TAGS: [
+          "p", "br", "strong", "em", "u", "s", "a", "blockquote",
+          "ul", "ol", "li", "h2", "h3", "h4", "img", "code", "pre",
+          "hr", "span", "figure", "figcaption",
+        ],
+        ALLOWED_ATTR: ["href", "src", "alt", "title", "rel", "target"],
+        ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|\/)/i,
+      })
+    : "";
+
   return (
-    <div style={{ padding: "28px 24px 36px", maxWidth: 760, margin: "0 auto" }}>
+    <div className="review-page">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
         <Link
           href={`/detail/${ui.medium}/${ui.uuid}`}
@@ -105,7 +143,7 @@ export default async function ReviewPage({ params }: PageProps) {
         {isMine && <ReviewActions reviewUuid={uuid} itemUuid={ui.uuid} />}
       </div>
 
-      <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+      <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
         {dateLabel} · {ui.title} · 长评
       </p>
 
@@ -116,7 +154,7 @@ export default async function ReviewPage({ params }: PageProps) {
       {review.html_content ? (
         <div
           className="review-body"
-          dangerouslySetInnerHTML={{ __html: review.html_content }}
+          dangerouslySetInnerHTML={{ __html: safeHtml }}
         />
       ) : (
         <div
@@ -134,7 +172,7 @@ export default async function ReviewPage({ params }: PageProps) {
         display: "flex",
         gap: 14,
         fontFamily: "var(--mono)",
-        fontSize: 10,
+        fontSize: 11,
         color: "var(--text3)",
       }}>
         <span>{wordCount} 字</span>

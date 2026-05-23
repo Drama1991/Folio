@@ -102,7 +102,7 @@ export function ArchiveRow({ row }: { row: UiArchiveRow }) {
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
         <RatingTag own={row.rating} external={row.externalRating} size={11} />
         <span className="badge" style={{ background: pill.bg, color: pill.fg }}>{statusVerb(row.medium, row.status)}</span>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>{relativeTime(row.updatedAt)}</span>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>{relativeTime(row.updatedAt)}</span>
       </div>
       <div className="row-actions" onClick={(e) => e.stopPropagation()}>
         {row.status === "complete" && (

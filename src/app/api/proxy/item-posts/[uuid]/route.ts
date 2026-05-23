@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth/cookie";
 import { listItemPosts } from "@/lib/neodb/client";
+import { neodbErrorResponse } from "@/lib/neodb/proxy-error";
 import { postToUiComment, postToUiReview } from "@/lib/neodb/mappers";
 import type { UiCommunityComment, UiCommunityReview } from "@/lib/neodb/ui-types";
 
@@ -11,8 +11,8 @@ function parseType(v: string | null): PostType | null {
 }
 
 export async function GET(req: NextRequest, ctx: { params: Promise<{ uuid: string }> }) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  // P2-5：NeoDB item posts 端点是 OptionalOAuthAccessTokenAuth，匿名也能取公开 post。
+  // 这里不再强制 session，listItemPosts 内部按 session 存在与否决定带 token。
 
   const { uuid } = await ctx.params;
   const url = new URL(req.url);
@@ -29,7 +29,6 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ uuid: strin
         : res.data.map(postToUiReview).filter((r): r is UiCommunityReview => r !== null);
     return NextResponse.json({ data, pages: res.pages ?? 1, count: res.count ?? data.length, page });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "fetch_failed";
-    return NextResponse.json({ error: msg }, { status: 502 });
+    return neodbErrorResponse(err);
   }
 }

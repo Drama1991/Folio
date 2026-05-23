@@ -48,7 +48,7 @@ export function AIHistoryDrawer({ open, onClose }: { open: boolean; onClose: () 
         <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500 }}>对话历史</p>
         <button className="btn" style={{ fontSize: 11, padding: "4px 9px" }} onClick={onClose}>返回</button>
       </div>
-      <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginBottom: 10 }}>
+      <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginBottom: 10 }}>
         {context.subtitle} · {sessions.length} 条
       </p>
       <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -76,7 +76,7 @@ export function AIHistoryDrawer({ open, onClose }: { open: boolean; onClose: () 
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, alignItems: "center", gap: 8 }}>
-                <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
                   {isCurrent ? "当前 · " : ""}{ts.date} · {ts.time}
                 </span>
                 <button

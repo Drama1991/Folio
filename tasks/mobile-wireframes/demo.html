@@ -1,0 +1,1425 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Folio · 移动端 Wireframe Demo v0</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F2EA;
+    --bg2: #ECE9E4;
+    --text: #1C1C1A;
+    --text2: #5F5E5A;
+    --text3: #9F9D98;
+    --border: #D8D6D0;
+    --border2: #C8C6C0;
+    --gold: #EF9F27;
+    --shadow-soft: rgba(0, 0, 0, 0.07);
+    --shadow-card: rgba(0, 0, 0, 0.12);
+    --overlay: rgba(0, 0, 0, 0.55);
+    --serif: "Noto Serif SC", Georgia, serif;
+    --mono: "JetBrains Mono", "Courier New", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: #E4DFD3;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", sans-serif;
+    color: var(--text);
+    padding: 32px 24px 80px;
+    background-image:
+      radial-gradient(ellipse at top, #EDE7D7 0%, #D8D2C2 100%);
+    min-height: 100vh;
+  }
+
+  /* ===== 顶部说明 ===== */
+  .doc-header {
+    max-width: 1400px;
+    margin: 0 auto 32px;
+  }
+  .doc-header h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 26px;
+    margin: 0 0 8px;
+    color: var(--text);
+  }
+  .doc-header p {
+    margin: 0 0 4px;
+    color: var(--text2);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .doc-header .meta {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+  .chip {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 12px;
+    color: var(--text2);
+    font-family: var(--mono);
+  }
+
+  /* ===== Phone frame ===== */
+  .stage {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    justify-content: center;
+    max-width: 1900px;
+    margin: 0 auto;
+  }
+  .phone-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .phone-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: var(--bg);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .phone-label .num {
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: #1A1816;
+    border-radius: 44px;
+    padding: 10px;
+    box-shadow:
+      0 30px 60px rgba(0, 0, 0, 0.25),
+      0 10px 24px rgba(0, 0, 0, 0.18),
+      inset 0 0 0 2px #3D3935;
+    position: relative;
+  }
+  .phone::before {
+    /* notch */
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130px;
+    height: 26px;
+    background: #1A1816;
+    border-radius: 0 0 18px 18px;
+    z-index: 50;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    border-radius: 36px;
+    overflow: hidden;
+    position: relative;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  /* status bar */
+  .statusbar {
+    height: 44px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 24px 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: -apple-system, sans-serif;
+  }
+  .statusbar .right { display: flex; gap: 5px; align-items: center; font-size: 11px; }
+  .statusbar .right .ti { font-size: 13px; }
+
+  /* home indicator */
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: var(--text);
+    border-radius: 3px;
+    opacity: 0.7;
+    z-index: 60;
+  }
+
+  /* ===== App Header ===== */
+  .app-header {
+    height: 56px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: relative;
+    z-index: 20;
+  }
+  .app-header .logo {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: 1px;
+  }
+  .app-header .left, .app-header .right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 999px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 19px;
+    padding: 0;
+  }
+  .icon-btn:active { background: var(--bg2); }
+
+  /* ===== Scroll body ===== */
+  .body {
+    height: calc(100% - 44px - 56px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+  }
+  .body::-webkit-scrollbar { display: none; }
+  .body { scrollbar-width: none; }
+
+  .section-title {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 17px;
+    margin: 24px 20px 12px;
+    color: var(--text);
+  }
+  .section-title.small {
+    font-size: 13px;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text3);
+    font-weight: 400;
+    margin-top: 20px;
+  }
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 18px 20px;
+  }
+
+  /* ===== Now Reading card ===== */
+  .now-reading {
+    margin: 12px 16px 0;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    gap: 14px;
+    box-shadow: 0 1px 2px var(--shadow-soft);
+  }
+  .cover {
+    width: 60px;
+    height: 86px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #5A3F2D, #8C6B4A);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 11px;
+    text-align: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    line-height: 1.3;
+  }
+  .cover.blue { background: linear-gradient(135deg, #2D3F5A, #4A6B8C); }
+  .cover.green { background: linear-gradient(135deg, #2D5A3F, #4A8C6B); }
+  .cover.tan { background: linear-gradient(135deg, #8C7A4A, #B89D6A); }
+  .cover.lg { width: 130px; height: 186px; font-size: 14px; }
+  .nr-meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .nr-title { font-family: var(--serif); font-size: 16px; font-weight: 500; }
+  .nr-sub { font-size: 12px; color: var(--text2); }
+  .nr-progress {
+    margin-top: 6px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .nr-progress::after {
+    content: "";
+    position: absolute;
+    inset: 0 33% 0 0;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+  .nr-extra { font-size: 11px; color: var(--text3); margin-top: 4px; font-family: var(--mono); }
+
+  /* ===== Activity rows ===== */
+  .day-group { padding: 0 20px; margin-top: 12px; }
+  .day-label {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: var(--mono);
+    margin-bottom: 6px;
+  }
+  .activity-row {
+    padding: 12px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .activity-row:last-child { border-bottom: 0; }
+  .activity-row .ti { color: var(--text3); font-size: 16px; margin-top: 1px; }
+  .activity-row .body-text { flex: 1; line-height: 1.5; }
+  .activity-row .accent { color: var(--text); font-family: var(--serif); }
+  .activity-row .stars { color: var(--gold); font-size: 12px; }
+  .activity-row .arr { color: var(--text3); }
+
+  .see-all {
+    display: block;
+    margin: 18px 20px 8px;
+    padding: 12px;
+    text-align: center;
+    color: var(--text2);
+    font-size: 13px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    font-family: var(--mono);
+  }
+
+  /* ===== FAB ===== */
+  .fab {
+    position: absolute;
+    right: 16px;
+    bottom: 88px;
+    width: 52px;
+    height: 52px;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    box-shadow: 0 6px 16px var(--shadow-card), 0 2px 4px var(--shadow-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    font-size: 24px;
+    z-index: 30;
+    cursor: pointer;
+  }
+  .fab:active { transform: scale(0.95); }
+
+  /* ===== Drawer ===== */
+  .drawer-mask {
+    position: absolute;
+    inset: 0;
+    background: var(--overlay);
+    z-index: 40;
+    display: none;
+  }
+  .drawer-mask.on { display: block; }
+  .drawer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 80%;
+    height: 100%;
+    background: var(--bg);
+    z-index: 41;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    border-radius: 36px 0 0 36px;
+  }
+  .drawer.on { transform: translateX(0); }
+  .drawer-header {
+    height: 56px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .drawer-nav { padding: 16px 0; flex: 1; }
+  .drawer-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 16px;
+  }
+  .drawer-nav a.active {
+    background: var(--bg2);
+    border-left: 3px solid var(--gold);
+    padding-left: 21px;
+  }
+  .drawer-nav a .ti { font-size: 20px; color: var(--text2); width: 24px; }
+  .drawer-nav .divider-d {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 24px;
+  }
+  .drawer-foot {
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .drawer-foot .av {
+    width: 40px; height: 40px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--gold), #B87A1A);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-family: var(--serif);
+    font-size: 15px;
+  }
+  .drawer-foot .who div:first-child { font-family: var(--serif); font-size: 15px; }
+  .drawer-foot .who div:last-child { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+
+  /* ===== Profile ===== */
+  .profile-head {
+    padding: 24px 20px 8px;
+    text-align: center;
+  }
+  .profile-head .avatar {
+    width: 88px; height: 88px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--gold), #B87A1A);
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-family: var(--serif);
+    font-size: 34px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .profile-head .name { font-family: var(--serif); font-size: 22px; font-weight: 500; }
+  .profile-head .handle { color: var(--text3); font-family: var(--mono); font-size: 12px; margin-top: 4px; }
+  .profile-head .bio { color: var(--text2); font-size: 13px; margin-top: 10px; line-height: 1.6; }
+
+  .stats-grid {
+    margin: 16px 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg2);
+    overflow: hidden;
+  }
+  .stat-cell {
+    padding: 14px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stat-cell:nth-child(even) { border-right: 0; }
+  .stat-cell:nth-last-child(-n+2) { border-bottom: 0; }
+  .stat-cell .num { font-family: var(--serif); font-size: 24px; font-weight: 500; }
+  .stat-cell .label { font-size: 11px; color: var(--text2); margin-top: 2px; font-family: var(--mono); }
+
+  /* heatmap */
+  .heatmap-wrap {
+    margin: 0 20px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    position: relative;
+  }
+  .heatmap-hint {
+    font-size: 10px;
+    color: var(--text3);
+    font-family: var(--mono);
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .heatmap {
+    display: grid;
+    grid-template-rows: repeat(7, 14px);
+    grid-auto-flow: column;
+    grid-auto-columns: 14px;
+    gap: 3px;
+  }
+  .heatmap span {
+    background: var(--border);
+    border-radius: 2px;
+  }
+  .heatmap span.l1 { background: #E8D8B0; }
+  .heatmap span.l2 { background: #E5BC6A; }
+  .heatmap span.l3 { background: var(--gold); }
+  .heatmap-wrap::-webkit-scrollbar { height: 0; }
+
+  /* recent rows */
+  .recent-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .recent-row:last-child { border-bottom: 0; }
+  .recent-row .cover { width: 40px; height: 58px; font-size: 9px; }
+  .recent-row .info { flex: 1; min-width: 0; }
+  .recent-row .info .t { font-family: var(--serif); font-size: 15px; }
+  .recent-row .info .s { font-size: 12px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
+  .recent-row .ti-arr { color: var(--text3); }
+
+  /* ===== Detail ===== */
+  .detail-hero { padding: 24px 20px 0; text-align: center; }
+  .detail-hero .cover { margin: 0 auto 16px; }
+  .detail-hero .title { font-family: var(--serif); font-size: 24px; font-weight: 500; }
+  .detail-hero .author { color: var(--text2); font-size: 14px; margin-top: 4px; }
+  .detail-hero .pub { color: var(--text3); font-size: 12px; font-family: var(--mono); margin-top: 4px; }
+  .detail-hero .rating { margin-top: 12px; font-size: 13px; color: var(--text2); }
+  .detail-hero .rating .stars { color: var(--gold); margin-right: 6px; letter-spacing: 1px; }
+
+  .mark-cta {
+    margin: 20px;
+    padding: 14px;
+    background: var(--bg);
+    border: 1.5px solid var(--text);
+    border-radius: 8px;
+    font-family: var(--serif);
+    font-size: 16px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 3px 8px var(--shadow-soft);
+  }
+  .mark-cta .ti { margin-right: 8px; }
+  .mark-cta:active { background: var(--bg2); }
+
+  .quick-status {
+    margin: 0 20px 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .quick-status button {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 4px;
+    font-size: 12px;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .quick-status button:active { background: var(--bg); }
+
+  .my-status-card {
+    margin: 16px 20px;
+    padding: 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .my-status-card .row1 { font-size: 14px; }
+  .my-status-card .row1 .dot { color: var(--gold); margin-right: 6px; }
+  .my-status-card .row2 { font-size: 11px; color: var(--text3); margin-top: 4px; font-family: var(--mono); }
+  .my-status-card .actions { display: flex; gap: 8px; margin-top: 10px; }
+  .my-status-card .actions a {
+    font-size: 12px;
+    color: var(--text2);
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  .blurb {
+    margin: 0 20px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  .blurb .expand {
+    display: block;
+    margin-top: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .review-card {
+    margin: 0 20px;
+    padding: 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+    font-family: var(--serif);
+  }
+  .review-card .sign {
+    margin-top: 10px;
+    color: var(--text3);
+    font-size: 11px;
+    font-family: var(--mono);
+    display: flex;
+    justify-content: space-between;
+  }
+  .review-card .sign a { color: var(--text2); text-decoration: none; }
+
+  .write-review {
+    margin: 12px 20px;
+    padding: 10px;
+    text-align: center;
+    background: transparent;
+    border: 1px dashed var(--border2);
+    border-radius: 6px;
+    color: var(--text2);
+    font-size: 13px;
+    font-family: var(--mono);
+    cursor: pointer;
+  }
+
+  .other-review {
+    margin: 0 20px 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .other-review:last-of-type { border-bottom: 0; }
+  .other-review .head { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  .other-review .head .stars { color: var(--gold); margin-right: 6px; }
+  .other-review .head .handle { font-family: var(--mono); font-size: 12px; }
+  .other-review .text { font-size: 13px; line-height: 1.6; }
+  .other-review .date { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 4px; text-align: right; }
+
+  /* ===== Sheet (RecordModal) ===== */
+  .sheet-mask {
+    position: absolute;
+    inset: 0;
+    background: var(--overlay);
+    z-index: 50;
+    display: none;
+  }
+  .sheet-mask.on { display: block; }
+  .sheet {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg);
+    border-radius: 20px 20px 0 0;
+    z-index: 51;
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(.2,.8,.2,1);
+    max-height: 78%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.18);
+  }
+  .sheet.on { transform: translateY(0); }
+  .sheet .handle {
+    width: 38px;
+    height: 4px;
+    background: var(--border2);
+    border-radius: 2px;
+    margin: 8px auto 4px;
+  }
+  .sheet .sheet-head {
+    padding: 14px 20px 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .sheet .sheet-head .cover { width: 44px; height: 62px; font-size: 9px; }
+  .sheet .sheet-head .t { font-family: var(--serif); font-size: 16px; }
+  .sheet .sheet-head .s { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  .sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px 100px;
+  }
+  .sheet-body::-webkit-scrollbar { display: none; }
+  .field-label {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 14px 0 8px;
+  }
+  .field-label:first-child { margin-top: 0; }
+
+  .segment {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .segment button {
+    background: transparent;
+    border: none;
+    padding: 10px 0;
+    font-size: 13px;
+    color: var(--text2);
+    cursor: pointer;
+    border-radius: 6px;
+    font-family: inherit;
+  }
+  .segment button.on {
+    background: var(--bg);
+    color: var(--text);
+    box-shadow: 0 1px 3px var(--shadow-soft);
+  }
+
+  .rating-row {
+    display: flex;
+    gap: 4px;
+    padding: 6px 0;
+  }
+  .rating-row span {
+    width: 44px; height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--border2);
+    font-size: 28px;
+    cursor: pointer;
+  }
+  .rating-row span.on { color: var(--gold); }
+
+  .progress-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .progress-input input {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: var(--mono);
+  }
+
+  .notes-input {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: var(--serif);
+    line-height: 1.6;
+    min-height: 80px;
+    resize: none;
+  }
+
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+    font-size: 13px;
+    color: var(--text2);
+    cursor: pointer;
+  }
+  .check-row .box {
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--border2);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .check-row.on .box {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+  }
+
+  .sheet-foot {
+    border-top: 1px solid var(--border);
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+    background: var(--bg);
+  }
+  .sheet-save {
+    width: 100%;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 15px;
+    font-family: var(--serif);
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  /* ===== Keyboard frame (last phone) ===== */
+  .keyboard-fake {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 280px;
+    background: linear-gradient(180deg, #C9C5BC 0%, #B8B4AB 100%);
+    z-index: 60;
+    border-top: 1px solid #A6A29A;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 4px;
+    padding: 8px;
+  }
+  .keyboard-fake span {
+    background: rgba(255,255,255,0.5);
+    border-radius: 4px;
+    text-align: center;
+    font-size: 10px;
+    color: #5F5E5A;
+    padding: 6px 0;
+  }
+
+  /* helper for sheet condensed when keyboard on */
+  .sheet.kb {
+    max-height: calc(100% - 280px);
+    bottom: 280px;
+  }
+  .sheet.kb .segment { display: none; }
+  .sheet.kb .rating-row { display: none; }
+  .sheet.kb .compact-summary {
+    display: flex;
+    gap: 16px;
+    padding: 8px 0;
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--mono);
+  }
+  .sheet.kb .compact-summary .item .lab { color: var(--text3); margin-right: 4px; }
+  .compact-summary { display: none; }
+
+  /* arrow icons in detail/profile headers */
+  .topbar {
+    height: 56px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .topbar .center {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <h1>Folio · 移动端 Wireframe Demo v0</h1>
+  <p>顶部 ☰ 汉堡 + 右下 FAB 路线。中保真——视觉用项目真实 token（米白 #F5F2EA · Noto Serif SC · Tabler Icons），但不接业务数据。</p>
+  <p>点 ☰ 开抽屉、点 ⊕ 起 sheet、点 ☆ 评分、点状态 segment 切换——都可点。</p>
+  <div class="meta">
+    <span class="chip">375×812</span>
+    <span class="chip">light only</span>
+    <span class="chip">noto serif sc</span>
+    <span class="chip">F5F2EA</span>
+    <span class="chip">EF9F27 gold</span>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- ============ 01 HOME ============ -->
+  <div class="phone-wrap">
+    <div class="phone-label"><span class="num">01</span> &nbsp; HOME</div>
+    <div class="phone">
+      <div class="screen" id="screen-home">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="right">
+            <i class="ti ti-signal-4g"></i>
+            <i class="ti ti-wifi"></i>
+            <i class="ti ti-battery-4-filled"></i>
+          </span>
+        </div>
+        <div class="app-header">
+          <div class="left">
+            <button class="icon-btn" onclick="toggleDrawer('home')"><i class="ti ti-menu-2"></i></button>
+            <span class="logo">Folio</span>
+          </div>
+          <div class="right">
+            <button class="icon-btn"><i class="ti ti-bell"></i></button>
+            <button class="icon-btn"><i class="ti ti-search"></i></button>
+          </div>
+        </div>
+        <div class="body">
+          <div class="section-title">Now Reading</div>
+          <div class="now-reading">
+            <div class="cover">三体<br>第三部</div>
+            <div class="nr-meta">
+              <div class="nr-title">三体・死神永生</div>
+              <div class="nr-sub">刘慈欣 · p.142</div>
+              <div class="nr-progress"></div>
+              <div class="nr-extra">+12 页 · 67% · 3 天前</div>
+            </div>
+          </div>
+
+          <div class="section-title small">最近活动</div>
+
+          <div class="day-group">
+            <div class="day-label">3 天前</div>
+            <div class="activity-row">
+              <i class="ti ti-bookmark"></i>
+              <div class="body-text">标 <span class="accent">《沙丘》</span> 为想读</div>
+              <i class="ti ti-chevron-right arr"></i>
+            </div>
+            <div class="activity-row">
+              <i class="ti ti-pencil"></i>
+              <div class="body-text">给 <span class="accent">《1984》</span> 写了长评</div>
+              <i class="ti ti-chevron-right arr"></i>
+            </div>
+          </div>
+
+          <div class="day-group">
+            <div class="day-label">5 天前</div>
+            <div class="activity-row">
+              <i class="ti ti-heart"></i>
+              <div class="body-text">心愿 + <span class="accent">《项塔兰》</span></div>
+              <i class="ti ti-chevron-right arr"></i>
+            </div>
+            <div class="activity-row">
+              <i class="ti ti-movie"></i>
+              <div class="body-text">看完 <span class="accent">《银翼杀手 2049》</span> <span class="stars">★★★★</span></div>
+              <i class="ti ti-chevron-right arr"></i>
+            </div>
+          </div>
+
+          <div class="day-group">
+            <div class="day-label">一周前</div>
+            <div class="activity-row">
+              <i class="ti ti-book"></i>
+              <div class="body-text">标 <span class="accent">《百年孤独》</span> 在看</div>
+              <i class="ti ti-chevron-right arr"></i>
+            </div>
+            <div class="activity-row">
+              <i class="ti ti-headphones"></i>
+              <div class="body-text">听完专辑 <span class="accent">《Kind of Blue》</span></div>
+              <i class="ti ti-chevron-right arr"></i>
+            </div>
+          </div>
+
+          <a class="see-all">查看完整时间线 →</a>
+        </div>
+
+        <button class="fab" onclick="toggleSheet('home')"><i class="ti ti-feather"></i></button>
+
+        <!-- drawer -->
+        <div class="drawer-mask" id="mask-home" onclick="toggleDrawer('home')"></div>
+        <div class="drawer" id="drawer-home">
+          <div class="drawer-header">
+            <button class="icon-btn" onclick="toggleDrawer('home')"><i class="ti ti-x"></i></button>
+          </div>
+          <div class="drawer-nav">
+            <a class="active"><i class="ti ti-home"></i> Home</a>
+            <a><i class="ti ti-timeline"></i> 时间线</a>
+            <a><i class="ti ti-heart"></i> 心愿单</a>
+            <a><i class="ti ti-archive"></i> 档案</a>
+            <a><i class="ti ti-bell"></i> 通知</a>
+            <div class="divider-d"></div>
+            <a><i class="ti ti-settings"></i> 设置</a>
+            <a><i class="ti ti-info-circle"></i> 关于</a>
+          </div>
+          <div class="drawer-foot">
+            <div class="av">D</div>
+            <div class="who">
+              <div>David</div>
+              <div>@username</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- sheet -->
+        <div class="sheet-mask" id="smask-home" onclick="toggleSheet('home')"></div>
+        <div class="sheet" id="sheet-home">
+          <div class="handle"></div>
+          <div class="sheet-head">
+            <div class="cover">三体</div>
+            <div>
+              <div class="t">三体</div>
+              <div class="s">刘慈欣</div>
+            </div>
+          </div>
+          <div class="sheet-body">
+            <div class="field-label">状态</div>
+            <div class="segment">
+              <button>想读</button>
+              <button class="on">在看</button>
+              <button>已读</button>
+              <button>搁置</button>
+            </div>
+            <div class="field-label">评分</div>
+            <div class="rating-row" onclick="rate(event,this)">
+              <span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span><span>★</span>
+            </div>
+            <div class="field-label">进度</div>
+            <div class="progress-input">
+              <input value="142">
+              <span>/ 510</span>
+            </div>
+            <div class="field-label">笔记</div>
+            <textarea class="notes-input" placeholder="想到什么写什么…"></textarea>
+            <div class="check-row on" onclick="this.classList.toggle('on')">
+              <span class="box"><i class="ti ti-check" style="font-size:14px"></i></span>
+              <span>公开此 Mark</span>
+            </div>
+          </div>
+          <div class="sheet-foot">
+            <button class="sheet-save">保存</button>
+          </div>
+        </div>
+
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 02 PROFILE ============ -->
+  <div class="phone-wrap">
+    <div class="phone-label"><span class="num">02</span> &nbsp; PROFILE</div>
+    <div class="phone">
+      <div class="screen">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="right">
+            <i class="ti ti-signal-4g"></i>
+            <i class="ti ti-wifi"></i>
+            <i class="ti ti-battery-4-filled"></i>
+          </span>
+        </div>
+        <div class="topbar">
+          <button class="icon-btn"><i class="ti ti-arrow-left"></i></button>
+          <span class="center">@username</span>
+          <button class="icon-btn"><i class="ti ti-dots"></i></button>
+        </div>
+        <div class="body">
+          <div class="profile-head">
+            <div class="avatar">D</div>
+            <div class="name">David</div>
+            <div class="handle">@username</div>
+            <div class="bio">桌前的纸质书爱好者 · 偶尔写点长评</div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-cell"><div class="num">42</div><div class="label">已读完</div></div>
+            <div class="stat-cell"><div class="num">18</div><div class="label">长评</div></div>
+            <div class="stat-cell"><div class="num">127</div><div class="label">心愿单</div></div>
+            <div class="stat-cell"><div class="num">33</div><div class="label">在看</div></div>
+          </div>
+
+          <div class="section-title small" style="margin-left: 20px;">活动 · 近 52 周</div>
+          <div class="heatmap-wrap">
+            <div class="heatmap-hint">
+              <span>← 横滑查看</span><span>近 13 周</span>
+            </div>
+            <div class="heatmap" id="heatmap"></div>
+          </div>
+
+          <div class="section-title small" style="margin-left: 20px;">最近条目</div>
+          <div class="recent-row">
+            <div class="cover">三体</div>
+            <div class="info">
+              <div class="t">三体</div>
+              <div class="s">已读完 · ★★★★ · 3 天前</div>
+            </div>
+            <i class="ti ti-chevron-right ti-arr"></i>
+          </div>
+          <div class="recent-row">
+            <div class="cover blue">1984</div>
+            <div class="info">
+              <div class="t">1984</div>
+              <div class="s">长评 · ★★★★★ · 5 天前</div>
+            </div>
+            <i class="ti ti-chevron-right ti-arr"></i>
+          </div>
+          <div class="recent-row">
+            <div class="cover green">沙丘</div>
+            <div class="info">
+              <div class="t">沙丘</div>
+              <div class="s">想读 · 5 天前</div>
+            </div>
+            <i class="ti ti-chevron-right ti-arr"></i>
+          </div>
+          <div class="recent-row">
+            <div class="cover tan">百年孤独</div>
+            <div class="info">
+              <div class="t">百年孤独</div>
+              <div class="s">在看 · p.88 · 一周前</div>
+            </div>
+            <i class="ti ti-chevron-right ti-arr"></i>
+          </div>
+
+          <a class="see-all">查看全部 →</a>
+        </div>
+
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 03 DETAIL ============ -->
+  <div class="phone-wrap">
+    <div class="phone-label"><span class="num">03</span> &nbsp; DETAIL</div>
+    <div class="phone">
+      <div class="screen" id="screen-detail">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="right">
+            <i class="ti ti-signal-4g"></i>
+            <i class="ti ti-wifi"></i>
+            <i class="ti ti-battery-4-filled"></i>
+          </span>
+        </div>
+        <div class="topbar">
+          <button class="icon-btn"><i class="ti ti-arrow-left"></i></button>
+          <span class="center">书籍</span>
+          <button class="icon-btn"><i class="ti ti-dots"></i></button>
+        </div>
+        <div class="body">
+          <div class="detail-hero">
+            <div class="cover lg">三体<br><span style="opacity:0.7;font-size:11px">第一部</span></div>
+            <div class="title">三体</div>
+            <div class="author">刘慈欣</div>
+            <div class="pub">重庆出版社 · 2008</div>
+            <div class="rating"><span class="stars">★★★★★</span> 9.2 · 3.2k 评</div>
+          </div>
+
+          <div class="mark-cta" onclick="toggleSheet('detail')">
+            <i class="ti ti-feather"></i> Mark
+          </div>
+          <div class="quick-status">
+            <button>想读</button>
+            <button>在看</button>
+            <button>已读</button>
+            <button>搁置</button>
+          </div>
+
+          <div class="my-status-card">
+            <div class="row1"><span class="dot">●</span> 在看 · p.142</div>
+            <div class="row2">3 天前更新</div>
+            <div class="actions">
+              <a>编辑</a>
+              <a>取消标记</a>
+            </div>
+          </div>
+
+          <div class="section-title small">简介</div>
+          <div class="blurb">
+            "文化大革命如火如荼进行的同时,军方探寻外星生命的绝秘计划'红岸工程'取得了突破性进展。但在按下发射键的那一刻,历史的命运被改写……"
+            <span class="expand">展开 ▾</span>
+          </div>
+
+          <div class="section-title small">我的长评 (1)</div>
+          <div class="review-card">
+            "被三体震撼到的不是物理学，而是它对历史的态度——文明可以这样脆弱，又可以这样浩大……"
+            <div class="sign">
+              <span>—— 2025 年 4 月</span>
+              <a>阅读全文 →</a>
+            </div>
+          </div>
+          <div class="write-review">+ 写新长评</div>
+
+          <div class="section-title small">其他人怎么说</div>
+          <div class="other-review">
+            <div class="head"><span class="stars">★★★★</span><span class="handle">@alice</span></div>
+            <div class="text">经典中的经典，第二部尤其精彩，黑暗森林理论真的让人后背发凉。</div>
+            <div class="date">3 天前</div>
+          </div>
+          <div class="other-review">
+            <div class="head"><span class="stars">★★★★★</span><span class="handle">@bob</span></div>
+            <div class="text">刘慈欣的史诗感拉满，比起一般科幻多了一层中文表达独有的悲怆。</div>
+            <div class="date">5 天前</div>
+          </div>
+
+          <a class="see-all">查看全部评论 →</a>
+        </div>
+
+        <!-- sheet inside detail -->
+        <div class="sheet-mask" id="smask-detail" onclick="toggleSheet('detail')"></div>
+        <div class="sheet" id="sheet-detail">
+          <div class="handle"></div>
+          <div class="sheet-head">
+            <div class="cover">三体</div>
+            <div>
+              <div class="t">三体</div>
+              <div class="s">刘慈欣</div>
+            </div>
+          </div>
+          <div class="sheet-body">
+            <div class="field-label">状态</div>
+            <div class="segment">
+              <button>想读</button>
+              <button class="on">在看</button>
+              <button>已读</button>
+              <button>搁置</button>
+            </div>
+            <div class="field-label">评分</div>
+            <div class="rating-row" onclick="rate(event,this)">
+              <span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span><span>★</span>
+            </div>
+            <div class="field-label">进度</div>
+            <div class="progress-input">
+              <input value="142">
+              <span>/ 510</span>
+            </div>
+            <div class="field-label">笔记</div>
+            <textarea class="notes-input" placeholder="想到什么写什么…"></textarea>
+            <div class="check-row on" onclick="this.classList.toggle('on')">
+              <span class="box"><i class="ti ti-check" style="font-size:14px"></i></span>
+              <span>公开此 Mark</span>
+            </div>
+          </div>
+          <div class="sheet-foot">
+            <button class="sheet-save">保存</button>
+          </div>
+        </div>
+
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 04 SHEET (Default) ============ -->
+  <div class="phone-wrap">
+    <div class="phone-label"><span class="num">04a</span> &nbsp; SHEET · 默认</div>
+    <div class="phone">
+      <div class="screen">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="right">
+            <i class="ti ti-signal-4g"></i>
+            <i class="ti ti-wifi"></i>
+            <i class="ti ti-battery-4-filled"></i>
+          </span>
+        </div>
+        <div class="app-header" style="filter: brightness(0.95);">
+          <div class="left">
+            <button class="icon-btn"><i class="ti ti-menu-2"></i></button>
+            <span class="logo">Folio</span>
+          </div>
+          <div class="right">
+            <button class="icon-btn"><i class="ti ti-bell"></i></button>
+            <button class="icon-btn"><i class="ti ti-search"></i></button>
+          </div>
+        </div>
+        <div class="body" style="filter: blur(2px) brightness(0.9); padding-bottom: 0;">
+          <div class="section-title">Now Reading</div>
+          <div class="now-reading">
+            <div class="cover">三体</div>
+            <div class="nr-meta">
+              <div class="nr-title">三体・死神永生</div>
+              <div class="nr-sub">刘慈欣 · p.142</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sheet-mask on"></div>
+        <div class="sheet on" style="transition:none">
+          <div class="handle"></div>
+          <div class="sheet-head">
+            <div class="cover">三体</div>
+            <div>
+              <div class="t">三体</div>
+              <div class="s">刘慈欣</div>
+            </div>
+          </div>
+          <div class="sheet-body">
+            <div class="field-label">状态</div>
+            <div class="segment">
+              <button>想读</button>
+              <button class="on">在看</button>
+              <button>已读</button>
+              <button>搁置</button>
+            </div>
+            <div class="field-label">评分</div>
+            <div class="rating-row">
+              <span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span><span>★</span>
+            </div>
+            <div class="field-label">进度（仅"在看"显示）</div>
+            <div class="progress-input">
+              <input value="142">
+              <span>/ 510</span>
+            </div>
+            <div class="field-label">笔记（可选）</div>
+            <textarea class="notes-input" placeholder="想到什么写什么…"></textarea>
+            <div class="check-row on">
+              <span class="box"><i class="ti ti-check" style="font-size:14px"></i></span>
+              <span>公开此 Mark</span>
+            </div>
+          </div>
+          <div class="sheet-foot">
+            <button class="sheet-save">保存</button>
+          </div>
+        </div>
+
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 05 SHEET + KEYBOARD ============ -->
+  <div class="phone-wrap">
+    <div class="phone-label"><span class="num">04b</span> &nbsp; SHEET · 键盘抬起</div>
+    <div class="phone">
+      <div class="screen">
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="right">
+            <i class="ti ti-signal-4g"></i>
+            <i class="ti ti-wifi"></i>
+            <i class="ti ti-battery-4-filled"></i>
+          </span>
+        </div>
+        <div class="app-header" style="filter: brightness(0.95);">
+          <div class="left">
+            <button class="icon-btn"><i class="ti ti-menu-2"></i></button>
+            <span class="logo">Folio</span>
+          </div>
+        </div>
+
+        <div class="sheet-mask on"></div>
+        <div class="sheet on kb" style="transition:none">
+          <div class="handle"></div>
+          <div class="sheet-head">
+            <div class="cover">三体</div>
+            <div>
+              <div class="t">三体</div>
+              <div class="s">刘慈欣</div>
+            </div>
+          </div>
+          <div class="sheet-body">
+            <div class="compact-summary" style="display:flex">
+              <div class="item"><span class="lab">状态</span><span style="color:var(--text)">● 在看</span></div>
+              <div class="item"><span class="lab">评分</span><span style="color:var(--gold)">★★★★☆</span></div>
+            </div>
+            <div class="field-label">笔记</div>
+            <textarea class="notes-input" style="min-height: 140px">在看到第三部叙诡的时候被惊到了，刘慈欣的史诗感拉满，黑暗森林这个概念真的会改变看世界的方式_</textarea>
+          </div>
+          <div class="sheet-foot">
+            <button class="sheet-save">保存</button>
+          </div>
+        </div>
+
+        <div class="keyboard-fake">
+          <span>q</span><span>w</span><span>e</span><span>r</span><span>t</span><span>y</span><span>u</span><span>i</span><span>o</span><span>p</span>
+          <span>a</span><span>s</span><span>d</span><span>f</span><span>g</span><span>h</span><span>j</span><span>k</span><span>l</span><span></span>
+          <span>⇧</span><span>z</span><span>x</span><span>c</span><span>v</span><span>b</span><span>n</span><span>m</span><span>⌫</span><span></span>
+          <span style="grid-column: span 2">123</span><span style="grid-column: span 5">空格</span><span style="grid-column: span 3">换行</span>
+        </div>
+
+        <div class="home-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // heatmap fill
+  const hm = document.getElementById('heatmap');
+  const total = 52 * 7;
+  for (let i = 0; i < total; i++) {
+    const span = document.createElement('span');
+    const r = Math.random();
+    if (r > 0.85) span.className = 'l3';
+    else if (r > 0.7) span.className = 'l2';
+    else if (r > 0.5) span.className = 'l1';
+    hm.appendChild(span);
+  }
+  // scroll heatmap to near-right (recent weeks)
+  setTimeout(() => {
+    const wrap = document.querySelector('.heatmap-wrap');
+    if (wrap) wrap.scrollLeft = wrap.scrollWidth;
+  }, 50);
+
+  function toggleDrawer(key) {
+    document.getElementById('drawer-' + key).classList.toggle('on');
+    document.getElementById('mask-' + key).classList.toggle('on');
+  }
+  function toggleSheet(key) {
+    document.getElementById('sheet-' + key).classList.toggle('on');
+    document.getElementById('smask-' + key).classList.toggle('on');
+  }
+  function rate(e, row) {
+    const span = e.target;
+    if (span.tagName !== 'SPAN') return;
+    const idx = [...row.children].indexOf(span);
+    [...row.children].forEach((s, i) => s.classList.toggle('on', i <= idx));
+  }
+  // segment toggle (in interactive sheets)
+  document.querySelectorAll('#sheet-home .segment, #sheet-detail .segment').forEach(seg => {
+    seg.addEventListener('click', e => {
+      if (e.target.tagName !== 'BUTTON') return;
+      [...seg.children].forEach(b => b.classList.remove('on'));
+      e.target.classList.add('on');
+    });
+  });
+  // quick-status in detail → open sheet
+  document.querySelectorAll('#screen-detail .quick-status button').forEach(b => {
+    b.addEventListener('click', () => toggleSheet('detail'));
+  });
+</script>
+
+</body>
+</html>

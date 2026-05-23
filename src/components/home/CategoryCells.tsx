@@ -21,7 +21,10 @@ interface Cell {
 
 export function CategoryCells({ cells }: { cells: Cell[] }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(${cells.length},1fr)`, gap: 8 }}>
+    <div
+      className="home-category-cells"
+      style={{ display: "grid", gridTemplateColumns: `repeat(${cells.length},1fr)`, gap: 8 }}
+    >
       {cells.map((c) => (
         <CategoryCell key={c.medium} {...c} />
       ))}

@@ -69,7 +69,7 @@ export function ReviewEditor({
   }
 
   return (
-    <div style={{ padding: "20px 24px 28px" }}>
+    <div className="review-editor-page">
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
         <Link href="/home" className="crumb">首页</Link>
         <span style={{ color: "var(--text3)", fontFamily: "var(--mono)", fontSize: 11 }}>/</span>
@@ -78,7 +78,7 @@ export function ReviewEditor({
         <span className="crumb cur">{mode === "edit" ? "编辑长评" : "写长评"}</span>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, background: "var(--bg2)", borderRadius: "var(--r)", marginBottom: 18 }}>
+      <div className="review-editor-item-card" style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, background: "var(--bg2)", borderRadius: "var(--r)", marginBottom: 18 }}>
         <Cover src={cover ?? undefined} seed={uuid} width={42} height={60} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontFamily: "var(--serif)", fontSize: 15, fontWeight: 500 }}>{title}</p>
@@ -93,6 +93,7 @@ export function ReviewEditor({
         value={t}
         onChange={(e) => setT(e.target.value)}
         placeholder="标题"
+        className="review-editor-title-input"
         style={{
           width: "100%", fontFamily: "var(--serif)", fontSize: 24, fontWeight: 500,
           border: "none", outline: "none", background: "none", marginBottom: 14,
@@ -104,6 +105,7 @@ export function ReviewEditor({
         onChange={(e) => setBody(e.target.value)}
         placeholder="把想说的写下来…"
         rows={20}
+        className="review-editor-body-textarea"
         style={{
           width: "100%", fontFamily: "var(--serif)", fontSize: 15, lineHeight: 1.8,
           border: "0.5px solid var(--border)", outline: "none",
@@ -111,11 +113,11 @@ export function ReviewEditor({
           borderRadius: "var(--r)", resize: "vertical",
         }}
       />
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 14 }}>
+      <div className="review-editor-action-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 14, gap: 10 }}>
         <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: len < minLen ? "#A03B3B" : "var(--text3)" }}>
           {len} 字{len < minLen ? ` · 还差 ${minLen - len}` : ""}
         </span>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="review-editor-action-buttons" style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <label style={{ fontSize: 11, color: "var(--text3)", display: "flex", gap: 6, alignItems: "center" }}>
             可见性
             <select

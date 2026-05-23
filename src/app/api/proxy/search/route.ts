@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/cookie";
 import { search } from "@/lib/neodb/client";
+import { neodbErrorResponse } from "@/lib/neodb/proxy-error";
 import { itemToUi } from "@/lib/neodb/mappers";
 import type { UiMedium } from "@/lib/format/verbs";
 import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
@@ -19,7 +20,6 @@ export async function GET(req: NextRequest) {
     const res = await search({ q, category });
     return NextResponse.json({ data: (res.data ?? []).map(itemToUi) });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "search failed";
-    return NextResponse.json({ error: msg, data: [] }, { status: 502 });
+    return neodbErrorResponse(err);
   }
 }

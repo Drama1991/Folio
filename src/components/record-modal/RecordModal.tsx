@@ -9,7 +9,7 @@ import { MediumBadge } from "@/components/shared/MediumBadge";
 import { statusVerb, type UiMedium } from "@/lib/format/verbs";
 import type { UiItem, UiShelfStatus } from "@/lib/neodb/ui-types";
 
-const STATUS_OPTIONS: UiShelfStatus[] = ["complete", "progress", "wishlist"];
+const STATUS_OPTIONS: UiShelfStatus[] = ["complete", "progress", "wishlist", "dropped"];
 const STATUS_ICON: Record<UiShelfStatus, string> = {
   complete: "ti-check",
   progress: "ti-player-play",
@@ -31,24 +31,8 @@ export function RecordModal() {
   if (!open) return null;
 
   return (
-    <div
-      onClick={hide}
-      style={{
-        position: "fixed", inset: 0, background: "rgba(20,20,18,0.55)",
-        zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center",
-        padding: 20, animation: "fadeIn .15s ease",
-        backdropFilter: "blur(4px)",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "var(--bg)", border: "0.5px solid var(--border)", borderRadius: 14,
-          width: "100%", maxWidth: 480, maxHeight: "86vh",
-          display: "flex", flexDirection: "column", overflow: "hidden",
-          animation: "fadeUp .22s ease", boxShadow: "0 28px 72px rgba(0,0,0,0.28)",
-        }}
-      >
+    <div onClick={hide} className="record-modal-mask">
+      <div onClick={(e) => e.stopPropagation()} className="record-modal-card">
         {step === "search" || !initial ? (
           <SearchStep onSelect={(it) => setItem(it)} onClose={hide} />
         ) : (
@@ -78,15 +62,24 @@ function SearchStep({ onSelect, onClose }: { onSelect: (it: { uuid: string; medi
     const term = q.trim();
     if (!term) { setResults([]); return; }
     setLoading(true);
+    // P1-9：AbortController 防竞态——慢请求被新输入覆盖时直接放弃
+    const controller = new AbortController();
     const id = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/proxy/search?q=${encodeURIComponent(term)}`).then((r) => r.json());
+        const res = await fetch(`/api/proxy/search?q=${encodeURIComponent(term)}`, {
+          signal: controller.signal,
+        }).then((r) => r.json());
         setResults((res.data ?? []) as UiItem[]);
+      } catch (err) {
+        if ((err as { name?: string })?.name === "AbortError") return;
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }, 280);
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+      controller.abort();
+    };
   }, [q]);
 
   return (
@@ -106,7 +99,7 @@ function SearchStep({ onSelect, onClose }: { onSelect: (it: { uuid: string; medi
               ×
             </button>
           )}
-          <button onClick={onClose} className="btn" style={{ fontSize: 10, padding: "3px 7px" }}>ESC</button>
+          <button onClick={onClose} className="btn" style={{ fontSize: 11, padding: "3px 7px" }}>ESC</button>
         </div>
       </div>
       <div style={{ overflowY: "auto", flex: 1, minHeight: 120 }}>

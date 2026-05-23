@@ -186,7 +186,7 @@ export function AIConfigForm() {
                 }}
               >
                 <p style={{ fontWeight: 500, fontSize: 13 }}>{p.label}</p>
-                <p style={{ fontSize: 10, marginTop: 3, opacity: 0.8, fontFamily: "var(--mono)" }}>
+                <p style={{ fontSize: 11, marginTop: 3, opacity: 0.8, fontFamily: "var(--mono)" }}>
                   {on ? "已启用" : "切换到此"}
                 </p>
               </button>
@@ -591,7 +591,7 @@ function SearchBlock({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label style={{ display: "block", marginBottom: 8 }}>
-      <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", display: "block", marginBottom: 4 }}>
+      <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", display: "block", marginBottom: 4 }}>
         {label}
       </span>
       {children}

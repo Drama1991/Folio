@@ -10,20 +10,23 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@serwist/next": "^9.5.11",
+    "@tabler/icons-react": "^3.24.0",
+    "isomorphic-dompurify": "^3.14.0",
+    "jose": "^5.9.6",
     "next": "^15.5.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "jose": "^5.9.6",
-    "zustand": "^5.0.2",
-    "@tabler/icons-react": "^3.24.0"
+    "serwist": "^9.5.11",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@tailwindcss/postcss": "^4.0.0",
-    "tailwindcss": "^4.0.0",
     "postcss": "^8.4.49",
+    "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0"
   }
 }

@@ -24,18 +24,25 @@ export default function SearchPage() {
     const term = q.trim();
     if (!term) { setResults([]); return; }
     setLoading(true);
+    // P1-9：AbortController 防竞态——慢请求被新输入覆盖时直接放弃 setState
+    const controller = new AbortController();
     const id = setTimeout(async () => {
       try {
         const url = new URL("/api/proxy/search", window.location.origin);
         url.searchParams.set("q", term);
         if (category) url.searchParams.set("category", category);
-        const r = await fetch(url.toString()).then((r) => r.json());
+        const r = await fetch(url.toString(), { signal: controller.signal }).then((r) => r.json());
         setResults((r.data ?? []) as UiItem[]);
+      } catch (err) {
+        if ((err as { name?: string })?.name === "AbortError") return;
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }, 280);
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+      controller.abort();
+    };
   }, [q, category]);
 
   useEffect(() => {

@@ -67,12 +67,15 @@ export function AvatarMenu({ display, handle, initial, avatar }: AvatarMenuProps
         >
           <div style={{ padding: "11px 12px 13px", borderBottom: "0.5px solid var(--border)", marginBottom: 6 }}>
             <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500, letterSpacing: "-0.01em" }}>{display}</p>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 4, letterSpacing: ".02em" }}>{handle}</p>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 4, letterSpacing: ".02em" }}>{handle}</p>
           </div>
           <MenuItem href="/profile/me" icon="ti-user" label="个人主页" />
           <MenuItem href="/settings" icon="ti-settings" label="设置" />
           <div style={{ height: "0.5px", background: "var(--border)", margin: "5px 0" }} />
-          <MenuItem href="/api/auth/logout" icon="ti-logout" label="登出" danger />
+          {/* P1-8：注销走 POST form；GET 注销可被跨站构造触发。 */}
+          <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
+            <LogoutItem icon="ti-logout" label="登出" />
+          </form>
         </div>
       )}
     </div>
@@ -99,5 +102,29 @@ function MenuItem({ href, icon, label, danger }: { href: string; icon: string; l
       <i className={`ti ${icon}`} style={{ fontSize: 14, color: "var(--text3)", width: 16, textAlign: "center" }} />
       <span>{label}</span>
     </Link>
+  );
+}
+
+function LogoutItem({ icon, label }: { icon: string; label: string }) {
+  return (
+    <button
+      type="submit"
+      style={{
+        display: "flex", alignItems: "center", gap: 11, padding: "8px 12px", borderRadius: "var(--r2)",
+        fontSize: 13, color: "var(--text2)", background: "transparent", border: "none",
+        width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit",
+      }}
+      onMouseOver={(e) => {
+        (e.currentTarget as HTMLElement).style.background = "#F5E4E0";
+        (e.currentTarget as HTMLElement).style.color = "#A03B3B";
+      }}
+      onMouseOut={(e) => {
+        (e.currentTarget as HTMLElement).style.background = "transparent";
+        (e.currentTarget as HTMLElement).style.color = "var(--text2)";
+      }}
+    >
+      <i className={`ti ${icon}`} style={{ fontSize: 14, color: "var(--text3)", width: 16, textAlign: "center" }} />
+      <span>{label}</span>
+    </button>
   );
 }

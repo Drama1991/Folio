@@ -208,7 +208,7 @@ function Card({
         }}
       >
         <span className="section-label">{title}</span>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
           {shown < total ? `${shown} / ${total} 条` : `${total} 条`}
         </span>
       </div>
@@ -266,7 +266,7 @@ function LoadMoreFooter({
         {loading ? "加载中…" : `加载更多 (剩余 ${Math.max(0, total - shown)} 条)`}
       </button>
       {err ? (
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
           失败 · {err} · 点重试
         </span>
       ) : null}
@@ -322,7 +322,7 @@ function AuthorLine({
         <p
           style={{
             fontFamily: "var(--mono)",
-            fontSize: 10,
+            fontSize: 11,
             color: "var(--text3)",
             whiteSpace: "nowrap",
             overflow: "hidden",
@@ -334,7 +334,7 @@ function AuthorLine({
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         {rating ? <Stars value={rating} size={11} /> : null}
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
           {relativeTime(createdAt)}
         </span>
       </div>

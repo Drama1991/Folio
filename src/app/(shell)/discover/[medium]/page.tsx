@@ -61,7 +61,7 @@ export default async function DiscoverMediumPage({ params }: PageProps) {
                 <p style={{ fontFamily: "var(--serif)", fontSize: 13, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {it.title}
                 </p>
-                <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 3 }}>
+                <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 3 }}>
                   {[it.year, it.externalRating ? `★ ${it.externalRating.toFixed(1)}` : null].filter(Boolean).join(" · ")}
                 </p>
               </div>

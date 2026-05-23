@@ -10,3 +10,10 @@ build
 next-env.d.ts
 .tsbuildinfo
 *.tsbuildinfo
+
+# Serwist 生成的 service worker 产物（每次 build 重生成）
+public/sw.js
+public/sw.js.map
+public/swe-worker-*.js
+public/workbox-*.js
+.gstack/

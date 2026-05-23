@@ -19,7 +19,7 @@ interface Props {
 const STORAGE_PREFIX = "folio.window.";
 const DEFAULT_SIZE = { w: 380, h: 520 };
 const MIN_SIZE = { w: 300, h: 340 };
-const MOBILE_BP = 640;
+const MOBILE_BP = 768;
 
 function readStored(key: string): Partial<Box> | null {
   if (typeof window === "undefined") return null;
@@ -172,17 +172,36 @@ export function DraggableWindow({
         background: "var(--bg)",
         border: isMobile ? "none" : "0.5px solid var(--border)",
         borderRadius: isMobile ? 0 : "var(--r)",
-        boxShadow: isMobile ? "none" : "0 24px 60px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.08)",
+        boxShadow: isMobile
+          ? "0 -8px 30px rgba(0,0,0,0.2)"
+          : "0 24px 60px rgba(0,0,0,0.18), 0 4px 14px rgba(0,0,0,0.08)",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
         zIndex: 30,
         transformOrigin: transformOriginCss,
-        transform: mounted ? "scale(1)" : "scale(0.55)",
-        opacity: mounted ? 1 : 0,
-        transition: "transform .18s cubic-bezier(.16,.84,.44,1), opacity .15s ease",
+        transform: isMobile
+          ? (mounted ? "translateY(0)" : "translateY(100%)")
+          : (mounted ? "scale(1)" : "scale(0.55)"),
+        opacity: isMobile ? 1 : (mounted ? 1 : 0),
+        transition: isMobile
+          ? "transform .26s cubic-bezier(.2,.8,.2,1)"
+          : "transform .18s cubic-bezier(.16,.84,.44,1), opacity .15s ease",
       }}
     >
+      {isMobile && (
+        <div
+          aria-hidden
+          style={{
+            flexShrink: 0,
+            width: 38,
+            height: 4,
+            background: "var(--border2)",
+            borderRadius: 2,
+            margin: "8px auto 0",
+          }}
+        />
+      )}
       <div
         onPointerDown={onHeaderPointerDown}
         onPointerMove={onHeaderPointerMove}

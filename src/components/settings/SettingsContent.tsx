@@ -45,10 +45,21 @@ export function SettingsContent({
   instance, handle, acct, display, version, buildDate,
   sessionIat, sessionExp, userAgent,
 }: Props) {
-  const [section, setSection] = useState<SectionKey>("appearance");
+  const [section, setSection] = useState<SectionKey | null>("appearance");
+
+  // 移动端进设置默认看到 section 列表，不直接进 appearance。
+  // SSR/CSR 初始统一是 "appearance"（避免 hydration mismatch），mount 后再切。
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      setSection(null);
+    }
+  }, []);
+
+  const activeLabel = SECTIONS.find((s) => s.key === section)?.label ?? "";
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", minHeight: "calc(100vh - 54px)" }}>
+    <div className="settings-shell" style={{ display: "grid", gridTemplateColumns: "180px 1fr", minHeight: "calc(100vh - 54px)" }}>
       <aside style={{ borderRight: "0.5px solid var(--border)", padding: "20px 14px" }}>
         <p className="section-label" style={{ marginBottom: 12, padding: "0 4px" }}>设置</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -72,6 +83,37 @@ export function SettingsContent({
       </aside>
 
       <main style={{ padding: "26px 28px" }}>
+        {/* 移动端：section === null 时显示 list，桌面端永远不进这个分支 */}
+        {section === null && (
+          <div className="settings-mobile-list">
+            {SECTIONS.map((s) => (
+              <button
+                key={s.key}
+                type="button"
+                className="settings-mobile-row"
+                onClick={() => setSection(s.key)}
+              >
+                <i className={`ti ${s.icon}`} aria-hidden />
+                <span>{s.label}</span>
+                <i className="ti ti-chevron-right" aria-hidden />
+              </button>
+            ))}
+          </div>
+        )}
+        {/* 移动端：选中 section 后顶部加返回按钮；桌面端 .settings-mobile-back 永远 display:none */}
+        {section !== null && (
+          <div className="settings-mobile-back">
+            <button
+              type="button"
+              onClick={() => setSection(null)}
+              aria-label="返回设置列表"
+            >
+              <i className="ti ti-chevron-left" aria-hidden />
+              <span>设置</span>
+            </button>
+            <span className="settings-mobile-title">{activeLabel}</span>
+          </div>
+        )}
         {section === "account" && (
           <AccountPanel
             display={display}
@@ -189,7 +231,7 @@ function AccountPanel({
             { value: 2, label: "仅提及", hint: "仅 @ 到的人" },
           ]}
         />
-        <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 6 }}>
+        <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 6 }}>
           创建标记时仍可临时改写。NeoDB 上已有的标记不受影响。
         </p>
       </div>
@@ -207,7 +249,7 @@ function AccountPanel({
         <i className={`ti ${device.icon}`} style={{ fontSize: 18, color: "var(--text2)" }} />
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 13, fontWeight: 500 }}>
-            当前设备 <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginLeft: 6, fontWeight: 400 }}>当前会话</span>
+            当前设备 <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginLeft: 6, fontWeight: 400 }}>当前会话</span>
           </p>
           <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 3 }}>
             {device.label}
@@ -221,7 +263,7 @@ function AccountPanel({
           }}
         />
       </div>
-      <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginBottom: 18, lineHeight: 1.65 }}>
+      <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginBottom: 18, lineHeight: 1.65 }}>
         Folio 使用无状态 JWT，目前不维护服务端 session 列表，无法显示其它设备。要让所有设备失效，请到 NeoDB 撤销 OAuth 授权。
       </p>
 
@@ -247,16 +289,19 @@ function AccountPanel({
             仅清除本机 cookie · NeoDB 数据保留 · 可重新登录
           </p>
         </div>
-        <a
-          href="/api/auth/logout"
-          className="btn"
-          style={{ fontSize: 12, color: "#A03B3B", borderColor: "#E5C2BD" }}
-        >
-          <i className="ti ti-logout" style={{ fontSize: 11 }} /> 登出
-        </a>
+        {/* P1-8：注销走 POST form，防止 <img src> 跨站触发 GET 注销。 */}
+        <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
+          <button
+            type="submit"
+            className="btn"
+            style={{ fontSize: 12, color: "#A03B3B", borderColor: "#E5C2BD" }}
+          >
+            <i className="ti ti-logout" style={{ fontSize: 11 }} /> 登出
+          </button>
+        </form>
       </div>
 
-      <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 14, lineHeight: 1.65, paddingLeft: 2 }}>
+      <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 14, lineHeight: 1.65, paddingLeft: 2 }}>
         显示名：{display} · 用户名：{handle}
       </p>
     </>
@@ -348,12 +393,12 @@ function NeoDBPanel({ instance }: { instance: string }) {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
           <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#854F0B", letterSpacing: ".06em" }}>已连接到</p>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#854F0B", letterSpacing: ".06em" }}>已连接到</p>
             <p style={{ fontFamily: "var(--serif)", fontSize: 20, fontWeight: 500, color: "#412402", marginTop: 4 }}>{instance}</p>
           </div>
           <span
             style={{
-              fontFamily: "var(--mono)", fontSize: 10, padding: "3px 9px",
+              fontFamily: "var(--mono)", fontSize: 11, padding: "3px 9px",
               borderRadius: 999, background: "#EEF6E8", color: "#0F6E56",
               letterSpacing: ".04em", whiteSpace: "nowrap",
             }}
@@ -365,9 +410,12 @@ function NeoDBPanel({ instance }: { instance: string }) {
           <button onClick={onSyncNow} disabled={busy} className="btn primary" style={{ fontSize: 12 }}>
             <i className="ti ti-refresh" style={{ fontSize: 12 }} /> {busy ? "同步中…" : "立即同步"}
           </button>
-          <a href="/api/auth/logout" className="btn" style={{ fontSize: 12 }}>
-            <i className="ti ti-plug-off" style={{ fontSize: 11 }} /> 断开连接
-          </a>
+          {/* P1-8：注销走 POST，避免被跨站构造的 GET 触发。 */}
+          <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
+            <button type="submit" className="btn" style={{ fontSize: 12 }}>
+              <i className="ti ti-plug-off" style={{ fontSize: 11 }} /> 断开连接
+            </button>
+          </form>
         </div>
       </div>
 
@@ -423,7 +471,7 @@ function NeoDBPanel({ instance }: { instance: string }) {
         <button
           onClick={() => setShowLogs((v) => !v)}
           className="btn"
-          style={{ fontSize: 10, padding: "3px 9px" }}
+          style={{ fontSize: 11, padding: "3px 9px" }}
         >
           {showLogs ? "收起日志" : `查看日志（${prefs.logs.length}）`}
         </button>
@@ -483,7 +531,7 @@ function NeoDBPanel({ instance }: { instance: string }) {
                 onClick={clearLogs}
                 style={{
                   background: "none", border: "none", cursor: "pointer",
-                  fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)",
+                  fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)",
                 }}
               >
                 清空日志
@@ -637,7 +685,7 @@ function AppearancePanel() {
         >
           恢复默认
         </button>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
           仅本机 · 不会同步到 NeoDB
         </span>
       </div>
@@ -713,7 +761,7 @@ function ThemeCard({
       <p style={{ fontFamily: "var(--serif)", fontSize: 13, fontWeight: 500, marginTop: 8, color: "var(--text)" }}>
         {label}
       </p>
-      <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 1 }}>
+      <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 1 }}>
         {sub}
       </p>
     </button>
@@ -753,7 +801,7 @@ function Segmented<T extends string | number>({
             <p
               style={{
                 fontFamily: "var(--mono)",
-                fontSize: 10,
+                fontSize: 11,
                 marginTop: 2,
                 opacity: 0.75,
               }}
@@ -956,7 +1004,7 @@ function AboutPanel({ version, buildDate }: { version: string; buildDate: string
             {isAlpha && (
               <span
                 style={{
-                  fontFamily: "var(--mono)", fontSize: 10, marginLeft: 8,
+                  fontFamily: "var(--mono)", fontSize: 11, marginLeft: 8,
                   padding: "1px 7px", borderRadius: 999,
                   background: "var(--bg2)", color: "var(--text3)",
                   letterSpacing: ".04em", verticalAlign: "middle",
@@ -966,7 +1014,7 @@ function AboutPanel({ version, buildDate }: { version: string; buildDate: string
               </span>
             )}
           </p>
-          <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 4 }}>
+          <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 4 }}>
             build {buildDate}
           </p>
         </div>
@@ -991,7 +1039,7 @@ function AboutPanel({ version, buildDate }: { version: string; buildDate: string
           <p style={{ fontFamily: "var(--serif)", fontSize: 18, marginTop: 6, fontWeight: 500 }}>
             GitHub <span style={{ color: "var(--text3)" }}>→</span>
           </p>
-          <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 4 }}>
+          <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 4 }}>
             AGPL-3.0
           </p>
         </a>

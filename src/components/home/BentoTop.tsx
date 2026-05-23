@@ -17,9 +17,9 @@ export function BentoTop({
 }) {
   return (
     <div
+      className="home-bento-top"
       style={{
         display: "grid",
-        gridTemplateColumns: "minmax(0,3fr) minmax(0,2fr)",
         gap: 10,
         marginBottom: 10,
         alignItems: "stretch",
@@ -57,7 +57,7 @@ function ContinuePanel({ items, title, href }: { items: UiTimelineEntry[]; title
         <span className="section-label">{title}</span>
         <Link
           href={href}
-          style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", textDecoration: "none" }}
+          style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", textDecoration: "none" }}
         >
           全部 →
         </Link>
@@ -121,7 +121,7 @@ function ContinueCard({ entry, divider }: { entry: UiTimelineEntry; divider: boo
         <p
           style={{
             fontFamily: "var(--mono)",
-            fontSize: 10,
+            fontSize: 11,
             color: "var(--text3)",
             marginTop: 4,
           }}
@@ -171,7 +171,7 @@ function ProgressBadge({ progress, medium }: { progress?: string; medium: UiMedi
       {isProgress ? (
         <span aria-hidden style={{ width: 5, height: 5, borderRadius: 999, background: "var(--gold)" }} />
       ) : null}
-      <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--gold)", letterSpacing: ".05em" }}>
+      <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--gold)", letterSpacing: ".05em" }}>
         {label}
       </span>
     </span>
@@ -193,7 +193,7 @@ function FeaturedCard({ entry }: { entry: UiTimelineEntry | null }) {
           color: "#888780",
         }}
       >
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: ".1em" }}>暂无在看</span>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: ".1em" }}>暂无在看</span>
         <p style={{ fontFamily: "var(--serif)", fontSize: 18, color: "#F1EFE8", lineHeight: 1.2 }}>
           先去 &laquo;记录新内容&raquo; 开始追一部吧。
         </p>
@@ -290,7 +290,7 @@ function FeaturedCard({ entry }: { entry: UiTimelineEntry | null }) {
                   }}
                 />
               )}
-              <span style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: ".1em", color: "var(--gold)" }}>
+              <span style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: ".1em", color: "var(--gold)" }}>
                 {statusVerb(entry.medium as UiMedium, entry.status)}
               </span>
             </span>

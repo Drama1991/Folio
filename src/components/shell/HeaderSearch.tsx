@@ -44,7 +44,7 @@ export function HeaderSearch() {
     return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
-  // 搜索（debounce）
+  // 搜索（debounce + AbortController 防竞态：慢请求被新输入覆盖时直接放弃，不再 setState）
   useEffect(() => {
     const term = q.trim();
     if (!term) {
@@ -53,20 +53,26 @@ export function HeaderSearch() {
       return;
     }
     setLoading(true);
+    const controller = new AbortController();
     const id = setTimeout(async () => {
       try {
         const url = new URL("/api/proxy/search", window.location.origin);
         url.searchParams.set("q", term);
-        const r = await fetch(url.toString()).then((r) => r.json());
+        const r = await fetch(url.toString(), { signal: controller.signal }).then((r) => r.json());
         const data = (r.data ?? []) as UiItem[];
         setResults(data.slice(0, MAX_INLINE));
         setTotal(data.length);
         setActive(0);
+      } catch (err) {
+        if ((err as { name?: string })?.name === "AbortError") return;
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }, DEBOUNCE_MS);
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+      controller.abort();
+    };
   }, [q]);
 
   function go(item: UiItem) {
@@ -147,7 +153,7 @@ export function HeaderSearch() {
         <span
           aria-hidden
           style={{
-            fontSize: 10,
+            fontSize: 11,
             color: "var(--text3)",
             background: "var(--bg)",
             border: "0.5px solid var(--border)",
@@ -229,7 +235,7 @@ export function HeaderSearch() {
                         <p
                           style={{
                             fontFamily: "var(--mono)",
-                            fontSize: 10,
+                            fontSize: 11,
                             color: "var(--text3)",
                             marginTop: 2,
                             whiteSpace: "nowrap",

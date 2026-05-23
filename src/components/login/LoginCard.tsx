@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { greeting } from "@/lib/format/dates";
+import { describeOAuthError } from "@/lib/auth/oauth-errors";
 
 const COMMON_INSTANCES = [
   { id: "neodb.social", tag: "主要" },
@@ -12,7 +13,7 @@ const COMMON_INSTANCES = [
 
 export function LoginCard({ initialError }: { initialError?: string }) {
   const [instance, setInstance] = useState("neodb.social");
-  const [error, setError] = useState<string | null>(initialError ?? null);
+  const [error, setError] = useState<string | null>(describeOAuthError(initialError));
   const [pending, startTransition] = useTransition();
   const [hello, setHello] = useState("夜安");
   useEffect(() => { setHello(greeting(new Date())); }, []);
@@ -83,7 +84,7 @@ export function LoginCard({ initialError }: { initialError?: string }) {
           </button>
         </div>
 
-        <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 8 }}>
+        <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 8 }}>
           常用实例
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -99,7 +100,7 @@ export function LoginCard({ initialError }: { initialError?: string }) {
             >
               {c.id}
               {c.tag && (
-                <span style={{ fontSize: 9, color: "var(--gold)", background: "rgba(239,159,39,0.12)", padding: "1px 6px", borderRadius: 999, letterSpacing: ".04em", textTransform: "uppercase" }}>
+                <span style={{ fontSize: 11, color: "var(--gold)", background: "rgba(239,159,39,0.12)", padding: "1px 6px", borderRadius: 999, letterSpacing: ".04em", textTransform: "uppercase" }}>
                   {c.tag}
                 </span>
               )}
@@ -122,7 +123,7 @@ export function LoginCard({ initialError }: { initialError?: string }) {
         </div>
       </div>
 
-      <div style={{ marginTop: 28, textAlign: "center", fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", letterSpacing: ".06em" }}>
+      <div style={{ marginTop: 28, textAlign: "center", fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", letterSpacing: ".06em" }}>
         没有账号？任选一个公开实例（如 neodb.social）即可注册
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/cookie";
 import { upsertMark, deleteMark, getMyMark, tags as cacheTags } from "@/lib/neodb/client";
+import { neodbErrorResponse } from "@/lib/neodb/proxy-error";
 import { ratingToNeoDB } from "@/components/shared/Stars";
 import type { NeoDBShelfType, NeoDBVisibility } from "@/lib/neodb/types";
 import { revalidateTag } from "next/cache";
@@ -52,8 +53,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ uuid: stri
     invalidateAfterMark(uuid);
     return NextResponse.json({ ok: true });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "upsert_failed";
-    return NextResponse.json({ error: msg }, { status: 502 });
+    return neodbErrorResponse(err);
   }
 }
 
@@ -66,7 +66,6 @@ export async function DELETE(_: NextRequest, ctx: { params: Promise<{ uuid: stri
     invalidateAfterMark(uuid);
     return NextResponse.json({ ok: true });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "delete_failed";
-    return NextResponse.json({ error: msg }, { status: 502 });
+    return neodbErrorResponse(err);
   }
 }

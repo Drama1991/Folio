@@ -403,6 +403,28 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
 }
 .btn:disabled { opacity: 0.4; cursor: default; }
 
+/* ───── 可达性 · :focus-visible 统一描边（仅键盘聚焦展示，鼠标点击不出） ─────
+ * 覆盖通用控件：按钮 / chip / row 内嵌按钮 / FAB / 视图切换 / 行级链接
+ * 颜色统一柔金，与 hero-greet 的 focus 风格对齐 */
+.btn:focus-visible,
+.chip:focus-visible,
+.row-act-btn:focus-visible,
+.record-fab:focus-visible,
+.modal-save-btn:focus-visible,
+.sort-trigger:focus-visible,
+.view-toggle button:focus-visible,
+.view-toggle a:focus-visible,
+.tag-chip:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+/* row（整行 link/button）—— 内描边，避免 outline 被截 */
+.row:focus-visible,
+.poster-tile:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+
 /* 心愿单标题"摇一摇" —— hover 渐变为暖金 + 骰子图标淡入，点击短暂摇晃 */
 .wishlist-title-btn {
   appearance: none;
@@ -961,3 +983,794 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
 .sort-item__label { font-size: 12px; font-weight: 500; }
 .sort-item__hint { font-size: 10px; color: var(--text3); font-family: var(--mono); }
 .sort-item.on .sort-item__hint { color: var(--text2); }
+
+/* ───────────────────────────────────────────────────────────────────
+   移动端适配 · < 768px
+   ───────────────────────────────────────────────────────────────────
+   原则：桌面规则 0 修改；本段集中加 mobile-only overrides。
+   ──── 主导航：☰ + 抽屉（DrawerToggle / Drawer 组件）
+   ──── shell：去边框/圆角，撑满视口
+   ──── header：56px 高、12px padding、nav/avatar 隐藏（功能进抽屉）
+   ──── search：折成 36×36 图标按钮，:focus-within 展开
+   ──── FAB：右 16、底 24 + safe-area，留给拇指
+   ──── 触控目标：≥ 44×44
+*/
+@media (max-width: 767px) {
+  /* shell —— 桌面是 900px 居中卡，移动端撑满去边框 */
+  .shell {
+    max-width: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    min-height: 100dvh;
+  }
+
+  /* header —— 紧凑 */
+  .header {
+    height: 56px;
+    padding: 0 12px;
+    border-radius: 0;
+    gap: 8px;
+  }
+
+  /* 桌面顶部 nav 全隐藏（Home/心愿单/发现 进抽屉） */
+  .header .nav-desktop {
+    display: none !important;
+  }
+  /* AvatarMenu 移动端隐藏（个人主页/设置/登出 进抽屉） */
+  .header .avatar-desktop {
+    display: none !important;
+  }
+
+  /* ☰ 汉堡 / 🔔 / 🔎 等 icon-only 按钮：≥ 44 触控、扁平 */
+  .nav-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 19px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-icon-btn:active { background: var(--bg2); }
+  .nav-icon-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  /* 搜索框：默认就是一个干净的图标按钮（无底色、无圆形边框）；
+     :focus-within 时才升起底色 + 输入框边框，扩成宽 input。
+     尺寸 44×44 与 .nav-icon-btn (☰) 视觉对齐 */
+  .search-box {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    transition: width .15s ease, padding .15s ease;
+  }
+  /* 搜索图标尺寸/颜色与 ☰ 对齐（覆盖 HeaderSearch 内 inline fontSize:13） */
+  .search-box > i.ti-search {
+    font-size: 19px !important;
+    color: var(--text) !important;
+  }
+  /* ⌘K 提示在移动端隐藏 */
+  .search-box > span:last-child {
+    display: none;
+  }
+  /* input 不能 display:none —— 那样 .focus() 不生效，:focus-within 永不触发。
+     用 width:0 + flex:0 让它"占位但不见"，:focus-within 时再撑开。 */
+  .search-box input {
+    flex: 0 0 0 !important;
+    width: 0;
+    min-width: 0;
+    padding: 0 !important;
+  }
+  .search-box:focus-within {
+    width: calc(100vw - 124px);
+    padding: 6px 12px;
+    justify-content: flex-start;
+    background: var(--bg2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--r2);
+  }
+  .search-box:focus-within input {
+    flex: 1 1 auto !important;
+    width: auto;
+  }
+  /* 桌面 ⌘K 提示在移动端永远不显示 */
+
+  /* 记录笔 FAB —— 移到拇指圈、安全区避让 */
+  .record-fab {
+    right: 16px;
+    /* 桌面的 max() 在移动端简化掉 */
+    bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+
+  /* Toast 上移，避免被 FAB 挡 */
+  .toast {
+    bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ───── Drawer（移动端导航抽屉） ───── */
+.drawer-mask {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+}
+.drawer-mask.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100dvh;
+  width: min(80vw, 320px);
+  background: var(--bg);
+  border-right: 0.5px solid var(--border);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.12);
+  z-index: 201;
+  transform: translateX(-100%);
+  transition: transform .24s cubic-bezier(.2, .8, .2, 1);
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.drawer.on { transform: translateX(0); }
+.drawer-head {
+  height: 56px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  border-bottom: 0.5px solid var(--border);
+}
+.drawer-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+}
+.drawer-nav a,
+.drawer-nav button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 20px;
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text);
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  min-height: 44px;
+}
+.drawer-nav a.on {
+  background: var(--bg2);
+  color: var(--text);
+  font-weight: 500;
+  border-left: 3px solid var(--gold);
+  padding-left: 17px;
+}
+.drawer-nav a:active,
+.drawer-nav button:active { background: var(--bg2); }
+.drawer-nav .ti {
+  font-size: 19px;
+  color: var(--text2);
+  width: 22px;
+  text-align: center;
+}
+.drawer-divider {
+  height: 0.5px;
+  background: var(--border);
+  margin: 6px 20px;
+}
+.drawer-foot {
+  border-top: 0.5px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.drawer-foot .av {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #2C2C2A;
+  color: #D3D1C7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 16px;
+  overflow: hidden;
+}
+.drawer-foot .av img { width: 100%; height: 100%; object-fit: cover; }
+.drawer-foot .who { flex: 1; min-width: 0; }
+.drawer-foot .who .name {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 500;
+}
+.drawer-foot .who .handle {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 默认（桌面）下隐藏 ☰ 汉堡，只在 < 768px 显示 */
+.drawer-toggle { display: none; }
+@media (max-width: 767px) {
+  .drawer-toggle { display: inline-flex; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   第二批 · 上半 —— Profile / Detail / RecordModal 响应式
+   ═══════════════════════════════════════════════════════════════════
+   桌面规则与原 inline style 1:1，移动端在 < 768px 切换 grid 列数 /
+   容器形态。所有内部视觉细节（颜色、字号、边框、阴影）保持不动。 */
+
+/* ────── Profile ────── */
+.profile-page {
+  padding: 28px 24px 28px;
+}
+.profile-hero {
+  grid-template-columns: 88px 1fr auto;
+}
+.profile-stats {
+  grid-template-columns: repeat(5, 1fr);
+}
+.profile-year-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+.profile-collections {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 767px) {
+  .profile-page {
+    padding: 16px 12px 24px;
+  }
+  /* Hero 横排：avatar(88) 在左，name/handle/bio 在右；
+     actions 沉到第二行整行通栏。
+     —— 解决竖堆居中留白过大问题（用户反馈 2026-05-24 #4） */
+  .profile-hero {
+    grid-template-columns: 88px 1fr;
+    grid-template-areas:
+      "avatar content"
+      "actions actions";
+    text-align: left;
+    justify-items: stretch;
+    align-items: center;
+    gap: 14px !important;
+  }
+  .profile-hero > :nth-child(1) { grid-area: avatar; }
+  .profile-hero > :nth-child(2) { grid-area: content; padding-top: 0 !important; }
+  .profile-hero > :nth-child(3) {
+    grid-area: actions;
+    /* actions 在桌面是 flex-direction: column；mobile 改横向并排两个 btn */
+    flex-direction: row !important;
+    gap: 10px !important;
+  }
+  /* name 在窄屏 30 偏大，落到 24 让 bio 有展开余地 */
+  .profile-hero > :nth-child(2) > p:first-child {
+    font-size: 24px !important;
+  }
+
+  /* Stats 2 列；第 5 个跨两列填满网格 */
+  .profile-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .profile-stats > a:nth-child(5) {
+    grid-column: span 2;
+  }
+
+  /* 年度黑卡内部 4 列 → 2 列 */
+  .profile-year-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px !important;
+  }
+
+  /* Collections 2 列 → 1 列 */
+  .profile-collections {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ────── Detail ────── */
+.detail-page {
+  padding: 18px 24px 24px;
+}
+.detail-main {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+@media (max-width: 767px) {
+  .detail-page {
+    padding: 12px 12px 24px;
+  }
+  .detail-main {
+    grid-template-columns: 1fr;
+  }
+  /* 资料卡（右栏，source order 第二）在 mobile 顶到 MyRecordCard 上方
+     —— 用户先看媒介属性、再看自己的记录（用户反馈 2026-05-24 #1） */
+  .detail-main > div:last-child {
+    order: -1;
+  }
+}
+
+/* ────── RecordModal ────── */
+/* 桌面：1:1 还原原 inline style */
+.record-modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 18, 0.55);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.15s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.record-modal-card {
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: fadeUp 0.22s ease;
+  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.28);
+}
+
+/* 移动端：底部 sheet —— 贴底、顶圆角、上推动画、安全区避让 */
+@media (max-width: 767px) {
+  .record-modal-mask {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .record-modal-card {
+    max-width: 100%;
+    max-height: 92dvh;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 0;
+    animation: sheetSlideUp 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.2);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* 顶部 handle 提示 —— 拖动关闭的视觉暗示（v0 不接手势，纯视觉） */
+  .record-modal-card::before {
+    content: "";
+    flex-shrink: 0;
+    width: 38px;
+    height: 4px;
+    background: var(--border2);
+    border-radius: 2px;
+    margin: 8px auto 0;
+  }
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   第二批 · 下半 —— Home / Heatmap / row-actions 响应式
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ────── Home · BentoTop ────── */
+.home-bento-top {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+}
+
+/* ────── Home · CategoryCells ────── */
+/* 桌面端 inline style 提供 repeat(N,1fr)；这里仅作为 mobile 覆盖锚点 */
+
+/* ────── Heatmap container ────── */
+/* 桌面 inline 已有 padding: 18 22 16；移动端 @media 覆盖 */
+
+/* ────── Settings mobile-only 组件 ────── */
+/* 桌面默认完全隐藏；下面 @media 块在 < 768 时显示 */
+.settings-mobile-list,
+.settings-mobile-back {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  /* BentoTop：3+2 列 → 单列堆叠 */
+  .home-bento-top {
+    grid-template-columns: 1fr;
+  }
+
+  /* CategoryCells：6 列 → 3 列（2 行）。!important 覆盖 inline 的动态 columns */
+  .home-category-cells {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Heatmap 容器 padding 收紧（!important 覆盖 inline） */
+  .heatmap-container {
+    padding: 12px 14px 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* .row 紧凑：padding/gap 收小，让 ActivityStrip / Wishlist / Archive 行能挤进去 */
+  .row {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  /* .row-actions 在 mobile 全隐藏 —— wishlist/archive 列表都不展示快速操作
+     按钮组（√/×/✎），点 row 进详情页再标记。
+     原因：3 个 36px 按钮 + gap 在 360px 屏占 ~116px，跟标题/元数据争空间，
+     得不偿失。用户反馈 2026-05-24 #2。 */
+  .row-actions {
+    display: none !important;
+  }
+
+  /* ────── Header logo 居中（用户反馈 #3） ────── */
+  .header {
+    position: relative;
+  }
+  .header .brand {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+  }
+
+  /* ────── Settings 响应式 · iOS 风 list → detail（用户反馈 #1）────── */
+  /* 桌面 180+1fr 左右分栏 → 移动端单列，侧栏完全隐藏 */
+  .settings-shell {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+  }
+  .settings-shell > aside {
+    display: none !important;
+  }
+  .settings-shell > main {
+    padding: 0 !important;
+  }
+  /* main 内 panel 自己加 padding —— inline style 已经写在 panel 里，
+     这里给一个兜底 padding 让 panel 不会贴边 */
+  .settings-shell > main > *:not(.settings-mobile-list):not(.settings-mobile-back) {
+    padding: 18px 14px 24px;
+  }
+
+  /* Mobile list view —— 6 个 section 一行一个，iOS 设置风 */
+  .settings-mobile-list {
+    display: block;
+  }
+  .settings-mobile-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    min-height: 56px;
+    padding: 14px 16px;
+    background: transparent;
+    border: 0;
+    border-bottom: 0.5px solid var(--border);
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+  }
+  .settings-mobile-row:active { background: var(--bg2); }
+  .settings-mobile-row > i:first-child {
+    font-size: 19px;
+    color: var(--text2);
+    width: 24px;
+    text-align: center;
+  }
+  .settings-mobile-row > span {
+    flex: 1;
+    font-family: var(--serif);
+  }
+  .settings-mobile-row > i:last-child {
+    color: var(--text3);
+    font-size: 15px;
+  }
+
+  /* Mobile back bar —— 进入 section 后顶部加返回按钮 + 当前 section 标题
+     不 sticky，跟着内容滚走 */
+  .settings-mobile-back {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--bg);
+    min-height: 48px;
+    position: relative;
+  }
+  .settings-mobile-back > button {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: transparent;
+    border: 0;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 8px 4px;
+    cursor: pointer;
+    min-height: 44px;
+  }
+  .settings-mobile-back > button > i {
+    font-size: 18px;
+  }
+  .settings-mobile-back > button:active { color: var(--gold); }
+  .settings-mobile-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    pointer-events: none;
+  }
+
+  /* ────── Discover 响应式（用户反馈 #2） ────── */
+  .discover-page {
+    padding: 14px 12px 24px !important;
+    gap: 18px !important;
+  }
+  /* 编辑推荐卡：240 → 160，海报缩 160 → 96，padding 收紧 */
+  .discover-featured {
+    min-height: 160px !important;
+  }
+  .discover-featured__inner {
+    min-height: 160px !important;
+  }
+  /* 内层 padding 区收紧 */
+  .discover-featured__body {
+    padding: 14px 0 14px 14px !important;
+  }
+  /* 标题缩字 */
+  .discover-featured__title {
+    font-size: 18px !important;
+    margin-top: 8px !important;
+  }
+  /* 海报缩小并贴边 */
+  .discover-featured__cover {
+    width: 96px !important;
+    margin-right: 14px !important;
+  }
+  /* brief 在 mobile 也展示 —— 这是「编辑推荐」的核心内容，不该藏。
+     用户反馈 2026-05-24 #3。 */
+
+  /* 热门 3 列 → 2 列 */
+  .discover-trending-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   第三批 · 上半 —— Timeline / Wishlist / Archive / Notifications
+                   Reviews 归档 / Review 长评查看
+   ═══════════════════════════════════════════════════════════════════
+   全部 6 个浏览类页面。桌面规则与原 inline 1:1，移动端只在
+   < 768px 切容器 padding / 筛选行流向 / 标题字号。 */
+
+/* ────── Timeline ────── */
+.timeline-page {
+  padding: 20px 24px 28px;
+}
+@media (max-width: 767px) {
+  .timeline-page {
+    padding: 16px 12px 24px;
+  }
+  /* 筛选行：chips + 状态下拉 在窄屏堆成两行（chips 在上，下拉在下） */
+  .timeline-filter-row {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  /* chips 横向滚动避免折行过乱（chips 数量较多时） */
+  .timeline-filter-row > div:first-child {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    padding-bottom: 2px;
+  }
+  /* TimelineStatusFilter 自身宽度撑满，与 chip 行对齐 */
+  .timeline-filter-row > :last-child {
+    align-self: flex-end;
+  }
+}
+
+/* ────── Wishlist ────── */
+.wishlist-page {
+  padding: 20px 24px 24px;
+}
+@media (max-width: 767px) {
+  .wishlist-page {
+    padding: 16px 12px 24px;
+  }
+  /* 内部 WishlistContent 的筛选 chips 已是 overflow-x:auto，无需改。
+     语调 + 视图切换行：陈述句过长在窄屏会挤掉视图切换 —— 让陈述句在上 */
+  /* 移动端没有 hover —— 把骰子常驻显示，提示"标题可点 → 随机选" */
+  .wishlist-title-btn:not(:disabled) .wishlist-title-dice {
+    opacity: 0.5;
+    transform: translateX(0) rotate(0);
+  }
+}
+
+/* ────── Archive ────── */
+.archive-page {
+  padding: 20px 24px 28px;
+}
+@media (max-width: 767px) {
+  .archive-page {
+    padding: 16px 12px 24px;
+  }
+  /* 筛选行 = status chips + 排序/视图切换。窄屏堆两行 */
+  .archive-filter-row {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .archive-filter-row > div:first-child {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    padding-bottom: 2px;
+  }
+  .archive-filter-row > div:last-child {
+    justify-content: space-between;
+  }
+}
+
+/* ────── Notifications ────── */
+.notifications-page {
+  padding: 20px 24px 28px;
+}
+@media (max-width: 767px) {
+  .notifications-page {
+    padding: 16px 12px 24px;
+  }
+  /* 空状态卡 padding 收紧 */
+  .notifications-empty {
+    margin-top: 22px !important;
+    padding: 36px 18px !important;
+  }
+}
+
+/* ────── Profile · Reviews 归档 ────── */
+.reviews-archive-page {
+  padding: 28px 24px 36px;
+  max-width: 820px;
+  margin: 0 auto;
+}
+@media (max-width: 767px) {
+  .reviews-archive-page {
+    padding: 18px 12px 28px;
+    max-width: 100%;
+  }
+  /* 标题 + 计数：space-between 在窄屏会让计数掉到右下角；改纵向堆叠 */
+  .reviews-archive-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px;
+  }
+  /* h1 28 → 22 */
+  .reviews-archive-header h1 {
+    font-size: 22px !important;
+  }
+}
+
+/* ────── Review 长评查看 ────── */
+.review-page {
+  padding: 28px 24px 36px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+@media (max-width: 767px) {
+  .review-page {
+    padding: 18px 12px 28px;
+    max-width: 100%;
+  }
+  /* 标题 30 → 24，行高同步收紧 */
+  .review-page h1 {
+    font-size: 24px !important;
+    line-height: 1.25 !important;
+  }
+  /* 正文行高保留 1.85，字号 15 → 14.5 在窄屏更舒服 */
+  .review-body {
+    font-size: 14.5px;
+  }
+  .review-body h2 { font-size: 18px; }
+  .review-body h3 { font-size: 16px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   第三批 · 下半 —— ReviewEditor + AIPanel
+   ═══════════════════════════════════════════════════════════════════
+   ReviewEditor：单页编辑器，长 textarea + 底部操作行 stack
+   AIPanel：DraggableWindow 已在 < 768px 走 sheet 分支（底部 slide-up + handle）；
+            本段只补内部按钮触控目标 + 建议 chip 间距 */
+
+/* ────── ReviewEditor ────── */
+.review-editor-page {
+  padding: 20px 24px 28px;
+}
+@media (max-width: 767px) {
+  .review-editor-page {
+    padding: 14px 12px 24px;
+  }
+  /* 条目卡：cover 38 / 字号收紧，避免在 360px 屏挤爆 */
+  .review-editor-item-card {
+    padding: 12px !important;
+    gap: 10px !important;
+  }
+  /* 标题输入框 24 → 22 */
+  .review-editor-title-input {
+    font-size: 22px !important;
+  }
+  /* 正文 textarea：rows=20 在桌面是 ~480px 高；窄屏视口 ~780dvh，
+     给 min-height 48vh 让用户能看到底部操作行，仍可拉伸 */
+  .review-editor-body-textarea {
+    min-height: 48vh;
+    padding: 12px 14px !important;
+  }
+  /* 操作行：count + 操作组在窄屏可能一行装不下 → 允许换行，操作组靠右 */
+  .review-editor-action-row {
+    flex-wrap: wrap;
+  }
+  .review-editor-action-buttons {
+    margin-left: auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+/* ────── AIPanel ────── */
+/* DraggableWindow 在 < 768px 走 sheet 分支（全屏 + 底部 slide-up + 顶部 handle，
+   见 DraggableWindow.tsx）；这里只补内部触控目标 */
+@media (max-width: 767px) {
+  /* 联网搜索切换：26 → 40 */
+  .ai-panel-web-toggle {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  .ai-panel-web-toggle > i {
+    font-size: 19px !important;
+  }
+  /* 发送按钮：28 → 40 */
+  .ai-panel-send {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  .ai-panel-send > i {
+    font-size: 17px !important;
+  }
+}

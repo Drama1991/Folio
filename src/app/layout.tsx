@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Serif_SC, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -19,6 +19,31 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Folio · 你的文化档案",
   description: "记录看过、读过、听过、玩过的每一件事。",
+  applicationName: "Folio",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Folio",
+  },
+  // 关掉 iOS Safari 的电话号自动识别（会把日期/编号渲染成蓝色链接）
+  formatDetection: {
+    telephone: false,
+    date: false,
+    address: false,
+    email: false,
+  },
+};
+
+// viewport-fit=cover 让 body 延伸到 iOS 刘海/底栏区域；CSS 内用 env(safe-area-inset-*) 单独避让。
+// themeColor 控制 PWA / Safari 上下系统栏配色，跟随主题。
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F5F2EA" },
+    { media: "(prefers-color-scheme: dark)", color: "#1A1816" },
+  ],
 };
 
 // 首屏同步注入主题/字号/密度/动效偏好，避免 FOUC（米白→深色闪烁）。

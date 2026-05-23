@@ -14,7 +14,7 @@ export function EpisodeTracker({ uuid, totalHint }: { uuid: string; totalHint?: 
     <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", padding: "14px 16px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <span className="section-label">集数追踪</span>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
           {lastUpdate ? relativeTime(lastUpdate) : "本机"}
         </span>
       </div>
@@ -64,7 +64,7 @@ export function EpisodeTracker({ uuid, totalHint }: { uuid: string; totalHint?: 
           + 标记第 {watched + 1} 集已看
         </button>
         <span style={{ flex: 1 }} />
-        <label style={{ fontSize: 10, color: "var(--text3)", fontFamily: "var(--mono)" }}>
+        <label style={{ fontSize: 11, color: "var(--text3)", fontFamily: "var(--mono)" }}>
           总集数{" "}
           <input
             type="number"
@@ -72,7 +72,7 @@ export function EpisodeTracker({ uuid, totalHint }: { uuid: string; totalHint?: 
             value={total || ""}
             placeholder="?"
             onChange={(e) => setTotal(Math.max(0, Number(e.target.value) || 0))}
-            style={{ width: 50, fontSize: 10, padding: "2px 4px", border: "0.5px solid var(--border)", borderRadius: 3, background: "var(--bg)", fontFamily: "var(--mono)" }}
+            style={{ width: 50, fontSize: 11, padding: "2px 4px", border: "0.5px solid var(--border)", borderRadius: 3, background: "var(--bg)", fontFamily: "var(--mono)" }}
           />
         </label>
       </div>

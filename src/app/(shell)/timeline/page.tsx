@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listShelf } from "@/lib/neodb/client";
+import { listShelfAll } from "@/lib/neodb/client";
 import { markToTimelineEntry } from "@/lib/neodb/mappers";
 import { formatMonthLabel, relativeTime } from "@/lib/format/dates";
 import { statusVerb, mediumLabel, type UiMedium } from "@/lib/format/verbs";
@@ -34,7 +34,7 @@ export default async function TimelinePage({ searchParams }: PageProps) {
 
   const results = await Promise.all(
     shelves.map((t) =>
-      listShelf({ type: t, category: filterMedium, page: 1 }).catch(() => ({ data: [] as never[] })),
+      listShelfAll({ type: t, category: filterMedium }).catch(() => ({ data: [] as never[] })),
     ),
   );
 
@@ -63,7 +63,7 @@ export default async function TimelinePage({ searchParams }: PageProps) {
   };
 
   return (
-    <div style={{ padding: "20px 24px 28px" }}>
+    <div className="timeline-page">
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
         <Link href="/home" className="crumb">首页</Link>
         <span style={{ color: "var(--text3)", fontFamily: "var(--mono)", fontSize: 11 }}>/</span>
@@ -74,7 +74,7 @@ export default async function TimelinePage({ searchParams }: PageProps) {
         共 {all.length} 条 · 按月分组
       </p>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+      <div className="timeline-filter-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           <Link href={timelineUrl(undefined, status)} className={`chip${!filterMedium ? " on" : ""}`}>全部</Link>
           {ALL_UI_MEDIUMS.map((m) => (
@@ -107,8 +107,8 @@ export default async function TimelinePage({ searchParams }: PageProps) {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <RatingTag own={e.rating} external={e.externalRating} />
-                  <span style={{ fontSize: 10, color: "var(--text3)", fontFamily: "var(--mono)" }}>{statusVerb(e.medium, e.status)}</span>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>{relativeTime(e.createdAt)}</span>
+                  <span style={{ fontSize: 11, color: "var(--text3)", fontFamily: "var(--mono)" }}>{statusVerb(e.medium, e.status)}</span>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>{relativeTime(e.createdAt)}</span>
                 </div>
               </Link>
             ))}

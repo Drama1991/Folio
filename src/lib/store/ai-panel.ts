@@ -231,47 +231,55 @@ export const useAIPanel = create<AIPanelState>((set, get) => ({
       const decoder = new TextDecoder();
       const reader = res.body.getReader();
 
-      // 首行 sentinel 解析：`__SOURCES__:{json}\n` 仅在 webSearch 命中时由服务端写入。
-      // 缓冲到能判断是否为 sentinel 前缀为止；不是就直接 flush 当普通文本。
-      const SP = "__SOURCES__:";
-      let firstLineBuf = "";
-      let firstLineDone = false;
+      // SSE 行级 parser：按 `\n\n` 切事件块，每块内 `event:` 与 `data:` 行各一。
+      // sources / delta / done / error 四种事件；其它静默丢弃。
+      let buf = "";
+      let sourcesAttached = false;
 
-      const consumeFirstLine = (chunk: string): { rest: string; done: boolean } => {
-        firstLineBuf += chunk;
-        if (firstLineBuf.length < SP.length) {
-          // 还短，但已经偏离 prefix 就提前 flush
-          if (!SP.startsWith(firstLineBuf)) {
-            const out = firstLineBuf;
-            firstLineBuf = "";
-            return { rest: out, done: true };
-          }
-          return { rest: "", done: false };
-        }
-        if (!firstLineBuf.startsWith(SP)) {
-          // 已确认不是 sentinel
-          const out = firstLineBuf;
-          firstLineBuf = "";
-          return { rest: out, done: true };
-        }
-        const nlIdx = firstLineBuf.indexOf("\n");
-        if (nlIdx < 0) return { rest: "", done: false };
-        const firstLine = firstLineBuf.slice(0, nlIdx);
-        const rest = firstLineBuf.slice(nlIdx + 1);
-        firstLineBuf = "";
+      const handleEvent = (event: string, raw: string) => {
+        let data: unknown;
         try {
-          const parsed = JSON.parse(firstLine.slice(SP.length)) as { sources?: SourceLink[] };
-          const sources = parsed.sources ?? [];
+          data = JSON.parse(raw);
+        } catch {
+          return;
+        }
+        if (event === "delta" && typeof data === "string" && data) {
+          pushOrAppendAi(set, data);
+          return;
+        }
+        if (event === "sources" && !sourcesAttached) {
+          const sources = (data as { sources?: SourceLink[] }).sources ?? [];
           if (sources.length > 0) {
             set((s) => ({
               history: [...s.history, { role: "ai" as const, text: "", sources }],
             }));
+            sourcesAttached = true;
           }
-        } catch {
-          // sentinel 解析失败：当普通文本回吐
-          return { rest: firstLine + (rest.length ? "\n" + rest : ""), done: true };
+          return;
         }
-        return { rest, done: true };
+        if (event === "error") {
+          const msg = (data as { message?: string }).message ?? "stream_failed";
+          pushOrAppendAi(set, `\n\n[AI 出错] ${msg}`);
+        }
+        // "done" 由 reader 自然结束触发，这里不必特殊处理
+      };
+
+      const drain = () => {
+        // 取出 buf 中所有完整事件块（以 \n\n 结尾），剩下不完整的留作下一轮
+        let idx: number;
+        while ((idx = buf.indexOf("\n\n")) >= 0) {
+          const block = buf.slice(0, idx);
+          buf = buf.slice(idx + 2);
+          let event = "message";
+          const dataLines: string[] = [];
+          for (const line of block.split("\n")) {
+            if (line.startsWith("event:")) event = line.slice(6).trim();
+            else if (line.startsWith("data:")) dataLines.push(line.slice(5).replace(/^ /, ""));
+            // 忽略 id: / retry: / 空行
+          }
+          if (dataLines.length === 0) continue;
+          handleEvent(event, dataLines.join("\n"));
+        }
       };
 
       while (true) {
@@ -284,16 +292,14 @@ export const useAIPanel = create<AIPanelState>((set, get) => ({
         }
         const chunk = decoder.decode(value, { stream: true });
         if (!chunk) continue;
-        if (!firstLineDone) {
-          const r = consumeFirstLine(chunk);
-          if (r.done) firstLineDone = true;
-          if (r.rest) pushOrAppendAi(set, r.rest);
-        } else {
-          pushOrAppendAi(set, chunk);
-        }
+        buf += chunk;
+        drain();
       }
-      // stream 结束但缓冲仍有内容（理论不会发生，defensive）
-      if (firstLineBuf) pushOrAppendAi(set, firstLineBuf);
+      // flush 末尾可能没有 \n\n 结尾的最后一块（防御）
+      if (buf.trim()) {
+        buf += "\n\n";
+        drain();
+      }
     } catch (e) {
       if (get().sessionId === capturedSid) {
         pushOrAppendAi(set, `\n\n[网络错误] ${e instanceof Error ? e.message : ""}`);

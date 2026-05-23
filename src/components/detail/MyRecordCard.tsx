@@ -47,7 +47,7 @@ export function MyRecordCard({ uuid, medium, myRecord, title, cover, year, creat
     <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden" }}>
       <div style={{ padding: "11px 16px", borderBottom: "0.5px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span className="section-label">我的记录</span>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
           {myRecord ? new Date(myRecord.createdAt).toLocaleDateString("zh-CN") : "未记录"}
         </span>
       </div>

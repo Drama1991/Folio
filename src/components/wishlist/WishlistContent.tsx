@@ -205,13 +205,13 @@ export function WishlistContent({
         >
           <Cover src={pick.cover ?? undefined} seed={pick.uuid} width={42} height={60} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#854F0B", marginBottom: 4, letterSpacing: ".04em" }}>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#854F0B", marginBottom: 4, letterSpacing: ".04em" }}>
               今晚就它了 ↓
             </p>
             <p style={{ fontFamily: "var(--serif)", fontSize: 17, fontWeight: 500, color: "#412402", lineHeight: 1.2 }}>
               {pick.title}
             </p>
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10.5, color: "#854F0B", marginTop: 3 }}>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#854F0B", marginTop: 3 }}>
               {[mediumLabel(pick.medium), pick.creator, pick.year].filter(Boolean).join(" · ")}
             </p>
           </div>
@@ -274,7 +274,7 @@ export function WishlistContent({
                     </p>
                   )}
                 </div>
-                <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", flexShrink: 0, display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", flexShrink: 0, display: "flex", alignItems: "center", gap: 10 }}>
                   <RatingTag own={r.rating} external={r.externalRating} size={11} />
                   <span>{relativeTime(r.updatedAt)}</span>
                 </span>

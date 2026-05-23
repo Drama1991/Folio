@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth/cookie";
 import { getItem, getMyMark, listItemPosts } from "@/lib/neodb/client";
 import { itemToUi, postToUiComment, postToUiReview } from "@/lib/neodb/mappers";
@@ -19,6 +20,29 @@ interface PageProps {
   params: Promise<{ medium: string; uuid: string }>;
 }
 
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { medium: rawMedium, uuid } = await params;
+  if (!ALL_UI_MEDIUMS.includes(rawMedium as UiMedium)) {
+    return { title: "未找到 · Folio" };
+  }
+  const medium = rawMedium as UiMedium;
+  try {
+    const item = await getItem({ medium, uuid });
+    const ui = itemToUi(item);
+    const title = `${ui.title} · Folio`;
+    const description = ui.brief?.slice(0, 160) || `在 Folio 上查看 ${ui.title} 的档案`;
+    const images = ui.cover ? [{ url: ui.cover }] : undefined;
+    return {
+      title,
+      description,
+      openGraph: { title, description, type: "article", images },
+      twitter: { card: "summary_large_image", title, description, images: images?.map((i) => i.url) },
+    };
+  } catch {
+    return { title: "未找到 · Folio" };
+  }
+}
+
 export default async function DetailPage({ params }: PageProps) {
   const { medium: rawMedium, uuid } = await params;
   if (!ALL_UI_MEDIUMS.includes(rawMedium as UiMedium)) notFound();
@@ -29,8 +53,11 @@ export default async function DetailPage({ params }: PageProps) {
   let item;
   try {
     item = await getItem({ medium, uuid });
-  } catch {
-    notFound();
+  } catch (err) {
+    // 仅 404 当作"真不存在"；5xx / 网络抖动 / 限流等让上层 error.tsx 接管
+    const status = (err as { status?: number })?.status;
+    if (status === 404) notFound();
+    throw err;
   }
   // verify category match
   if (fromNeoDBCategory(item.category) !== medium && medium !== "music") {
@@ -65,10 +92,10 @@ export default async function DetailPage({ params }: PageProps) {
   const meta = extractMetaKV(item, medium);
 
   return (
-    <div style={{ padding: "18px 24px 24px" }}>
+    <div className="detail-page">
       <Crumbs medium={medium} title={ui.title} />
       <DetailHero ui={ui} medium={medium} />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 240px", gap: 14, marginTop: 18 }}>
+      <div className="detail-main">
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <MyRecordCard uuid={uuid} medium={medium} myRecord={myRecord} title={ui.title} cover={ui.cover ?? undefined} year={ui.year} creator={ui.creator} />
           {ui.brief && (

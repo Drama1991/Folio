@@ -53,7 +53,7 @@ export function AIPanel() {
           <button onClick={() => setOpen(false)} className="btn" style={{ fontSize: 11, padding: "4px 9px" }} aria-label="关闭">×</button>
         </div>
       </div>
-      <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", marginTop: 4 }}>{context.subtitle}</p>
+      <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 4 }}>{context.subtitle}</p>
     </div>
   );
 
@@ -179,6 +179,7 @@ export function AIPanel() {
               title={webSearch ? "联网搜索已开启 · 点击关闭" : "联网搜索（基于实时网页，需先在设置里填 Brave API key）"}
               aria-label={webSearch ? "关闭联网搜索" : "开启联网搜索"}
               aria-pressed={webSearch}
+              className="ai-panel-web-toggle"
               style={{
                 display: "inline-flex", alignItems: "center", justifyContent: "center",
                 width: 26, height: 26,
@@ -195,6 +196,7 @@ export function AIPanel() {
               type="submit"
               disabled={!input.trim()}
               aria-label="发送"
+              className="ai-panel-send"
               style={{
                 display: "inline-flex", alignItems: "center", justifyContent: "center",
                 width: 28, height: 28, borderRadius: 999,
@@ -231,7 +233,7 @@ function SourceChips({ sources }: { sources: SourceLink[] }) {
             padding: "3px 8px 3px 4px", borderRadius: 999,
             background: "var(--bg)", border: "0.5px solid var(--border)",
             color: "var(--text2)", textDecoration: "none",
-            fontSize: 10, fontFamily: "var(--mono)",
+            fontSize: 11, fontFamily: "var(--mono)",
             cursor: "pointer", maxWidth: 160,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}

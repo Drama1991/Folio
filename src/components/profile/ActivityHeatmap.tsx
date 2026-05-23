@@ -91,7 +91,7 @@ export function ActivityHeatmap({ year, currentYear, marks, handle }: Props) {
   const gridH = 7 * STEP - GAP;
 
   return (
-    <div style={{
+    <div className="heatmap-container" style={{
       border: "0.5px solid var(--border)",
       borderRadius: "var(--r)",
       padding: "18px 22px 16px",
@@ -102,7 +102,7 @@ export function ActivityHeatmap({ year, currentYear, marks, handle }: Props) {
       {/* 头部：计数 + 年份切换 */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, minWidth: gridW + DAY_LABEL_W }}>
         <div>
-          <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", color: "var(--text3)", textTransform: "uppercase" }}>
+          <p style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.12em", color: "var(--text3)", textTransform: "uppercase" }}>
             活动热力图
           </p>
           <p style={{ fontFamily: "var(--serif)", fontSize: 17, fontWeight: 500, marginTop: 4, letterSpacing: "-0.01em" }}>
@@ -124,7 +124,7 @@ export function ActivityHeatmap({ year, currentYear, marks, handle }: Props) {
                 left: col * STEP,
                 top: 0,
                 fontFamily: "var(--mono)",
-                fontSize: 9.5,
+                fontSize: 11,
                 color: "var(--text3)",
                 letterSpacing: "0.04em",
               }}
@@ -145,7 +145,7 @@ export function ActivityHeatmap({ year, currentYear, marks, handle }: Props) {
                   height: CELL,
                   lineHeight: `${CELL}px`,
                   fontFamily: "var(--mono)",
-                  fontSize: 9,
+                  fontSize: 11,
                   color: "var(--text3)",
                   visibility: r === 1 || r === 3 || r === 5 ? "visible" : "hidden",
                   textAlign: "right",
@@ -189,7 +189,7 @@ export function ActivityHeatmap({ year, currentYear, marks, handle }: Props) {
           gap: 6,
           marginTop: 10,
           fontFamily: "var(--mono)",
-          fontSize: 9,
+          fontSize: 11,
           color: "var(--text3)",
           justifyContent: "flex-end",
         }}>

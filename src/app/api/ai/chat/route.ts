@@ -88,18 +88,24 @@ export async function POST(req: NextRequest) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      // SSE 工具：每个事件块为 `event: <name>\ndata: <json>\n\n`
+      const send = (event: string, data: unknown) => {
+        const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+        controller.enqueue(encoder.encode(payload));
+      };
       try {
-        // sources sentinel：stream 首行 `__SOURCES__:{json}\n`，前端解析后挂到 AI 消息
         if (searchResults.length > 0) {
           const meta = searchResults.map((s) => ({ title: s.title, url: s.url, domain: s.domain }));
-          controller.enqueue(encoder.encode(`__SOURCES__:${JSON.stringify({ sources: meta })}\n`));
+          send("sources", { sources: meta });
         }
         for await (const delta of provider.chatStream({ messages })) {
-          controller.enqueue(encoder.encode(delta));
+          if (!delta) continue;
+          send("delta", delta);
         }
+        send("done", {});
       } catch (err) {
         const msg = err instanceof Error ? err.message : "stream_failed";
-        controller.enqueue(encoder.encode(`\n\n[AI 出错] ${msg}`));
+        send("error", { message: msg });
       } finally {
         controller.close();
       }
@@ -108,9 +114,10 @@ export async function POST(req: NextRequest) {
 
   return new Response(stream, {
     headers: {
-      "Content-Type": "text/plain; charset=utf-8",
+      "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
       "X-Accel-Buffering": "no",
+      Connection: "keep-alive",
     },
   });
 }

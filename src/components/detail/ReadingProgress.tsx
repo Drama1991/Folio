@@ -15,7 +15,7 @@ export function ReadingProgress({ uuid, totalHint }: { uuid: string; totalHint?:
     <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", padding: "14px 16px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <span className="section-label">阅读进度</span>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
           {lastRead ? relativeTime(lastRead) : "本机"}
         </span>
       </div>

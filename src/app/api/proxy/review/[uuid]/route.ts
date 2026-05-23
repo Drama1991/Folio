@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/cookie";
 import { deleteReview, postReview, tags as cacheTags } from "@/lib/neodb/client";
+import { neodbErrorResponse } from "@/lib/neodb/proxy-error";
 import type { NeoDBVisibility } from "@/lib/neodb/types";
 import { revalidateTag } from "next/cache";
 
@@ -20,8 +21,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ uuid: stri
     revalidateTag(cacheTags.myReviews());
     return NextResponse.json({ ok: true, review: res ?? null });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "post_failed";
-    return NextResponse.json({ error: msg }, { status: 502 });
+    return neodbErrorResponse(err);
   }
 }
 
@@ -34,7 +34,6 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ uuid: s
     revalidateTag(cacheTags.myReviews());
     return NextResponse.json({ ok: true });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "delete_failed";
-    return NextResponse.json({ error: msg }, { status: 502 });
+    return neodbErrorResponse(err);
   }
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getSession } from "@/lib/auth/cookie";
 import {
   getMe,
@@ -17,6 +18,30 @@ import { pullYearMarks, summarizeYear } from "@/lib/profile/yearStats";
 interface PageProps {
   params: Promise<{ handle: string }>;
   searchParams: Promise<{ year?: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { handle } = await params;
+  const session = await getSession();
+  const isMe = handle === "me" || handle === session?.handle;
+  let display = session?.handle || handle;
+  let avatar: string | undefined;
+  if (isMe) {
+    try {
+      const me = await getMe();
+      display = me.display_name || me.username || display;
+      avatar = me.avatar;
+    } catch { /* fallback */ }
+  }
+  const title = `${display} · Folio`;
+  const description = `${display} 在 Folio 的文化档案：看过、读过、听过、玩过的一切`;
+  const images = avatar ? [{ url: avatar }] : undefined;
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "profile", images },
+    twitter: { card: "summary", title, description, images: images?.map((i) => i.url) },
+  };
 }
 
 function joinedLabel(iso?: string): string {
@@ -66,18 +91,9 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const heatmapStart = new Date(requestedYear, 0, 1);
   const heatmapEnd = new Date(requestedYear + 1, 0, 1);
 
-  // Stats、collections、tags、reviews、年度 marks、热力图 marks 全部并发
-  const [
-    watchedMovie, watchedSeries,
-    readBook,
-    listenedMusic, listenedPodcast,
-    progressAll, wishlistAll,
-    collectionsPaged,
-    rawTags,
-    reviews,
-    yearMarks,
-    heatmapMarksOther,
-  ] = await Promise.all([
+  // P2-7：用 Promise.allSettled —— callee 内部虽都有 catch 兜底，但明示更稳，
+  // 后续谁不小心把 callee 改成 throw 也不会整页 5xx。
+  const settledResults = await Promise.allSettled([
     shelfCount({ type: "complete", category: "movie" }),
     shelfCount({ type: "complete", category: "series" }),
     shelfCount({ type: "complete", category: "book" }),
@@ -87,10 +103,27 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
     shelfCount({ type: "wishlist" }),
     listMyCollections({ page: 1 }),
     listMyTags(),
-    listMyReviews({ page: 1 }).catch(() => ({ data: [] as never[], count: 0 })),
+    listMyReviews({ page: 1 }),
     isMe ? pullYearMarks(yearStart) : Promise.resolve([]),
     isMe && !sameYear ? pullYearMarks(heatmapStart, heatmapEnd) : Promise.resolve(null),
   ]);
+
+  const pick = <T,>(idx: number, fallback: T): T => {
+    const r = settledResults[idx];
+    return r.status === "fulfilled" ? (r.value as T) : fallback;
+  };
+  const watchedMovie = pick<number>(0, 0);
+  const watchedSeries = pick<number>(1, 0);
+  const readBook = pick<number>(2, 0);
+  const listenedMusic = pick<number>(3, 0);
+  const listenedPodcast = pick<number>(4, 0);
+  const progressAll = pick<number>(5, 0);
+  const wishlistAll = pick<number>(6, 0);
+  const collectionsPaged = pick<Awaited<ReturnType<typeof listMyCollections>>>(7, { data: [] });
+  const rawTags = pick<Awaited<ReturnType<typeof listMyTags>>>(8, []);
+  const reviews = pick<Awaited<ReturnType<typeof listMyReviews>>>(9, { data: [], count: 0 });
+  const yearMarks = pick<Awaited<ReturnType<typeof pullYearMarks>>>(10, []);
+  const heatmapMarksOther = pick<Awaited<ReturnType<typeof pullYearMarks>> | null>(11, null);
   const heatmapMarks = heatmapMarksOther ?? yearMarks;
 
   const stats = [
@@ -132,11 +165,10 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const yr = summarizeYear(yearMarks);
 
   return (
-    <div style={{ padding: "28px 24px 28px" }}>
+    <div className="profile-page">
       {/* ───── Hero ───── */}
-      <div style={{
+      <div className="profile-hero" style={{
         display: "grid",
-        gridTemplateColumns: "88px 1fr auto",
         gap: 20,
         alignItems: "flex-start",
         paddingBottom: 22,
@@ -179,7 +211,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
       </div>
 
       {/* ───── Stats ───── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8, marginBottom: 14 }}>
+      <div className="profile-stats" style={{ display: "grid", gap: 8, marginBottom: 14 }}>
         {stats.map((s) => (
           <Link key={s.label} href={s.href} className="stat-cell">
             <p className="stat-lbl">{s.label}</p>
@@ -210,7 +242,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
             <div>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 10, letterSpacing: "0.12em", color: "var(--gold)" }}>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: "0.12em", color: "var(--gold)" }}>
                 {currentYear} 至今 · 年度回顾
               </p>
               <p style={{ fontFamily: "var(--serif)", fontSize: 24, marginTop: 8, fontWeight: 500, letterSpacing: "-0.01em" }}>
@@ -220,38 +252,38 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
               </p>
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 18 }}>
+          <div className="profile-year-grid" style={{ display: "grid", gap: 18 }}>
             <div>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#888780", textTransform: "uppercase", letterSpacing: "0.06em" }}>最爱创作者</p>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#888780", textTransform: "uppercase", letterSpacing: "0.06em" }}>最爱创作者</p>
               <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "#F1EFE8", marginTop: 4, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {yr.topCreator?.name ?? "—"}
               </p>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#888780", marginTop: 2 }}>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#888780", marginTop: 2 }}>
                 {yr.topCreator ? `${yr.topCreator.count} 件` : "本年无足够样本"}
               </p>
             </div>
             <div>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#888780", textTransform: "uppercase", letterSpacing: "0.06em" }}>最常类型</p>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#888780", textTransform: "uppercase", letterSpacing: "0.06em" }}>最常类型</p>
               <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "#F1EFE8", marginTop: 4, fontWeight: 500 }}>
                 {yr.total > 0 ? yr.topMediumLabel : "—"}
               </p>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#888780", marginTop: 2 }}>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#888780", marginTop: 2 }}>
                 {yr.total > 0 ? `占 ${yr.topMediumPct}%` : "本年无样本"}
               </p>
             </div>
             <div>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#888780", textTransform: "uppercase", letterSpacing: "0.06em" }}>平均评分</p>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#888780", textTransform: "uppercase", letterSpacing: "0.06em" }}>平均评分</p>
               <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "#F1EFE8", marginTop: 4, fontWeight: 500 }}>
                 {yr.avgRating5 !== null ? `${yr.avgRating5} / 5` : "—"}
               </p>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#888780", marginTop: 2 }}>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#888780", marginTop: 2 }}>
                 {yr.avgRating5 !== null ? `${yr.ratedCount} 件已评分` : "尚未打分"}
               </p>
             </div>
             <div>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#888780", textTransform: "uppercase", letterSpacing: "0.06em" }}>档案累计</p>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#888780", textTransform: "uppercase", letterSpacing: "0.06em" }}>档案累计</p>
               <p style={{ fontFamily: "var(--serif)", fontSize: 14, color: "#F1EFE8", marginTop: 4, fontWeight: 500 }}>{lifetimeMarks} 件</p>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#888780", marginTop: 2 }}>
+              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#888780", marginTop: 2 }}>
                 合集 {collectionsCount} · 长评 {reviewsCount} · 标签 {tagsCount}
               </p>
             </div>
@@ -265,7 +297,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
             <span className="section-label">公开合集 · {collectionsPaged.count ?? collectionWithCovers.length}</span>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8 }}>
+          <div className="profile-collections" style={{ display: "grid", gap: 8 }}>
             {collectionWithCovers.map((c) => (
               <a key={c.uuid} href={c.url} target="_blank" rel="noreferrer noopener" className="collection">
                 <p style={{ fontFamily: "var(--serif)", fontSize: 15, fontWeight: 500 }}>{c.title}</p>
@@ -284,7 +316,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                       />
                     )) : <div className="cov c1" />}
                   </div>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
                     {c.total > 0 ? `${c.total} 项 · ` : ""}更新于 {timeAgo(c.created_time)}
                   </span>
                 </div>
@@ -314,7 +346,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
             <span className="section-label">最近写的 · 长评</span>
-            <Link href={`/profile/${handle}/reviews`} style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", textDecoration: "none" }}>
+            <Link href={`/profile/${handle}/reviews`} style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", textDecoration: "none" }}>
               查看全部 →
             </Link>
           </div>
@@ -331,7 +363,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
               background: "var(--bg)",
             }}
           >
-            <p style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
               {new Date(heroReview.createdAt).toLocaleDateString("zh-CN")} · {heroReview.itemTitle}
             </p>
             <p style={{ fontFamily: "var(--serif)", fontSize: 18, fontWeight: 500, letterSpacing: "-0.01em", marginTop: 8 }}>
@@ -340,7 +372,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
             <p style={{ fontFamily: "var(--serif)", fontSize: 13, lineHeight: 1.8, color: "var(--text2)", marginTop: 10 }}>
               {(heroReview.body || "").slice(0, 200)}{(heroReview.body || "").length > 200 ? "…" : ""}
             </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 14, fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 14, fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
               <span>{(heroReview.body || "").length} 字</span>
             </div>
           </Link>
@@ -365,7 +397,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
                   <span style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
                     {rv.title}
                   </span>
-                  <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", flexShrink: 0 }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", flexShrink: 0 }}>
                     {rv.itemTitle} · {new Date(rv.createdAt).toLocaleDateString("zh-CN")}
                   </span>
                 </Link>

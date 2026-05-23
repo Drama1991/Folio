@@ -21,7 +21,7 @@ export function ActivityStrip({ recent }: { recent: UiTimelineEntry[] }) {
     <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden", marginBottom: 10 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 18px", borderBottom: "0.5px solid var(--border)" }}>
         <span className="section-label">最近动态</span>
-        <Link href="/timeline" style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)", textDecoration: "none" }}>
+        <Link href="/timeline" style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", textDecoration: "none" }}>
           全部 →
         </Link>
       </div>
@@ -52,7 +52,7 @@ function ActivityRow({ e }: { e: UiTimelineEntry }) {
         <span className="badge" style={{ background: pill.bg, color: pill.fg }}>
           {statusVerb(e.medium as UiMedium, e.status)}
         </span>
-        <span style={{ fontFamily: "var(--mono)", fontSize: 10, color: "var(--text3)" }}>{relativeTime(e.createdAt)}</span>
+        <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>{relativeTime(e.createdAt)}</span>
       </div>
     </Link>
   );

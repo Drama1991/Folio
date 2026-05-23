@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/cookie";
 import { Header } from "@/components/shell/Header";
+import { Drawer } from "@/components/shell/Drawer";
 import { ToastHost } from "@/components/shared/Toast";
 import { RecordModal } from "@/components/record-modal/RecordModal";
 import { RecordFAB } from "@/components/shell/RecordFAB";
@@ -17,6 +18,7 @@ export default async function ShellLayout({ children }: { children: React.ReactN
   return (
     <div className="shell">
       <Header display={display} handle={`@${acct}`} avatar={session.avatar} />
+      <Drawer display={display} handle={`@${acct}`} avatar={session.avatar} />
       <main>{children}</main>
       <RecordModal />
       <AIPanel />
