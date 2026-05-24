@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 import { getMyReviewOfItem, getReview, NeoDBError } from "@/lib/neodb/client";
 import { itemToUi } from "@/lib/neodb/mappers";
 import { getSession } from "@/lib/auth/cookie";
@@ -119,15 +119,23 @@ export default async function ReviewPage({ params }: PageProps) {
 
   // P0-2 纵深防御：NeoDB 上游通常已 sanitize，但绝不在客户端假设上游永远完美。
   // 白名单只放正文需要的标签 + a/img 的最小属性集。
+  // 2026-05-24 换 sanitize-html（纯 Node CJS，无 jsdom）取代 isomorphic-dompurify ——
+  // 后者经 jsdom→html-encoding-sniffer→@exodus/bytes 引入 ESM/CJS 互导，Vercel lambda
+  // 上 require() ES Module 报 ERR_REQUIRE_ESM 直接整页 500。
   const safeHtml = review.html_content
-    ? DOMPurify.sanitize(review.html_content, {
-        ALLOWED_TAGS: [
+    ? sanitizeHtml(review.html_content, {
+        allowedTags: [
           "p", "br", "strong", "em", "u", "s", "a", "blockquote",
           "ul", "ol", "li", "h2", "h3", "h4", "img", "code", "pre",
           "hr", "span", "figure", "figcaption",
         ],
-        ALLOWED_ATTR: ["href", "src", "alt", "title", "rel", "target"],
-        ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|\/)/i,
+        allowedAttributes: {
+          a: ["href", "title", "rel", "target"],
+          img: ["src", "alt", "title"],
+        },
+        allowedSchemes: ["http", "https", "mailto"],
+        allowedSchemesByTag: { img: ["http", "https"] },
+        allowProtocolRelative: false,
       })
     : "";
 

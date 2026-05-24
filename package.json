@@ -12,11 +12,12 @@
   "dependencies": {
     "@serwist/next": "^9.5.11",
     "@tabler/icons-react": "^3.24.0",
-    "isomorphic-dompurify": "^3.14.0",
+    "@types/sanitize-html": "^2.16.1",
     "jose": "^5.9.6",
     "next": "^15.5.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "sanitize-html": "^2.17.4",
     "serwist": "^9.5.11",
     "zustand": "^5.0.2"
   },
