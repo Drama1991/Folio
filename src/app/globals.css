@@ -622,8 +622,40 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   border: 0.5px solid var(--border);
   border-radius: var(--r2);
   padding: 6px 12px;
-  width: 220px;
+  width: 180px;
   cursor: text;
+}
+
+/* Header 桌面端"+ 记录"入口
+   米白底 + 金描边 + 金图标 / 文字（呼应 AIFAB 米白描金视觉系统）
+   移动端走 BottomTabBar 中间凸 tab，本按钮隐藏 */
+.header-record-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--bg);
+  border: 0.5px solid var(--gold);
+  border-radius: var(--r2);
+  color: var(--gold);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 1px 3px rgba(168, 101, 21, 0.08);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.header-record-btn > i {
+  font-size: 13px;
+}
+.header-record-btn:hover {
+  background: var(--bg2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 101, 21, 0.14);
+}
+.header-record-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(168, 101, 21, 0.08);
 }
 
 .avatar {
@@ -1120,6 +1152,10 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
      渲染 .search-mobile-link 跳转到 /search 页（用户反馈 #4 batch 2026-05-24）。
      原 inline 展开方案废弃，避免 header 内输入框跟主搜索页两套体验混乱。 */
   .search-desktop-wrap {
+    display: none !important;
+  }
+  /* 桌面 Header 的"+ 记录"入口移动端隐藏（移动端入口走 BottomTabBar 中间凸 tab） */
+  .header-record-btn {
     display: none !important;
   }
   .search-mobile-link {

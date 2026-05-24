@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { AvatarMenu } from "./AvatarMenu";
 import { HeaderSearch } from "./HeaderSearch";
 import { useHideOnScroll } from "@/lib/hooks/useHideOnScroll";
+import { useRecordModal } from "@/lib/store/record-modal";
 
 interface HeaderProps {
   display: string;
@@ -24,6 +25,7 @@ export function Header({ display, handle, avatar }: HeaderProps) {
   const cur = topLevel(pathname);
   const initial = display.slice(0, 1) || handle.slice(0, 1).toUpperCase();
   const hidden = useHideOnScroll();
+  const showRecord = useRecordModal((s) => s.show);
 
   return (
     <header className={`header${hidden ? " header-hidden" : ""}`}>
@@ -43,6 +45,15 @@ export function Header({ display, handle, avatar }: HeaderProps) {
         </nav>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <button
+          type="button"
+          className="header-record-btn"
+          onClick={() => showRecord()}
+          aria-label="新增记录"
+        >
+          <i className="ti ti-plus" aria-hidden />
+          <span>记录</span>
+        </button>
         <HeaderSearch />
         <span className="avatar-desktop">
           <AvatarMenu display={display} handle={handle} initial={initial} avatar={avatar} />
