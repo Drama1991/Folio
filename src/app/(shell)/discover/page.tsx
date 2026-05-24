@@ -138,7 +138,7 @@ export default async function DiscoverPage() {
             </Link>
           </div>
           {sec.items.length > 0 ? (
-            <div className="discover-trending-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 10 }}>
+            <div className="discover-trending-grid">
               {sec.items.map((it) => (
                 <Link key={it.uuid} href={`/detail/${it.medium}/${it.uuid}`} style={{
                   border: "0.5px solid var(--border)", borderRadius: "var(--r)", padding: 12,

@@ -984,6 +984,16 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
 .sort-item__hint { font-size: 10px; color: var(--text3); font-family: var(--mono); }
 .sort-item.on .sort-item__hint { color: var(--text2); }
 
+/* Bug 1 修复：mobile 下 .sort-menu 默认 right:0 会让菜单往左甩出屏。
+   改成左对齐 + 视口宽度上限，确保菜单整体可见。 */
+@media (max-width: 767px) {
+  .sort-menu {
+    right: auto;
+    left: 0;
+    max-width: calc(100vw - 28px);
+  }
+}
+
 /* ───────────────────────────────────────────────────────────────────
    移动端适配 · < 768px
    ───────────────────────────────────────────────────────────────────
@@ -1578,6 +1588,14 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   }
 }
 
+/* Bug 4 修复：desktop 默认 .discover-trending-grid，让 /discover/[medium] 也吃同一套规则。
+   原来 /discover/[medium]/page.tsx 用裸内联样式，没绑 class，导致上面 mobile !important 不生效。 */
+.discover-trending-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    第三批 · 上半 —— Timeline / Wishlist / Archive / Notifications
                    Reviews 归档 / Review 长评查看
@@ -1589,24 +1607,52 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
 .timeline-page {
   padding: 20px 24px 28px;
 }
+/* Bug 2 修复：filter-row 改成 grid，让 stats + chips + status filter 三块按需排版。
+   桌面：stats 独占一行（与原版一致），chips/status 共一行。
+   移动：stats + status 共一行（合并视觉块），chips 横向滚动单独一行。 */
+.timeline-filter-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 14px 12px;
+  margin-top: 5px;
+  margin-bottom: 16px;
+  grid-template-areas:
+    "stats   stats"
+    "chips   status";
+}
+.timeline-stats {
+  grid-area: stats;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  margin: 0;
+}
+.timeline-chips {
+  grid-area: chips;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.timeline-status-wrap {
+  grid-area: status;
+  justify-self: end;
+}
 @media (max-width: 767px) {
   .timeline-page {
     padding: 16px 12px 24px;
   }
-  /* 筛选行：chips + 状态下拉 在窄屏堆成两行（chips 在上，下拉在下） */
   .timeline-filter-row {
-    flex-direction: column;
-    align-items: stretch !important;
+    gap: 10px 10px;
+    grid-template-areas:
+      "stats   status"
+      "chips   chips";
   }
-  /* chips 横向滚动避免折行过乱（chips 数量较多时） */
-  .timeline-filter-row > div:first-child {
+  .timeline-chips {
     overflow-x: auto;
-    flex-wrap: nowrap !important;
+    flex-wrap: nowrap;
     padding-bottom: 2px;
-  }
-  /* TimelineStatusFilter 自身宽度撑满，与 chip 行对齐 */
-  .timeline-filter-row > :last-child {
-    align-self: flex-end;
   }
 }
 

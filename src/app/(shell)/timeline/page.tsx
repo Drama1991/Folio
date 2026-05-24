@@ -70,12 +70,12 @@ export default async function TimelinePage({ searchParams }: PageProps) {
         <span className="crumb cur">时间线</span>
       </div>
       <p style={{ fontFamily: "var(--serif)", fontSize: 26, fontWeight: 500, lineHeight: 1 }}>时间线</p>
-      <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 5, marginBottom: 14 }}>
-        共 {all.length} 条 · 按月分组
-      </p>
 
-      <div className="timeline-filter-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      <div className="timeline-filter-row">
+        <p className="timeline-stats">
+          共 {all.length} 条 · 按月分组
+        </p>
+        <div className="timeline-chips">
           <Link href={timelineUrl(undefined, status)} className={`chip${!filterMedium ? " on" : ""}`}>全部</Link>
           {ALL_UI_MEDIUMS.map((m) => (
             <Link key={m} href={timelineUrl(m, status)} className={`chip${filterMedium === m ? " on" : ""}`}>
@@ -83,7 +83,9 @@ export default async function TimelinePage({ searchParams }: PageProps) {
             </Link>
           ))}
         </div>
-        <TimelineStatusFilter current={status} urls={statusUrls} />
+        <div className="timeline-status-wrap">
+          <TimelineStatusFilter current={status} urls={statusUrls} />
+        </div>
       </div>
 
       {sortedGroups.length === 0 && (

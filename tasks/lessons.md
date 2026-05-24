@@ -30,4 +30,14 @@
 
 **how to apply：** 凡是要写"X 已经/原生支持 Y"的措辞——先在脑子里跑一遍：用户打开 X 时**眼睛会看到什么**？跟同项目里已落地的标准形态（RecordModal sheet / Drawer / Modal）比一下，差哪几样就老实承认差哪几样，要么补上、要么写明留作下轮。绝不用"代码存在分支"打包成"功能已具备"来糊弄过去。
 
+## 2026-05-24 · TS 类型声明"必填"≠ 运行时一定有值
+
+**情境：** 用户报告 `/profile/[handle]/reviews` 移动端进入报 500。第一动作是按用户的 lesson #4「先 dump 响应」去翻 listMyReviews，发现它已经有 try/catch 兜底。再往下定位到 `reviewToUi(review.item)` —— `review.item: NeoDBItemBase`（TS 上是 required），但运行时 NeoDB **会返回 `item: null`**（关联 item 已被删除但 review 还在），mapper 直接 NPE 把整页打爆。
+
+**事实：** TS 类型 `interface NeoDBReview { ... item: NeoDBItemBase; ... }` 把 item 标成必填，所以全 codebase 没人加防御，map 时直接解构 `review.item.uuid` 之类。但外部 API 的"必填"只是文档上的契约，运行时随时可能被破坏（数据修复、删除级联、灰度发版、字段含义重定义）。
+
+**规则：** 凡是 mapper 函数把外部 API DTO 转成 UI 模型，**默认假设嵌套对象可能 null/undefined**，跟 TS 声明说什么无关。两种处理：①在调用方 `.filter(r => r && r.item)` 跳掉，②mapper 自己防御并 return null + 调用方 filter Boolean。配合 `console.warn` 输出"跳了 N 条"，让 Vercel logs 能看到现场。
+
+**how to apply：** 写或审 `xxxToUi(dto.nested)` 这类代码时，先想"如果 dto.nested 是 null 会怎样"。SSR 路由层的 `await fetcher()` 一旦冒泡未捕获异常就是整页 500——比客户端 hook 错误严重得多。新写的 SSR page 默认外层包 try/catch + 内层对 nested 字段 filter。
+
 

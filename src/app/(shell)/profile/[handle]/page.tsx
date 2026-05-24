@@ -152,7 +152,12 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const tagsHead = tagsSorted.slice(0, 12);
   const tagsRest = tagsSorted.length - tagsHead.length;
 
-  const reviewUi = (reviews.data ?? []).slice(0, 4).map(reviewToUi);
+  // P0 修复（2026-05-24）：NeoDB 偶发返回 review.item===null，reviewToUi 会 NPE → 整页 500。
+  // 同 /profile/[handle]/reviews/page.tsx 的处理。
+  const reviewUi = (reviews.data ?? [])
+    .filter((r) => r && r.item)
+    .slice(0, 4)
+    .map(reviewToUi);
   const heroReview = reviewUi[0];
   const restReviews = reviewUi.slice(1);
 

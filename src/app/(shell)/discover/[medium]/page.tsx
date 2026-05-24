@@ -45,7 +45,7 @@ export default async function DiscoverMediumPage({ params }: PageProps) {
           暂无数据 · NeoDB 上游未返回
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 10 }}>
+        <div className="discover-trending-grid">
           {items.map((it) => (
             <Link
               key={it.uuid}
