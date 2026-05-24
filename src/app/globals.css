@@ -700,7 +700,8 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
 
 /* ───── AI FAB —— 米白底 + 金描边 + 金 sparkle（2026-05-24 IA 改版：
    原 RecordFAB 删除，记录动作迁入底部 tab bar 中间凸起；这个 FAB 位置改放 AI 入口）
-   位置：右下浮于 BottomTabBar 之上 24px 间距，安全区避让 */
+   位置：右下浮于 BottomTabBar 之上 24px 间距，安全区避让
+   滚动时隐藏（任何方向）+ idle 后显示，且仅 home/wishlist/discover（组件内 usePathname 控制） */
 .ai-fab {
   position: fixed;
   bottom: 28px;
@@ -721,7 +722,14 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
     0 8px 22px rgba(28, 28, 26, 0.08),
     0 2px 6px rgba(168, 101, 21, 0.10);
   z-index: 50;
-  transition: color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, background 0.18s ease;
+  transition: color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease,
+              transform 0.22s cubic-bezier(.2,.8,.2,1), background 0.18s ease,
+              opacity 0.22s ease;
+}
+.ai-fab.ai-fab-hidden {
+  opacity: 0;
+  transform: translateY(20px) scale(0.85);
+  pointer-events: none;
 }
 .ai-fab:hover {
   background: var(--bg2);
@@ -739,7 +747,9 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
 
 /* ───── Bottom Tab Bar（移动端主导航，2026-05-24 IA 改版替代 Drawer） ─────
    桌面端 display: none；移动端 fixed 在视口底部
-   5 个 tab：首页 / 心愿单 / 记录凸 / 发现 / 我 */
+   5 个 tab：首页 / 心愿单 / 记录凸 / 发现 / 我
+   active 状态用深炭灰圆角药丸 + 米白图标（替代 Tabler -filled，webfont 不含 filled 系列）
+   hide-on-scroll：向下滚 hide / 向上滚或停止 show（跟 Header 同 hook） */
 .bottom-tab-bar {
   display: none;
 }
@@ -751,15 +761,28 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   justify-content: center;
   color: var(--text3);
   text-decoration: none;
-  font-size: 24px;
   -webkit-tap-highlight-color: transparent;
-  transition: color .15s ease;
 }
-.tab-item.on {
-  color: var(--text);
+.tab-item__pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 36px;
+  border-radius: 12px;
+  font-size: 28px;
+  transition: background-color 0.18s ease, color 0.18s ease;
 }
-.tab-item:active {
+.tab-item.on .tab-item__pill {
+  background: var(--text);
+  color: var(--bg);
+}
+.tab-item:active .tab-item__pill {
   background: var(--bg2);
+}
+.tab-item.on:active .tab-item__pill {
+  background: var(--text);
+  opacity: 0.85;
 }
 .tab-record-cta {
   flex: 1;
@@ -771,11 +794,6 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   padding: 0;
-  /* 内层方圆按钮通过 ::before 渲染；这层 tab 维持 flex 等宽 */
-}
-.tab-record-cta::before {
-  content: "\f10b"; /* ti-plus codepoint —— 备份；实际图标走 i 子元素 */
-  display: none;
 }
 .tab-record-cta > i {
   display: inline-flex;
@@ -1141,7 +1159,8 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
     bottom: calc(80px + env(safe-area-inset-bottom));
   }
 
-  /* Bottom Tab Bar —— 移动端显示（5 tab：首页/心愿单/记录凸/发现/我） */
+  /* Bottom Tab Bar —— 移动端显示（5 tab：首页/心愿单/记录凸/发现/我）
+     hide-on-scroll：向下滚 hide / 向上滚或停止 show，跟 Header 同一 hook */
   .bottom-tab-bar {
     display: flex;
     position: fixed;
@@ -1155,6 +1174,11 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
     z-index: 40;
     padding-bottom: env(safe-area-inset-bottom);
     align-items: stretch;
+    transition: transform 0.22s ease;
+    will-change: transform;
+  }
+  .bottom-tab-bar.bottom-tab-bar-hidden {
+    transform: translateY(calc(100% + env(safe-area-inset-bottom)));
   }
 
   /* main 给 BottomTabBar 让 padding，避免内容被遮 */

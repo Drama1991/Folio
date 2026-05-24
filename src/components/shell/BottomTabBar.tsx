@@ -3,21 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRecordModal } from "@/lib/store/record-modal";
+import { useHideOnScroll } from "@/lib/hooks/useHideOnScroll";
 
 interface TabDef {
   href: string;
   label: string;
-  iconOutline: string;
-  iconFilled: string;
+  icon: string;
 }
 
 const LEFT_TABS: TabDef[] = [
-  { href: "/home", label: "首页", iconOutline: "ti-home", iconFilled: "ti-home-filled" },
-  { href: "/wishlist", label: "心愿单", iconOutline: "ti-heart", iconFilled: "ti-heart-filled" },
+  { href: "/home", label: "首页", icon: "ti-home" },
+  { href: "/wishlist", label: "心愿单", icon: "ti-heart" },
 ];
 const RIGHT_TABS: TabDef[] = [
-  { href: "/discover", label: "发现", iconOutline: "ti-compass", iconFilled: "ti-compass-filled" },
-  { href: "/profile/me", label: "我", iconOutline: "ti-user", iconFilled: "ti-user-filled" },
+  { href: "/discover", label: "发现", icon: "ti-compass" },
+  { href: "/profile/me", label: "我", icon: "ti-user" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -34,7 +34,9 @@ function NavTab({ tab, pathname }: { tab: TabDef; pathname: string }) {
       aria-label={tab.label}
       aria-current={on ? "page" : undefined}
     >
-      <i className={`ti ${on ? tab.iconFilled : tab.iconOutline}`} aria-hidden />
+      <span className="tab-item__pill">
+        <i className={`ti ${tab.icon}`} aria-hidden />
+      </span>
     </Link>
   );
 }
@@ -42,9 +44,13 @@ function NavTab({ tab, pathname }: { tab: TabDef; pathname: string }) {
 export function BottomTabBar() {
   const pathname = usePathname();
   const showRecord = useRecordModal((s) => s.show);
+  const hidden = useHideOnScroll();
 
   return (
-    <nav className="bottom-tab-bar" aria-label="主导航">
+    <nav
+      className={`bottom-tab-bar${hidden ? " bottom-tab-bar-hidden" : ""}`}
+      aria-label="主导航"
+    >
       {LEFT_TABS.map((t) => (
         <NavTab key={t.href} tab={t} pathname={pathname} />
       ))}
