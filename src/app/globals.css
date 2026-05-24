@@ -409,7 +409,8 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
 .btn:focus-visible,
 .chip:focus-visible,
 .row-act-btn:focus-visible,
-.record-fab:focus-visible,
+.ai-fab:focus-visible,
+.tab-record-cta:focus-visible,
 .modal-save-btn:focus-visible,
 .sort-trigger:focus-visible,
 .view-toggle button:focus-visible,
@@ -680,20 +681,13 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
 .cell-link:hover { background: var(--bg2) !important; }
 .cell-link.cur { background: var(--bg2); }
 
-/* ───── HomeHero 问候语 = AI 入口 ───── */
+/* ───── HomeHero 问候语（2026-05-24 IA 改版：原 button + AI 触发已取消，
+   现在是纯文本展示；sparkle svg 装饰也已移除） ───── */
 .hero-greet {
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  background: none;
   color: var(--text);
-  text-align: left;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: color 0.25s ease;
 }
 .hero-greet__text {
   font-family: var(--serif);
@@ -703,62 +697,108 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   letter-spacing: -0.02em;
   color: inherit;
 }
-.hero-greet__spark {
-  opacity: 0.85;
-  transition: opacity 0.2s, transform 0.2s;
-  transform-origin: center;
-}
-.hero-greet:hover {
-  color: var(--gold);
-}
-.hero-greet:hover .hero-greet__spark {
-  opacity: 1;
-  transform: rotate(12deg) scale(1.08);
-}
-.hero-greet:active { transform: scale(0.98); }
-.hero-greet:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 6px;
-}
 
-/* ───── Record FAB —— 主色金底 + 米白羽毛笔（2026-05-24 用户反馈：要金色背景）
-   注：上次 (commit 6b8c754) 从陶土橙重做成米白柔影；用户最新偏好回到金色，
-   但保持单层柔影（不堆多层浮雕），符合 [[feedback-cta-visual-weight]] 的克制规则。 */
-.record-fab {
+/* ───── AI FAB —— 米白底 + 金描边 + 金 sparkle（2026-05-24 IA 改版：
+   原 RecordFAB 删除，记录动作迁入底部 tab bar 中间凸起；这个 FAB 位置改放 AI 入口）
+   位置：右下浮于 BottomTabBar 之上 24px 间距，安全区避让 */
+.ai-fab {
   position: fixed;
   bottom: 28px;
-  /* 小屏贴视口右 28px；宽屏（>900px）紧贴 shell 容器右内侧 28px */
+  /* 小屏贴视口右 16px；宽屏（>900px）紧贴 shell 容器右内侧 28px */
   right: max(28px, calc((100vw - 900px) / 2 + 28px));
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 0.5px solid #B47210;
+  border: 0.5px solid var(--gold);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: var(--bg);
+  color: var(--gold);
+  font-size: 22px;
+  box-shadow:
+    0 8px 22px rgba(28, 28, 26, 0.08),
+    0 2px 6px rgba(168, 101, 21, 0.10);
+  z-index: 50;
+  transition: color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, background 0.18s ease;
+}
+.ai-fab:hover {
+  background: var(--bg2);
+  box-shadow:
+    0 12px 28px rgba(28, 28, 26, 0.10),
+    0 3px 8px rgba(168, 101, 21, 0.14);
+  transform: translateY(-2px);
+}
+.ai-fab:active {
+  transform: translateY(0);
+  box-shadow:
+    0 4px 10px rgba(28, 28, 26, 0.08),
+    0 1px 3px rgba(168, 101, 21, 0.10);
+}
+
+/* ───── Bottom Tab Bar（移动端主导航，2026-05-24 IA 改版替代 Drawer） ─────
+   桌面端 display: none；移动端 fixed 在视口底部
+   5 个 tab：首页 / 心愿单 / 记录凸 / 发现 / 我 */
+.bottom-tab-bar {
+  display: none;
+}
+.tab-item {
+  flex: 1;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text3);
+  text-decoration: none;
+  font-size: 24px;
+  -webkit-tap-highlight-color: transparent;
+  transition: color .15s ease;
+}
+.tab-item.on {
+  color: var(--text);
+}
+.tab-item:active {
+  background: var(--bg2);
+}
+.tab-record-cta {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0;
+  /* 内层方圆按钮通过 ::before 渲染；这层 tab 维持 flex 等宽 */
+}
+.tab-record-cta::before {
+  content: "\f10b"; /* ti-plus codepoint —— 备份；实际图标走 i 子元素 */
+  display: none;
+}
+.tab-record-cta > i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   background: var(--gold);
   color: #FFF6E6;
   font-size: 26px;
   box-shadow:
-    0 10px 26px rgba(168, 101, 21, 0.30),
-    0 3px 8px rgba(168, 101, 21, 0.18);
-  z-index: 60;
-  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    0 4px 14px rgba(168, 101, 21, 0.32),
+    0 1px 3px rgba(168, 101, 21, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-.record-fab:hover {
+.tab-record-cta:hover > i {
   background: #D88A1A;
-  color: #FFF6E6;
-  box-shadow:
-    0 14px 32px rgba(168, 101, 21, 0.36),
-    0 4px 10px rgba(168, 101, 21, 0.22);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
-.record-fab:active {
+.tab-record-cta:active > i {
   transform: translateY(0);
-  box-shadow:
-    0 4px 10px rgba(168, 101, 21, 0.22),
-    0 1px 3px rgba(168, 101, 21, 0.16);
+  background: #B97E20;
 }
 
 /* ───── RecordModal 保存按钮（陶土橙渐变，与 FAB 呼应） ───── */
@@ -1094,141 +1134,74 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   }
   /* 桌面 ⌘K 提示在移动端永远不显示 */
 
-  /* 记录笔 FAB —— 移到拇指圈、安全区避让 */
-  .record-fab {
+  /* AI FAB —— 浮在 BottomTabBar 之上 24px gap、安全区避让 */
+  .ai-fab {
     right: 16px;
-    /* 距底从 24px 上移到 80px —— 拇指舒适区（用户反馈 2026-05-24） */
+    /* tab bar 高 56 + safe-area + 24 gap ≈ 80px + safe-area */
     bottom: calc(80px + env(safe-area-inset-bottom));
   }
 
-  /* Toast 上移，避免被 FAB 挡 */
+  /* Bottom Tab Bar —— 移动端显示（5 tab：首页/心愿单/记录凸/发现/我） */
+  .bottom-tab-bar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 56px;
+    background: var(--bg);
+    border-top: 0.5px solid var(--border);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+    z-index: 40;
+    padding-bottom: env(safe-area-inset-bottom);
+    align-items: stretch;
+  }
+
+  /* main 给 BottomTabBar 让 padding，避免内容被遮 */
+  main {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom) + 12px);
+  }
+
+  /* Toast 上移避让 AI FAB 和 BottomTabBar */
   .toast {
-    bottom: calc(96px + env(safe-area-inset-bottom));
+    bottom: calc(140px + env(safe-area-inset-bottom));
   }
 }
 
-/* ───── Drawer（移动端导航抽屉） ───── */
-.drawer-mask {
-  position: fixed;
-  inset: 0;
-  background: var(--overlay);
-  z-index: 200;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s ease;
+/* ───── Profile 我的快捷入口（移动端：通知 / 设置 / 登出） ─────
+   2026-05-24 IA 改版：Drawer 删除后，原属 Drawer 的"通知/设置/登出"在
+   /profile/me 头部以图标行的形式聚合。桌面端走 AvatarMenu，这一行隐藏。 */
+.profile-me-actions {
+  display: none;
 }
-.drawer-mask.on {
-  opacity: 1;
-  pointer-events: auto;
-}
-.drawer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100dvh;
-  width: min(80vw, 320px);
-  background: var(--bg);
-  border-right: 0.5px solid var(--border);
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.12);
-  z-index: 201;
-  transform: translateX(-100%);
-  transition: transform .24s cubic-bezier(.2, .8, .2, 1);
-  display: flex;
-  flex-direction: column;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.drawer.on { transform: translateX(0); }
-.drawer-head {
-  height: 56px;
-  padding: 0 12px;
-  display: flex;
-  align-items: center;
-  border-bottom: 0.5px solid var(--border);
-}
-.drawer-nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 0;
-}
-.drawer-nav a,
-.drawer-nav button {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 14px 20px;
-  background: transparent;
-  border: 0;
-  font-family: inherit;
-  font-size: 15px;
-  color: var(--text);
-  text-decoration: none;
-  text-align: left;
-  cursor: pointer;
-  min-height: 44px;
-}
-.drawer-nav a.on {
-  background: var(--bg2);
-  color: var(--text);
-  font-weight: 500;
-  border-left: 3px solid var(--gold);
-  padding-left: 17px;
-}
-.drawer-nav a:active,
-.drawer-nav button:active { background: var(--bg2); }
-.drawer-nav .ti {
-  font-size: 19px;
-  color: var(--text2);
-  width: 22px;
-  text-align: center;
-}
-.drawer-divider {
-  height: 0.5px;
-  background: var(--border);
-  margin: 6px 20px;
-}
-.drawer-foot {
-  border-top: 0.5px solid var(--border);
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.drawer-foot .av {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #2C2C2A;
-  color: #D3D1C7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--serif);
-  font-size: 16px;
-  overflow: hidden;
-}
-.drawer-foot .av img { width: 100%; height: 100%; object-fit: cover; }
-.drawer-foot .who { flex: 1; min-width: 0; }
-.drawer-foot .who .name {
-  font-family: var(--serif);
-  font-size: 14px;
-  font-weight: 500;
-}
-.drawer-foot .who .handle {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text3);
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 默认（桌面）下隐藏 ☰ 汉堡，只在 < 768px 显示 */
-.drawer-toggle { display: none; }
 @media (max-width: 767px) {
-  .drawer-toggle { display: inline-flex; }
+  .profile-me-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .profile-me-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 0.5px solid var(--border);
+    background: var(--bg);
+    color: var(--text2);
+    text-decoration: none;
+    font-size: 18px;
+    cursor: pointer;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .15s ease, color .15s ease;
+  }
+  .profile-me-icon:active {
+    background: var(--bg2);
+    color: var(--text);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════

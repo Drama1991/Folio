@@ -211,6 +211,21 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
               在 NeoDB 编辑 ↗
             </a>
             <ShareProfileButton url={profileUrl} />
+            {/* 移动端：底部 tab bar 改版后，通知/设置/登出三入口聚合到这里
+               （汉堡 Drawer 已删除）。桌面端走 AvatarMenu，所以这一行只移动端显示 */}
+            <div className="profile-me-actions">
+              <Link href="/notifications" aria-label="通知" className="profile-me-icon">
+                <i className="ti ti-bell" aria-hidden />
+              </Link>
+              <Link href="/settings" aria-label="设置" className="profile-me-icon">
+                <i className="ti ti-settings" aria-hidden />
+              </Link>
+              <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
+                <button type="submit" aria-label="登出" className="profile-me-icon">
+                  <i className="ti ti-logout" aria-hidden />
+                </button>
+              </form>
+            </div>
           </div>
         )}
       </div>

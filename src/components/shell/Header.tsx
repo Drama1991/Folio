@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AvatarMenu } from "./AvatarMenu";
 import { HeaderSearch } from "./HeaderSearch";
-import { useDrawer } from "@/lib/store/drawer";
 import { useHideOnScroll } from "@/lib/hooks/useHideOnScroll";
 
 interface HeaderProps {
@@ -24,21 +23,11 @@ export function Header({ display, handle, avatar }: HeaderProps) {
   const pathname = usePathname();
   const cur = topLevel(pathname);
   const initial = display.slice(0, 1) || handle.slice(0, 1).toUpperCase();
-  const toggleDrawer = useDrawer((s) => s.toggle);
   const hidden = useHideOnScroll();
 
   return (
     <header className={`header${hidden ? " header-hidden" : ""}`}>
       <div style={{ display: "flex", alignItems: "center", gap: 26 }}>
-        {/* ☰ 移动端汉堡 —— CSS 控制 display: none 在桌面（参见 .drawer-toggle 规则） */}
-        <button
-          type="button"
-          className="drawer-toggle nav-icon-btn"
-          onClick={toggleDrawer}
-          aria-label="打开菜单"
-        >
-          <i className="ti ti-menu-2" aria-hidden />
-        </button>
         <Link href="/home" className="brand" aria-label="Folio 首页">
           <img
             src="/folio-logo.png"
