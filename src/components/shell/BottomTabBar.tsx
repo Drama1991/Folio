@@ -2,22 +2,34 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  IconHome,
+  IconHomeFilled,
+  IconHeart,
+  IconHeartFilled,
+  IconCompass,
+  IconCompassFilled,
+  IconUser,
+  IconUserFilled,
+} from "@tabler/icons-react";
+import type { Icon as TablerIcon } from "@tabler/icons-react";
 import { useRecordModal } from "@/lib/store/record-modal";
 import { useHideOnScroll } from "@/lib/hooks/useHideOnScroll";
 
 interface TabDef {
   href: string;
   label: string;
-  icon: string;
+  Outline: TablerIcon;
+  Filled: TablerIcon;
 }
 
 const LEFT_TABS: TabDef[] = [
-  { href: "/home", label: "首页", icon: "ti-home" },
-  { href: "/wishlist", label: "心愿单", icon: "ti-heart" },
+  { href: "/home", label: "首页", Outline: IconHome, Filled: IconHomeFilled },
+  { href: "/wishlist", label: "心愿单", Outline: IconHeart, Filled: IconHeartFilled },
 ];
 const RIGHT_TABS: TabDef[] = [
-  { href: "/discover", label: "发现", icon: "ti-compass" },
-  { href: "/profile/me", label: "我", icon: "ti-user" },
+  { href: "/discover", label: "发现", Outline: IconCompass, Filled: IconCompassFilled },
+  { href: "/profile/me", label: "我", Outline: IconUser, Filled: IconUserFilled },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -27,6 +39,7 @@ function isActive(pathname: string, href: string): boolean {
 
 function NavTab({ tab, pathname }: { tab: TabDef; pathname: string }) {
   const on = isActive(pathname, tab.href);
+  const Icon = on ? tab.Filled : tab.Outline;
   return (
     <Link
       href={tab.href}
@@ -34,7 +47,7 @@ function NavTab({ tab, pathname }: { tab: TabDef; pathname: string }) {
       aria-label={tab.label}
       aria-current={on ? "page" : undefined}
     >
-      <i className={`ti ${tab.icon}`} aria-hidden />
+      <Icon size={28} stroke={1.6} aria-hidden />
     </Link>
   );
 }
