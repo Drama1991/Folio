@@ -34,9 +34,7 @@ function NavTab({ tab, pathname }: { tab: TabDef; pathname: string }) {
       aria-label={tab.label}
       aria-current={on ? "page" : undefined}
     >
-      <span className="tab-item__pill">
-        <i className={`ti ${tab.icon}`} aria-hidden />
-      </span>
+      <i className={`ti ${tab.icon}`} aria-hidden />
     </Link>
   );
 }

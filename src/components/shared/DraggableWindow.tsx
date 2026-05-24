@@ -178,7 +178,7 @@ export function DraggableWindow({
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        zIndex: 30,
+        zIndex: 60,
         transformOrigin: transformOriginCss,
         transform: isMobile
           ? (mounted ? "translateY(0)" : "translateY(100%)")
