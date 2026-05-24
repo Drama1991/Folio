@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Cover } from "@/components/shared/Cover";
 import { MediumBadge } from "@/components/shared/MediumBadge";
 import type { UiItem } from "@/lib/neodb/ui-types";
@@ -118,7 +119,14 @@ export function HeaderSearch() {
   const showPanel = open && term.length > 0;
 
   return (
-    <div ref={wrapRef} style={{ position: "relative" }}>
+    <>
+      {/* 移动端：点击直接跳 /search，不在 header 里展开 inline 搜索 */}
+      <Link href="/search" className="search-mobile-link" aria-label="搜索">
+        <i className="ti ti-search" aria-hidden />
+      </Link>
+
+      {/* 桌面端：原 inline search panel */}
+      <div ref={wrapRef} className="search-desktop-wrap" style={{ position: "relative" }}>
       <div
         className="search-box"
         style={{ cursor: "text" }}
@@ -276,6 +284,7 @@ export function HeaderSearch() {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

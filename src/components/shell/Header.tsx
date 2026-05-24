@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { AvatarMenu } from "./AvatarMenu";
 import { HeaderSearch } from "./HeaderSearch";
 import { useDrawer } from "@/lib/store/drawer";
+import { useHideOnScroll } from "@/lib/hooks/useHideOnScroll";
 
 interface HeaderProps {
   display: string;
@@ -24,9 +25,10 @@ export function Header({ display, handle, avatar }: HeaderProps) {
   const cur = topLevel(pathname);
   const initial = display.slice(0, 1) || handle.slice(0, 1).toUpperCase();
   const toggleDrawer = useDrawer((s) => s.toggle);
+  const hidden = useHideOnScroll();
 
   return (
-    <header className="header">
+    <header className={`header${hidden ? " header-hidden" : ""}`}>
       <div style={{ display: "flex", alignItems: "center", gap: 26 }}>
         {/* ☰ 移动端汉堡 —— CSS 控制 display: none 在桌面（参见 .drawer-toggle 规则） */}
         <button

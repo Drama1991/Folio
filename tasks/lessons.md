@@ -40,4 +40,19 @@
 
 **how to apply：** 写或审 `xxxToUi(dto.nested)` 这类代码时，先想"如果 dto.nested 是 null 会怎样"。SSR 路由层的 `await fetcher()` 一旦冒泡未捕获异常就是整页 500——比客户端 hook 错误严重得多。新写的 SSR page 默认外层包 try/catch + 内层对 nested 字段 filter。
 
+## 2026-05-24 · 用户给的"X 页"术语含糊时，先 verify 再动手
+
+**情境：** 用户报告"长评页在 vercel 真实手机端点击显示 500"。我立刻把"长评页"映射到 `/profile/[handle]/reviews`（长评归档列表）并在那一页堆 defensive try/catch，commit、push、部署。用户下一轮发来 Vercel runtime log，page 字段是 `/review/78tRHpmT5VEaSlMs7qWuN1`——单篇长评详情，跟我改的页面**完全不是一个**。整一轮工作都打在错的文件上。
+
+**事实：** "长评 X" 在这个产品里至少对应两个页面：①列表 `/profile/[handle]/reviews` ②详情 `/review/[uuid]`，再加上编辑 `/review/edit/[uuid]` 共三个候选。用户说"长评页点击进入后报错"，从他视角是「点了一篇长评进去」，所以是详情页；但我读成了「打开长评(列表)页就报错」。歧义本来一开始就该问。
+
+**规则：** 用户用「X 页」「Y 界面」这类**有多个合理对应**的措辞描述 bug 时，**禁止猜测后直接动手**。先做以下一项再开工：
+1. 列出候选页面 + AskUserQuestion 让用户点
+2. 拿到真实 URL、Vercel runtime log 的 `page` 字段、或浏览器 Network 里的请求路径
+3. 让用户复述具体操作路径（"我点了 X，然后 Y，然后 Z"）
+
+**how to apply：** 看到"X 页报错"立刻自查：「这个项目里几个页面能配上'X 页'？」**≥ 2 个就必须 verify**。这跟 [[feedback-dump-api-response-before-theorizing]] 同根——证据优先于推测。代价对比：问一句话 vs. 把一整轮 commit/push/部署/验证打在错文件上还要回头返工，前者便宜得离谱。
+
+**附加教训（依赖兼容）：** 本轮真实 bug 是 `isomorphic-dompurify → jsdom → html-encoding-sniffer → @exodus/bytes` 这条 ESM/CJS 互导链在 Vercel lambda 上炸（`ERR_REQUIRE_ESM`），localhost dev 不复现是因为 next dev 用 webpack/turbopack 转译统一了模块系统、prod build 输出原生 CommonJS。**dev 跑通 ≠ prod 跑通**，依赖兼容性问题必须 `next build` + Vercel 真机部署才算验证完。修法：换 `sanitize-html`（纯 Node CJS，无 jsdom）。
+
 

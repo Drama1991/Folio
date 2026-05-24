@@ -99,7 +99,10 @@ function SearchStep({ onSelect, onClose }: { onSelect: (it: { uuid: string; medi
               ×
             </button>
           )}
-          <button onClick={onClose} className="btn" style={{ fontSize: 11, padding: "3px 7px" }}>ESC</button>
+          <button onClick={onClose} className="btn modal-esc-btn" style={{ fontSize: 11, padding: "3px 7px" }}>
+            <span className="esc-desktop">ESC</span>
+            <span className="esc-mobile">取消</span>
+          </button>
         </div>
       </div>
       <div style={{ overflowY: "auto", flex: 1, minHeight: 120 }}>

@@ -234,3 +234,30 @@
 - Profile hero 用 `:nth-child(N)` 锚 grid-area，依赖 source order（avatar 是 1，content 是 2，actions 是 3）；如果未来 hero 内加新 div 需要同步调整
 - Discover brief 恢复后 card 高度跟随 brief 行数生长（110 字 × 12px × 1.6 行高 ≈ 5-6 行），暂未加 `-webkit-line-clamp`。如果实机看着冗长，可后续加 line-clamp 3
 
+
+---
+
+# 第四批 · 顶栏/搜索/FAB 移动端打磨（2026-05-24）
+
+## 用户需求
+
+1. 顶栏 hide-on-scroll：内容上滑（向下滚）时一起滚出 → 停止 / 下滑时固定显示
+2. 移动端搜索按钮点击直接跳转 `/search`（不再 inline 展开 input）
+3. RecordFAB 加金色背景 + 上移；RecordModal 搜索框的 `ESC` 字样移动端不合适
+
+## 决策（AskUserQuestion 已敲定）
+
+- 顶栏 threshold = 5px（小于则强制 show）
+- FAB = 纯金背 + 米白图标 + 单层柔影
+- ESC 移动端改"取消"
+- FAB bottom = 80px + safe-area
+
+## 实施清单
+
+- [ ] **A. 顶栏 hide-on-scroll**
+- [ ] **B. 移动端搜索按钮跳转 /search**
+- [ ] **C. RecordFAB 改样 + 上移**
+- [ ] **D. RecordModal ESC 移动端改"取消"**
+- [ ] tsc + build 通过
+- [ ] commit + push，等 Vercel 部署 + 用户真机验证
+

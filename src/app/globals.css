@@ -588,6 +588,12 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   border-top-left-radius: 14px;
   border-top-right-radius: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: transform 0.22s ease;
+  will-change: transform;
+}
+
+.header.header-hidden {
+  transform: translateY(-100%);
 }
 
 .nav-link {
@@ -603,6 +609,9 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
 }
 .nav-link:hover { background: var(--bg2); }
 .nav-link.on { color: var(--text); font-weight: 500; background: var(--bg2); }
+
+/* 默认（桌面）：移动端搜索 Link 不渲染 —— mobile media query 内覆盖为 inline-flex */
+.search-mobile-link { display: none; }
 
 .search-box {
   display: flex;
@@ -712,7 +721,9 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   outline-offset: 6px;
 }
 
-/* ───── Record FAB —— 跟随 shell 内容右下，陶土橙立体浮雕 ───── */
+/* ───── Record FAB —— 主色金底 + 米白羽毛笔（2026-05-24 用户反馈：要金色背景）
+   注：上次 (commit 6b8c754) 从陶土橙重做成米白柔影；用户最新偏好回到金色，
+   但保持单层柔影（不堆多层浮雕），符合 [[feedback-cta-visual-weight]] 的克制规则。 */
 .record-fab {
   position: fixed;
   bottom: 28px;
@@ -721,33 +732,33 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 0.5px solid var(--border);
+  border: 0.5px solid #B47210;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--gold);
+  color: #FFF6E6;
   font-size: 26px;
   box-shadow:
-    0 10px 24px rgba(28, 28, 26, 0.10),
-    0 3px 8px rgba(28, 28, 26, 0.07);
+    0 10px 26px rgba(168, 101, 21, 0.30),
+    0 3px 8px rgba(168, 101, 21, 0.18);
   z-index: 60;
-  transition: color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 .record-fab:hover {
-  color: var(--gold);
-  border-color: var(--gold);
+  background: #D88A1A;
+  color: #FFF6E6;
   box-shadow:
-    0 14px 30px rgba(28, 28, 26, 0.13),
-    0 4px 10px rgba(28, 28, 26, 0.08);
+    0 14px 32px rgba(168, 101, 21, 0.36),
+    0 4px 10px rgba(168, 101, 21, 0.22);
   transform: translateY(-2px);
 }
 .record-fab:active {
   transform: translateY(0);
   box-shadow:
-    0 4px 10px rgba(28, 28, 26, 0.08),
-    0 1px 3px rgba(28, 28, 26, 0.06);
+    0 4px 10px rgba(168, 101, 21, 0.22),
+    0 1px 3px rgba(168, 101, 21, 0.16);
 }
 
 /* ───── RecordModal 保存按钮（陶土橙渐变，与 FAB 呼应） ───── */
@@ -1060,55 +1071,34 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   .nav-icon-btn:active { background: var(--bg2); }
   .nav-icon-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-  /* 搜索框：默认就是一个干净的图标按钮（无底色、无圆形边框）；
-     :focus-within 时才升起底色 + 输入框边框，扩成宽 input。
-     尺寸 44×44 与 .nav-icon-btn (☰) 视觉对齐 */
-  .search-box {
+  /* 搜索：移动端不再 inline 展开 —— 整个 .search-desktop-wrap 隐藏，
+     渲染 .search-mobile-link 跳转到 /search 页（用户反馈 #4 batch 2026-05-24）。
+     原 inline 展开方案废弃，避免 header 内输入框跟主搜索页两套体验混乱。 */
+  .search-desktop-wrap {
+    display: none !important;
+  }
+  .search-mobile-link {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
     width: 44px;
     height: 44px;
-    padding: 0;
-    justify-content: center;
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    transition: width .15s ease, padding .15s ease;
+    color: var(--text);
+    text-decoration: none;
+    border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+    font-size: 19px;
   }
-  /* 搜索图标尺寸/颜色与 ☰ 对齐（覆盖 HeaderSearch 内 inline fontSize:13） */
-  .search-box > i.ti-search {
-    font-size: 19px !important;
-    color: var(--text) !important;
-  }
-  /* ⌘K 提示在移动端隐藏 */
-  .search-box > span:last-child {
-    display: none;
-  }
-  /* input 不能 display:none —— 那样 .focus() 不生效，:focus-within 永不触发。
-     用 width:0 + flex:0 让它"占位但不见"，:focus-within 时再撑开。 */
-  .search-box input {
-    flex: 0 0 0 !important;
-    width: 0;
-    min-width: 0;
-    padding: 0 !important;
-  }
-  .search-box:focus-within {
-    width: calc(100vw - 124px);
-    padding: 6px 12px;
-    justify-content: flex-start;
+  .search-mobile-link:active {
     background: var(--bg2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--r2);
-  }
-  .search-box:focus-within input {
-    flex: 1 1 auto !important;
-    width: auto;
   }
   /* 桌面 ⌘K 提示在移动端永远不显示 */
 
   /* 记录笔 FAB —— 移到拇指圈、安全区避让 */
   .record-fab {
     right: 16px;
-    /* 桌面的 max() 在移动端简化掉 */
-    bottom: calc(24px + env(safe-area-inset-bottom));
+    /* 距底从 24px 上移到 80px —— 拇指舒适区（用户反馈 2026-05-24） */
+    bottom: calc(80px + env(safe-area-inset-bottom));
   }
 
   /* Toast 上移，避免被 FAB 挡 */
@@ -1368,6 +1358,14 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   box-shadow: 0 28px 72px rgba(0, 0, 0, 0.28);
 }
 
+/* RecordModal 搜索步骤的"ESC"按钮：桌面显 ESC、移动端显"取消" */
+.modal-esc-btn .esc-desktop { display: inline; }
+.modal-esc-btn .esc-mobile { display: none; }
+@media (max-width: 767px) {
+  .modal-esc-btn .esc-desktop { display: none; }
+  .modal-esc-btn .esc-mobile { display: inline; }
+}
+
 /* 移动端：底部 sheet —— 贴底、顶圆角、上推动画、安全区避让 */
 @media (max-width: 767px) {
   .record-modal-mask {
@@ -1457,10 +1455,10 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
     display: none !important;
   }
 
-  /* ────── Header logo 居中（用户反馈 #3） ────── */
-  .header {
-    position: relative;
-  }
+  /* ────── Header logo 居中（用户反馈 #3） ──────
+     注：原本这里 override 成 position: relative，但那让 sticky 失效（顶栏
+     跟内容一起滚出）。sticky 元素本身就是 absolute 子元素的 containing
+     block，保留主规则的 sticky 即可，brand 的 absolute 锚定不受影响。 */
   .header .brand {
     position: absolute;
     left: 50%;
