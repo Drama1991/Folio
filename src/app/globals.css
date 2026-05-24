@@ -984,13 +984,22 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
 .sort-item__hint { font-size: 10px; color: var(--text3); font-family: var(--mono); }
 .sort-item.on .sort-item__hint { color: var(--text2); }
 
-/* Bug 1 修复：mobile 下 .sort-menu 默认 right:0 会让菜单往左甩出屏。
-   改成左对齐 + 视口宽度上限，确保菜单整体可见。 */
+/* Bug 1 修复（2026-05-24）：mobile 下两类 dropdown 触发器位置相反，菜单方向必须分开管。
+   - Archive 排序：mobile filter-row 折叠后 sort 在最后一行左侧（space-between） → 菜单往右展开
+   - Timeline 状态筛选：grid 右锚 (justify-self: end) → 菜单往左展开（保持 desktop right:0 默认）
+   - 通用兜底：max-width 防止任一方向溢屏 */
 @media (max-width: 767px) {
   .sort-menu {
+    max-width: calc(100vw - 28px);
+  }
+  .archive-filter-row .sort-menu,
+  .archive-page .sort-menu {
     right: auto;
     left: 0;
-    max-width: calc(100vw - 28px);
+  }
+  .timeline-status-wrap .sort-menu {
+    right: 0;
+    left: auto;
   }
 }
 

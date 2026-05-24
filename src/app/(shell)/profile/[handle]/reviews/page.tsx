@@ -41,34 +41,41 @@ export default async function ReviewsArchivePage({ params, searchParams }: PageP
   const isMe = handle === "me" || handle === session?.handle;
   const displayHandle = isMe ? "我" : `@${handle}`;
 
-  // P0 修复（2026-05-24）：NeoDB 偶发返回 review.item === null（item 被删除但 review 还在），
-  // 旧实现 reviewToUi(null) 直接 NPE → 整页 500。这里挡两层：外面 try/catch 保整页，
-  // 里面 filter 把 item 为空的 review 跳掉。同时 Vercel logs 能看到诊断信息。
-  let res: Awaited<ReturnType<typeof listMyReviews>>;
+  // P0 修复（2026-05-24, hardening pass）：用户反馈生产环境仍 500，但 localhost 正常。
+  // 第一轮 fix（only listMyReviews + filter null item）可能不够 —— 把整条 fetch+map
+  // 流水线全部包进 try/catch，任何 throw 都 fallback 到空状态而不是整页 500。
+  // 真错误 console.error 出来，Vercel logs 能看到 stack。
+  let items: ReturnType<typeof reviewToUi>[] = [];
+  let total = 0;
+  let pages = 1;
   try {
-    res = await listMyReviews({ page, category });
+    const res = await listMyReviews({ page, category });
+    const raw = res.data ?? [];
+    items = raw.filter((r) => r && r.item).map(reviewToUi);
+    if (raw.length !== items.length) {
+      console.warn(`[/profile/handle/reviews] skipped ${raw.length - items.length} review(s) with missing item`);
+    }
+    total = res.count ?? items.length;
+    pages = res.pages ?? 1;
   } catch (err) {
-    console.error("[/profile/handle/reviews] listMyReviews threw:", err);
-    res = { data: [] };
+    console.error("[/profile/handle/reviews] main fetch/map threw:", err);
   }
-  const raw = res.data ?? [];
-  const items = raw.filter((r) => r && r.item).map(reviewToUi);
-  if (raw.length !== items.length) {
-    console.warn(`[/profile/handle/reviews] skipped ${raw.length - items.length} review(s) with missing item`);
-  }
-  const total = res.count ?? items.length;
-  const pages = res.pages ?? 1;
 
   // 各 category 的篇数（page=1 只为拿 count；并发）
-  // P2-7：listMyReviews 内部已 catch，这里再加 .catch 是双重保险，未来 callee 变化也不致命
-  const perCategoryCounts = await Promise.all(
-    ALL_UI_MEDIUMS.map(async (m) => {
-      const r = await listMyReviews({ page: 1, category: m }).catch(() => ({ data: [], count: 0 }));
-      return [m, r.count ?? r.data?.length ?? 0] as const;
-    }),
-  );
-  const countMap: Partial<Record<UiMedium, number>> = Object.fromEntries(perCategoryCounts);
-  const totalAll = perCategoryCounts.reduce((a, [, n]) => a + n, 0);
+  let countMap: Partial<Record<UiMedium, number>> = {};
+  let totalAll = 0;
+  try {
+    const perCategoryCounts = await Promise.all(
+      ALL_UI_MEDIUMS.map(async (m) => {
+        const r = await listMyReviews({ page: 1, category: m }).catch(() => ({ data: [], count: 0 }));
+        return [m, r.count ?? r.data?.length ?? 0] as const;
+      }),
+    );
+    countMap = Object.fromEntries(perCategoryCounts);
+    totalAll = perCategoryCounts.reduce((a, [, n]) => a + n, 0);
+  } catch (err) {
+    console.error("[/profile/handle/reviews] perCategoryCounts threw:", err);
+  }
 
   return (
     <div className="reviews-archive-page">
