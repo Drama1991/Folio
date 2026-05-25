@@ -1535,6 +1535,41 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   display: none;
 }
 
+/* ───── Settings 内部垂直节奏统一规范（2026-05-25）─────
+   原先 6 个 panel 用散落的 inline marginTop/marginBottom 控间距，数字 6/8/10/14/18/22/26
+   跳跃没节奏，移动端无法 media query 覆盖。改为 3 层 flex gap 容器，每层固定 token：
+     panel (22/16) > subsection (12/10) > group (8)
+   panel 内全部 inline 间距数字应被这套容器替代。 */
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.settings-subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.settings-panel-header {
+  margin-bottom: 18px;
+}
+@media (max-width: 767px) {
+  .settings-panel {
+    gap: 16px;
+  }
+  .settings-subsection {
+    gap: 10px;
+  }
+  .settings-panel-header {
+    margin-bottom: 14px;
+  }
+}
+
 @media (max-width: 767px) {
   /* BentoTop：3+2 列 → 单列堆叠 */
   .home-bento-top {
@@ -1590,10 +1625,10 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   .settings-shell > main {
     padding: 0 !important;
   }
-  /* main 内 panel 自己加 padding —— inline style 已经写在 panel 里，
-     这里给一个兜底 padding 让 panel 不会贴边 */
+  /* main 内 panel 自己加左右 padding，让内容不贴边；垂直留空交给 PanelHeader.marginBottom
+     + .settings-panel 内部 gap，避免与 PanelHeader 上 main 的 inline padding 叠加 */
   .settings-shell > main > *:not(.settings-mobile-list):not(.settings-mobile-back) {
-    padding: 18px 14px 24px;
+    padding: 0 16px;
   }
 
   /* Mobile list view —— 6 个 section 一行一个，iOS 设置风 */
@@ -1637,7 +1672,7 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   .settings-mobile-back {
     display: flex;
     align-items: center;
-    padding: 8px 12px;
+    padding: 8px 16px;
     border-bottom: 0.5px solid var(--border);
     background: var(--bg);
     min-height: 48px;

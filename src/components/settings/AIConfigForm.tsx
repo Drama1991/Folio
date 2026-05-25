@@ -154,16 +154,17 @@ export function AIConfigForm() {
   return (
     <>
       <PanelHeader />
+      <div className="settings-panel">
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <StatusDot ready={ready} />
         <span style={{ fontSize: 13, color: "var(--text2)" }}>
           {ready ? `当前 provider: ${cfg.provider}（已就绪）` : "尚未配置，AI 对话不可用"}
         </span>
       </div>
 
-      <div style={{ marginBottom: 22 }}>
-        <p className="section-label" style={{ marginBottom: 8 }}>启用</p>
+      <div className="settings-group">
+        <p className="section-label">启用</p>
         <div style={{ display: "flex", gap: 6 }}>
           {PROVIDER_META.map((p) => {
             const on = cfg.provider === p.key;
@@ -236,7 +237,7 @@ export function AIConfigForm() {
         onKey={setSearchKeyEdit}
       />
 
-      <div style={{ marginTop: 22, display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <button onClick={onSave} disabled={saving} className="btn primary" style={{ fontSize: 12 }}>
           {saving ? "保存中…" : "保存"}
         </button>
@@ -244,17 +245,18 @@ export function AIConfigForm() {
         {err && <span style={{ fontSize: 12, color: "#A03B3B" }}>失败：{err}</span>}
       </div>
 
-      <p style={{ fontSize: 11, color: "var(--text3)", marginTop: 18, lineHeight: 1.65 }}>
+      <p style={{ fontSize: 11, color: "var(--text3)", lineHeight: 1.65 }}>
         Key 通过 HS256 签名后存在 httpOnly cookie 中，仅服务端使用，不进入浏览器 JS。
         留空 API key 字段不会清空已有值。
       </p>
+      </div>
     </>
   );
 }
 
 function PanelHeader() {
   return (
-    <div style={{ marginBottom: 18 }}>
+    <div className="settings-panel-header">
       <p style={{ fontFamily: "var(--serif)", fontSize: 22, fontWeight: 500, letterSpacing: "-0.01em" }}>
         AI 助手
       </p>
@@ -309,7 +311,6 @@ function ProviderBlock({
         border: "0.5px solid var(--border)",
         borderRadius: "var(--r2)",
         padding: "14px 16px",
-        marginBottom: 12,
       }}
     >
       <p style={{ fontSize: 13, fontWeight: 500 }}>{title}</p>
@@ -553,8 +554,6 @@ function SearchBlock({
         border: "0.5px solid var(--border)",
         borderRadius: "var(--r2)",
         padding: "14px 16px",
-        marginTop: 18,
-        marginBottom: 12,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
