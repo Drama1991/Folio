@@ -329,7 +329,7 @@ export function WishlistContent({
               onKeyDown={(e) => { if (e.key === "Enter") go(r); }}
               style={{ opacity: pendingId === r.uuid ? 0.55 : 1 }}
             >
-              <Cover src={r.cover ?? undefined} seed={r.uuid} width="100%" height="100%" />
+              <Cover src={r.cover ?? undefined} seed={r.uuid} width="100%" height="100%" alt={r.title} />
               {r.rating ? (
                 <span className="poster-tile-corner own">★ {r.rating.toFixed(1)}</span>
               ) : r.externalRating ? (

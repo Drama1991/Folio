@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRecordModal } from "@/lib/store/record-modal";
 import { useToast } from "@/components/shared/Toast";
 import { Stars } from "@/components/shared/Stars";
+import { StatusControl } from "@/components/shared/StatusControl";
 import { statusVerb, type UiMedium } from "@/lib/format/verbs";
 import type { UiShelfStatus } from "@/lib/neodb/ui-types";
 
@@ -23,14 +24,6 @@ interface Props {
     createdAt: string;
   } | null;
 }
-
-const VISIBLE_STATUSES: UiShelfStatus[] = ["complete", "progress", "wishlist", "dropped"];
-const ICONS: Record<UiShelfStatus, string> = {
-  complete: "ti-check",
-  progress: "ti-player-play",
-  wishlist: "ti-bookmark",
-  dropped: "ti-x",
-};
 
 export function MyRecordCard({ uuid, medium, myRecord, title, cover, year, creator }: Props) {
   const router = useRouter();
@@ -106,7 +99,7 @@ export function MyRecordCard({ uuid, medium, myRecord, title, cover, year, creat
   }
 
   return (
-    <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden", opacity: pending ? 0.65 : 1, transition: "opacity 0.15s" }}>
+    <div id="my-record" className="card" style={{ overflow: "hidden", opacity: pending ? 0.65 : 1, transition: "opacity 0.15s" }}>
       <div style={{ padding: "11px 16px", borderBottom: "0.5px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span className="section-label">我的记录</span>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -176,10 +169,10 @@ export function MyRecordCard({ uuid, medium, myRecord, title, cover, year, creat
                       display: "flex", alignItems: "center", gap: 8,
                       width: "100%", padding: "9px 12px",
                       background: "none", border: "none", borderTop: "0.5px solid var(--border)", cursor: "pointer",
-                      fontSize: 12.5, color: "#B0341F", fontFamily: "inherit",
+                      fontSize: 12.5, color: "var(--danger)", fontFamily: "inherit",
                       textAlign: "left",
                     }}
-                    onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(176,52,31,0.06)"; }}
+                    onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--danger-soft)"; }}
                     onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = "none"; }}
                   >
                     <i className="ti ti-trash" style={{ fontSize: 12 }} />
@@ -194,49 +187,12 @@ export function MyRecordCard({ uuid, medium, myRecord, title, cover, year, creat
 
       <div style={{ padding: "12px 16px", borderBottom: "0.5px solid var(--border)" }}>
         <p style={{ fontSize: 11, color: "var(--text3)", marginBottom: 8 }}>状态</p>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {VISIBLE_STATUSES.map((s) => {
-            const on = myRecord?.status === s;
-            const isDropped = s === "dropped";
-            // dropped 自走冷灰激活态（不庆祝"放弃"）；其他 3 态复用 .chip / .chip.on 米黄规范
-            if (isDropped) {
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setStatus(s)}
-                  disabled={pending}
-                  className="chip"
-                  style={{
-                    background: on ? "var(--bg2)" : "var(--bg)",
-                    borderColor: "var(--text3)",
-                    color: on ? "var(--text)" : "var(--text3)",
-                    fontWeight: on ? 500 : 400,
-                    opacity: on ? 1 : 0.75,
-                    boxShadow: "none",
-                    cursor: pending ? "default" : "pointer",
-                  }}
-                >
-                  <i className={`ti ${ICONS[s]}`} style={{ fontSize: 11 }} />
-                  {statusVerb(medium, s)}
-                </button>
-              );
-            }
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setStatus(s)}
-                disabled={pending}
-                className={`chip${on ? " on" : ""}`}
-                style={{ cursor: pending ? "default" : "pointer" }}
-              >
-                <i className={`ti ${ICONS[s]}`} style={{ fontSize: 11 }} />
-                {statusVerb(medium, s)}
-              </button>
-            );
-          })}
-        </div>
+        <StatusControl
+          value={myRecord?.status ?? null}
+          onChange={setStatus}
+          medium={medium}
+          disabled={pending}
+        />
       </div>
 
       <div style={{ padding: "12px 16px", borderBottom: "0.5px solid var(--border)" }}>

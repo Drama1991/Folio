@@ -7,20 +7,15 @@ import { useToast } from "@/components/shared/Toast";
 import { Cover } from "@/components/shared/Cover";
 import { MediumBadge } from "@/components/shared/MediumBadge";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { StatusControl } from "@/components/shared/StatusControl";
+import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 import { statusVerb, type UiMedium } from "@/lib/format/verbs";
 import type { UiItem, UiShelfStatus } from "@/lib/neodb/ui-types";
-
-const STATUS_OPTIONS: UiShelfStatus[] = ["complete", "progress", "wishlist", "dropped"];
-const STATUS_ICON: Record<UiShelfStatus, string> = {
-  complete: "ti-check",
-  progress: "ti-player-play",
-  wishlist: "ti-bookmark",
-  dropped: "ti-x",
-};
 
 export function RecordModal() {
   const { open, step, initial, prefill, hide, setItem } = useRecordModal();
   const router = useRouter();
+  const trapRef = useFocusTrap<HTMLDivElement>(open);
 
   useEffect(() => {
     if (!open) return;
@@ -32,8 +27,14 @@ export function RecordModal() {
   if (!open) return null;
 
   return (
-    <div onClick={hide} className="record-modal-mask">
-      <div onClick={(e) => e.stopPropagation()} className="record-modal-card">
+    <div
+      onClick={hide}
+      className="record-modal-mask"
+      role="dialog"
+      aria-modal="true"
+      aria-label="记录"
+    >
+      <div onClick={(e) => e.stopPropagation()} className="record-modal-card" ref={trapRef}>
         {step === "search" || !initial ? (
           <SearchStep onSelect={(it) => setItem(it)} onClose={hide} />
         ) : (
@@ -273,33 +274,8 @@ function FormStep({ item, prefill, onClose, onSaved }: FormStepProps) {
 
       <div style={{ padding: "20px 22px", overflowY: "auto", flex: 1 }}>
         <p className="section-label" style={{ marginBottom: 10 }}>状态</p>
-        <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
-          {STATUS_OPTIONS.map((s) => {
-            const on = s === status;
-            return (
-              <button
-                key={s}
-                onClick={() => setStatus(s)}
-                style={{
-                  flex: 1, padding: "11px 8px", borderRadius: "var(--r2)",
-                  border: `0.5px solid ${on ? "#A86515" : "var(--border)"}`,
-                  background: on
-                    ? "linear-gradient(135deg, #E0B270 0%, #D38A30 100%)"
-                    : "var(--bg)",
-                  color: on ? "#FFF6E6" : "var(--text2)",
-                  boxShadow: on
-                    ? "0 3px 10px rgba(150,88,18,0.28), inset 0 1px 0 rgba(255,245,220,0.40)"
-                    : "none",
-                  cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                  fontFamily: "inherit", fontWeight: on ? 500 : 400,
-                  transition: "all 0.15s",
-                }}
-              >
-                <i className={`ti ${STATUS_ICON[s]}`} style={{ fontSize: 13 }} />
-                {statusVerb(item.medium, s)}
-              </button>
-            );
-          })}
+        <div style={{ marginBottom: 20 }}>
+          <StatusControl value={status} onChange={setStatus} medium={item.medium} fillRow />
         </div>
 
         <p className="section-label" style={{ marginBottom: 10 }}>评分</p>
@@ -307,13 +283,9 @@ function FormStep({ item, prefill, onClose, onSaved }: FormStepProps) {
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
+              type="button"
               onClick={() => setRating(rating === n ? 0 : n)}
-              onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(1.12)"; }}
-              onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
-              style={{
-                background: "none", border: "none", padding: "2px 1px", cursor: "pointer",
-                lineHeight: 1, transition: "transform 0.12s",
-              }}
+              className="record-modal-rating-star"
               aria-label={`${n} 星`}
             >
               <i
@@ -337,6 +309,7 @@ function FormStep({ item, prefill, onClose, onSaved }: FormStepProps) {
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="写下想法（可选）"
+          aria-label="短评"
           rows={4}
           style={{
             width: "100%", background: "var(--bg2)", border: "0.5px solid var(--border)", borderRadius: "var(--r2)",

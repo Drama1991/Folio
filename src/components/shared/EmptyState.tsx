@@ -26,12 +26,10 @@ export function EmptyState({ tone = "empty", icon, title, description, actions, 
 
   return (
     <div
+      className="card"
       style={{
-        border: "0.5px solid var(--border)",
-        borderRadius: "var(--r)",
         padding: "36px 22px",
         textAlign: "center",
-        background: "var(--bg)",
         ...style,
       }}
     >

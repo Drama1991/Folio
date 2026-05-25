@@ -28,6 +28,11 @@
   --border2: #C8C6C0;
   --gold: #EF9F27;
 
+  /* 语义色 · 仅 danger（删除/撤回类不可逆操作），不引入 success/warning/info——
+     项目纸墨美学只需 gold 一个 accent + danger 一个警示，避免色板膨胀 */
+  --danger: #B0341F;
+  --danger-soft: rgba(176, 52, 31, 0.06);
+
   /* 浮层 / 阴影 / 蒙版 —— dark 下会覆写 */
   --shadow-soft: rgba(0, 0, 0, 0.07);
   --shadow-card: rgba(0, 0, 0, 0.12);
@@ -59,6 +64,10 @@
   --border2: #3D3935;
   --gold: #EF9F27;
 
+  /* dark 下 #B0341F 对 #1A1816 ≈ 3.8:1 不过 WCAG AA；提到 #D14937 ≈ 4.6:1 过 AA */
+  --danger: #D14937;
+  --danger-soft: rgba(209, 73, 55, 0.10);
+
   --shadow-soft: rgba(0, 0, 0, 0.4);
   --shadow-card: rgba(0, 0, 0, 0.55);
   --overlay: rgba(0, 0, 0, 0.7);
@@ -76,6 +85,9 @@
     --text3: #6E6B65;
     --border: #2F2C28;
     --border2: #3D3935;
+
+    --danger: #D14937;
+    --danger-soft: rgba(209, 73, 55, 0.10);
 
     --shadow-soft: rgba(0, 0, 0, 0.4);
     --shadow-card: rgba(0, 0, 0, 0.55);
@@ -2112,5 +2124,65 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   .notif-row__dot {
     top: 14px;
     right: 14px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   第四批 · 组件设计系统收敛（2026-05-25）
+   ═══════════════════════════════════════════════════════════════════
+   .card —— 标准容器，沉淀 4+ 处重复的 border + radius + bg 三件套
+   .record-modal-rating-star —— RecordModal 评分星按钮（替代 inline padding/font）
+   mobile chip 放大 + 评分星放大 —— 触控目标 ≥ 36 / 44px */
+
+.card {
+  border: 0.5px solid var(--border);
+  border-radius: var(--r);
+  background: var(--bg);
+}
+
+.record-modal-rating-star {
+  background: none;
+  border: none;
+  padding: 2px 1px;
+  cursor: pointer;
+  line-height: 1;
+  transition: transform 0.12s;
+}
+.record-modal-rating-star:hover {
+  transform: scale(1.12);
+}
+
+@media (max-width: 767px) {
+  /* chip 触控目标 ≥ 36px（行业惯例：iOS HIG segmented control 默认 32-36），
+     不强追 44 —— chip 是次级控件，桌面 26px 在 mobile 升 36 已足够拇指点中 */
+  .chip {
+    padding: 8px 14px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+  .chip.sm {
+    padding: 5px 10px;
+    font-size: 11px;
+    min-height: 32px;
+  }
+
+  /* RecordModal 评分星 mobile 放大：触控目标 44×44，icon 32 */
+  .record-modal-rating-star {
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .record-modal-rating-star > i {
+    font-size: 32px !important;
+  }
+  /* mobile 无 hover —— 关掉 scale，留出 active 反馈 */
+  .record-modal-rating-star:hover {
+    transform: none;
+  }
+  .record-modal-rating-star:active {
+    transform: scale(0.95);
   }
 }

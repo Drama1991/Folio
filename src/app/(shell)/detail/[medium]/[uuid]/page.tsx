@@ -14,7 +14,7 @@ import { EpisodeTracker } from "@/components/detail/EpisodeTracker";
 import { ReadingProgress } from "@/components/detail/ReadingProgress";
 import { CommunityPosts } from "@/components/detail/CommunityPosts";
 import type { UiCommunityComment, UiCommunityReview } from "@/lib/neodb/ui-types";
-import type { UiMedium } from "@/lib/format/verbs";
+import { mediumLabel, type UiMedium } from "@/lib/format/verbs";
 
 interface PageProps {
   params: Promise<{ medium: string; uuid: string }>;
@@ -93,12 +93,12 @@ export default async function DetailPage({ params }: PageProps) {
   return (
     <div className="detail-page">
       <Crumbs medium={medium} title={ui.title} />
-      <DetailHero ui={ui} medium={medium} />
+      <DetailHero ui={ui} medium={medium} myStatus={myRecord?.status} />
       <div className="detail-main">
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <MyRecordCard uuid={uuid} medium={medium} myRecord={myRecord} title={ui.title} cover={ui.cover ?? undefined} year={ui.year} creator={ui.creator} />
           {ui.brief && (
-            <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", padding: "14px 16px" }}>
+            <div className="card" style={{ padding: "14px 16px" }}>
               <p className="section-label" style={{ marginBottom: 8 }}>简介</p>
               <p style={{ fontFamily: "var(--serif)", fontSize: 13, lineHeight: 1.7, color: "var(--text2)" }}>{ui.brief}</p>
             </div>
@@ -118,6 +118,18 @@ export default async function DetailPage({ params }: PageProps) {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <MetaKVList items={meta} />
+          {ui.url && (
+            <a
+              href={ui.url}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="btn"
+              style={{ justifyContent: "center" }}
+            >
+              <i className="ti ti-external-link" style={{ fontSize: 12 }} aria-hidden />
+              在 NeoDB 查看
+            </a>
+          )}
         </div>
       </div>
     </div>
@@ -129,7 +141,7 @@ function Crumbs({ medium, title }: { medium: UiMedium; title: string }) {
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
       <Link href="/home" className="crumb">首页</Link>
       <span style={{ color: "var(--text3)", fontFamily: "var(--mono)", fontSize: 11 }}>/</span>
-      <Link href={`/archive/${medium}`} className="crumb">档案 · {medium}</Link>
+      <Link href={`/archive/${medium}`} className="crumb">档案 · {mediumLabel(medium)}</Link>
       <span style={{ color: "var(--text3)", fontFamily: "var(--mono)", fontSize: 11 }}>/</span>
       <span className="crumb cur">{title}</span>
     </div>

@@ -4,8 +4,9 @@ import { useRecordModal } from "@/lib/store/record-modal";
 import { useAIPanel, detailContext } from "@/lib/store/ai-panel";
 import { Cover } from "@/components/shared/Cover";
 import { Stars } from "@/components/shared/Stars";
-import type { UiItem } from "@/lib/neodb/ui-types";
-import type { UiMedium } from "@/lib/format/verbs";
+import { STATUS_ICONS } from "@/components/shared/StatusControl";
+import type { UiItem, UiShelfStatus } from "@/lib/neodb/ui-types";
+import { statusVerb, type UiMedium } from "@/lib/format/verbs";
 
 const AI_LABEL: Record<UiMedium, string> = {
   movie: "AI 聊聊",
@@ -16,13 +17,13 @@ const AI_LABEL: Record<UiMedium, string> = {
   game: "AI 聊聊",
 };
 
-export function DetailHero({ ui, medium }: { ui: UiItem; medium: UiMedium }) {
+export function DetailHero({ ui, medium, myStatus }: { ui: UiItem; medium: UiMedium; myStatus?: UiShelfStatus }) {
   const showModal = useRecordModal((s) => s.show);
   const openAI = useAIPanel((s) => s.setOpen);
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "114px 1fr", gap: 18, marginBottom: 8 }}>
-      <Cover src={ui.cover ?? undefined} seed={ui.uuid} width={114} height={170} style={{ borderRadius: "var(--r)", aspectRatio: "2/3", height: "auto" }} />
+      <Cover src={ui.cover ?? undefined} seed={ui.uuid} width={114} height={170} alt={ui.title} style={{ borderRadius: "var(--r)", aspectRatio: "2/3", height: "auto" }} />
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
         <div>
           <p style={{ fontFamily: "var(--serif)", fontSize: 28, fontWeight: 500, lineHeight: 1.1, letterSpacing: "-0.02em" }}>
@@ -48,6 +49,25 @@ export function DetailHero({ ui, medium }: { ui: UiItem; medium: UiMedium }) {
                   NeoDB · {ui.externalRatingCount} 人评
                 </span>
               )}
+            </div>
+          )}
+          {myStatus && (
+            <div style={{ marginTop: 10 }}>
+              <a
+                href="#my-record"
+                className="chip"
+                style={{
+                  textDecoration: "none",
+                  color: "var(--gold)",
+                  borderColor: "var(--gold)",
+                  background: "var(--bg)",
+                  fontWeight: 500,
+                }}
+                aria-label={`跳到我的记录：已${statusVerb(medium, myStatus)}`}
+              >
+                <i className={`ti ${STATUS_ICONS[myStatus]}`} aria-hidden style={{ fontSize: 11 }} />
+                我已{statusVerb(medium, myStatus)}
+              </a>
             </div>
           )}
         </div>

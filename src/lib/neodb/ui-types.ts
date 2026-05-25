@@ -16,6 +16,8 @@ export interface UiItem {
   externalRating?: number; // NeoDB rating（0-10）
   externalRatingCount?: number;
   tags?: string[];
+  /** NeoDB 实例上该条目的网页 URL（不是 api_url），用于"在 NeoDB 查看"外链 */
+  url?: string;
   /** 媒介专属元数据 (按需读取) */
   raw?: Record<string, unknown>;
 }
