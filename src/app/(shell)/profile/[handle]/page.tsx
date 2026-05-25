@@ -12,6 +12,7 @@ import {
 import { reviewToUi } from "@/lib/neodb/mappers";
 import { gradientFor } from "@/lib/format/cover-gradient";
 import { ShareProfileButton } from "@/components/profile/ShareProfileButton";
+import { ProfileOverflowMenu } from "@/components/profile/ProfileOverflowMenu";
 import { ActivityHeatmap } from "@/components/profile/ActivityHeatmap";
 import { pullYearMarks, summarizeYear } from "@/lib/profile/yearStats";
 
@@ -201,30 +202,32 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
         </div>
         {isMe && (
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <a
-              className="btn"
-              href={profileUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-              title="NeoDB 暂不开放资料编辑 API · 跳转去 NeoDB"
-            >
-              在 NeoDB 编辑 ↗
-            </a>
-            <ShareProfileButton url={profileUrl} />
-            {/* 移动端：底部 tab bar 改版后，通知/设置/登出三入口聚合到这里
-               （汉堡 Drawer 已删除）。桌面端走 AvatarMenu，所以这一行只移动端显示 */}
+            {/* 桌面端：两个胶囊按钮（编辑外链 + 分享）。移动端 CSS 隐藏。 */}
+            <div className="profile-actions-desktop">
+              <a
+                className="btn"
+                href={profileUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                title="NeoDB 暂不开放资料编辑 API · 跳转去 NeoDB"
+              >
+                在 NeoDB 编辑 ↗
+              </a>
+              <ShareProfileButton url={profileUrl} />
+            </div>
+            {/* 移动端：4 等大图标方块（通知/设置/分享/⋯）。
+               原"在 NeoDB 编辑"和"登出"收进 ⋯ 溢出菜单，
+               让站内高频入口（通知/设置）跟分享获得平等的一级视觉权重。
+               桌面端走 AvatarMenu + .profile-actions-desktop，本行 CSS 隐藏。 */}
             <div className="profile-me-actions">
-              <Link href="/notifications" aria-label="通知" className="profile-me-icon">
-                <i className="ti ti-bell" aria-hidden />
-              </Link>
               <Link href="/settings" aria-label="设置" className="profile-me-icon">
                 <i className="ti ti-settings" aria-hidden />
               </Link>
-              <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
-                <button type="submit" aria-label="登出" className="profile-me-icon">
-                  <i className="ti ti-logout" aria-hidden />
-                </button>
-              </form>
+              <Link href="/notifications" aria-label="通知" className="profile-me-icon">
+                <i className="ti ti-bell" aria-hidden />
+              </Link>
+              <ShareProfileButton url={profileUrl} variant="icon" />
+              <ProfileOverflowMenu profileUrl={profileUrl} />
             </div>
           </div>
         )}

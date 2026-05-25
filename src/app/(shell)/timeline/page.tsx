@@ -83,9 +83,6 @@ export default async function TimelinePage({ searchParams }: PageProps) {
             </Link>
           ))}
         </div>
-        <div className="timeline-status-wrap">
-          <TimelineStatusFilter current={status} urls={statusUrls} />
-        </div>
       </div>
 
       {sortedGroups.length === 0 && (
@@ -94,9 +91,16 @@ export default async function TimelinePage({ searchParams }: PageProps) {
         </div>
       )}
 
-      {sortedGroups.map(([key, list]) => (
+      {sortedGroups.map(([key, list], idx) => (
         <div key={key} style={{ marginBottom: 22 }}>
-          <p className="section-label" style={{ marginBottom: 10 }}>{formatMonthLabel(`${key}-01`)} · {list.length} 条</p>
+          {idx === 0 ? (
+            <div className="timeline-month-row">
+              <p className="section-label" style={{ margin: 0 }}>{formatMonthLabel(`${key}-01`)} · {list.length} 条</p>
+              <TimelineStatusFilter current={status} urls={statusUrls} />
+            </div>
+          ) : (
+            <p className="section-label" style={{ marginBottom: 10 }}>{formatMonthLabel(`${key}-01`)} · {list.length} 条</p>
+          )}
           <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden" }}>
             {list.map((e) => (
               <Link key={`${e.uuid}-${e.createdAt}`} href={`/detail/${e.medium}/${e.uuid}`} className="row" style={{ textDecoration: "none", color: "inherit" }}>

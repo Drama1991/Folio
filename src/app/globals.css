@@ -1215,9 +1215,25 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   }
 }
 
-/* ───── Profile 我的快捷入口（移动端：通知 / 设置 / 登出） ─────
-   2026-05-24 IA 改版：Drawer 删除后，原属 Drawer 的"通知/设置/登出"在
-   /profile/me 头部以图标行的形式聚合。桌面端走 AvatarMenu，这一行隐藏。 */
+/* ───── Profile 桌面端 actions（"在 NeoDB 编辑"/"分享主页"两胶囊） ─────
+   桌面端竖向排在 hero 第 3 列；移动端切到 .profile-me-actions 的 4 图标方块布局，
+   本容器整体隐藏。视觉权重一致性：见下方 .profile-me-actions / .profile-me-icon。 */
+.profile-actions-desktop {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+@media (max-width: 767px) {
+  .profile-actions-desktop {
+    display: none !important;
+  }
+}
+
+/* ───── Profile 我的快捷入口（移动端：通知 / 设置 / 分享 / ⋯ 溢出菜单） ─────
+   2026-05-24 IA 改版：Drawer 删除后，"通知/设置/登出"在 /profile/me 头部聚合为图标行。
+   2026-05-25 视觉权重平衡：把"在 NeoDB 编辑"和"分享主页"两个大胶囊统一降级为图标方块，
+   "在 NeoDB 编辑"+"登出"两条低频/外链项收进 ⋯ 溢出菜单，让 4 个一级入口（通知/设置/
+   分享/⋯）等大并排。桌面端走 AvatarMenu + .profile-actions-desktop，这一行隐藏。 */
 .profile-me-actions {
   display: none;
 }
@@ -1225,7 +1241,7 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   .profile-me-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     margin-top: 4px;
   }
   .profile-me-icon {
@@ -1249,6 +1265,50 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
     background: var(--bg2);
     color: var(--text);
   }
+}
+
+/* ⋯ 溢出菜单容器与列表项（ProfileOverflowMenu 用，移动端触发） */
+.profile-overflow-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 160px;
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r2);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10);
+  z-index: 30;
+  overflow: hidden;
+  padding: 4px;
+}
+.profile-overflow-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: left;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .12s ease;
+}
+.profile-overflow-item > i {
+  font-size: 13px;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+.profile-overflow-item:hover,
+.profile-overflow-item:active {
+  background: var(--bg2);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1639,14 +1699,14 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
    移动：stats + status 共一行（合并视觉块），chips 横向滚动单独一行。 */
 .timeline-filter-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr;
   align-items: center;
   gap: 14px 12px;
   margin-top: 5px;
   margin-bottom: 16px;
   grid-template-areas:
-    "stats   stats"
-    "chips   status";
+    "stats"
+    "chips";
 }
 .timeline-stats {
   grid-area: stats;
@@ -1666,15 +1726,21 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   grid-area: status;
   justify-self: end;
 }
+/* 第一个月份分组的标题行 —— section-label + TimelineStatusFilter 并排
+   仅第一个月份显示筛选器，避免重复 */
+.timeline-month-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
 @media (max-width: 767px) {
   .timeline-page {
     padding: 16px 12px 24px;
   }
   .timeline-filter-row {
     gap: 10px 10px;
-    grid-template-areas:
-      "stats   status"
-      "chips   chips";
   }
   .timeline-chips {
     overflow-x: auto;
