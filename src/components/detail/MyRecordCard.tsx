@@ -198,32 +198,38 @@ export function MyRecordCard({ uuid, medium, myRecord, title, cover, year, creat
           {VISIBLE_STATUSES.map((s) => {
             const on = myRecord?.status === s;
             const isDropped = s === "dropped";
+            // dropped 自走冷灰激活态（不庆祝"放弃"）；其他 3 态复用 .chip / .chip.on 米黄规范
+            if (isDropped) {
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setStatus(s)}
+                  disabled={pending}
+                  className="chip"
+                  style={{
+                    background: on ? "var(--bg2)" : "var(--bg)",
+                    borderColor: "var(--text3)",
+                    color: on ? "var(--text)" : "var(--text3)",
+                    fontWeight: on ? 500 : 400,
+                    opacity: on ? 1 : 0.75,
+                    boxShadow: "none",
+                    cursor: pending ? "default" : "pointer",
+                  }}
+                >
+                  <i className={`ti ${ICONS[s]}`} style={{ fontSize: 11 }} />
+                  {statusVerb(medium, s)}
+                </button>
+              );
+            }
             return (
               <button
                 key={s}
                 type="button"
                 onClick={() => setStatus(s)}
                 disabled={pending}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 5,
-                  padding: "5px 11px", borderRadius: 999, fontSize: 12,
-                  background: on
-                    ? (isDropped ? "var(--bg2)" : "var(--bg2)")
-                    : "var(--bg)",
-                  border: `0.5px solid ${
-                    on
-                      ? "var(--border2)"
-                      : isDropped
-                        ? "var(--text3)"
-                        : "var(--border)"
-                  }`,
-                  color: on ? "var(--text)" : (isDropped ? "var(--text3)" : "var(--text2)"),
-                  fontWeight: on ? 500 : 400,
-                  cursor: pending ? "default" : "pointer",
-                  fontFamily: "inherit",
-                  opacity: isDropped && !on ? 0.75 : 1,
-                  transition: "all 0.15s",
-                }}
+                className={`chip${on ? " on" : ""}`}
+                style={{ cursor: pending ? "default" : "pointer" }}
               >
                 <i className={`ti ${ICONS[s]}`} style={{ fontSize: 11 }} />
                 {statusVerb(medium, s)}
