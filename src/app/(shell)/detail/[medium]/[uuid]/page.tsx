@@ -50,26 +50,25 @@ export default async function DetailPage({ params }: PageProps) {
   const session = await getSession();
   const homeInstance = session?.instance ?? null;
 
-  let item;
-  try {
-    item = await getItem({ medium, uuid });
-  } catch (err) {
-    // 仅 404 当作"真不存在"；5xx / 网络抖动 / 限流等让上层 error.tsx 接管
+  // 4 个 NeoDB endpoint 互相独立，全部并行（原本 3 段串行 RTT，现在压成 1 段）。
+  // getItem 404 需要 notFound()，所以用 sentinel null 在 Promise.all 里捕获，外层再判断。
+  const itemPromise = getItem({ medium, uuid }).catch((err) => {
     const status = (err as { status?: number })?.status;
-    if (status === 404) notFound();
+    if (status === 404) return null;
     throw err;
-  }
+  });
+  const [item, mark, commentPage, reviewPage] = await Promise.all([
+    itemPromise,
+    getMyMark(uuid).catch(() => null),
+    listItemPosts({ uuid, type: "comment", page: 1 }).catch(() => ({ data: [], count: 0, pages: 1 })),
+    listItemPosts({ uuid, type: "review", page: 1 }).catch(() => ({ data: [], count: 0, pages: 1 })),
+  ]);
+  if (!item) notFound();
   // verify category match
   if (fromNeoDBCategory(item.category) !== medium && medium !== "music") {
     // music ↔ album shift is allowed
   }
 
-  const mark = await getMyMark(uuid).catch(() => null);
-
-  const [commentPage, reviewPage] = await Promise.all([
-    listItemPosts({ uuid, type: "comment", page: 1 }).catch(() => ({ data: [], count: 0, pages: 1 })),
-    listItemPosts({ uuid, type: "review", page: 1 }).catch(() => ({ data: [], count: 0, pages: 1 })),
-  ]);
   const comments: UiCommunityComment[] = commentPage.data
     .map(postToUiComment)
     .filter((c): c is UiCommunityComment => c !== null);
