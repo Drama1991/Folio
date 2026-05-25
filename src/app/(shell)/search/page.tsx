@@ -6,9 +6,12 @@ import Link from "next/link";
 import { Cover } from "@/components/shared/Cover";
 import { MediumBadge } from "@/components/shared/MediumBadge";
 import { Stars } from "@/components/shared/Stars";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
 import { mediumLabel, type UiMedium } from "@/lib/format/verbs";
 import type { UiItem } from "@/lib/neodb/ui-types";
+
+type SearchPhase = "idle" | "loading" | "error" | "ok";
 
 export default function SearchPage() {
   const router = useRouter();
@@ -18,12 +21,13 @@ export default function SearchPage() {
   const [q, setQ] = useState(initialQ);
   const [category, setCategory] = useState<UiMedium | null>(initialCat);
   const [results, setResults] = useState<UiItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [phase, setPhase] = useState<SearchPhase>("idle");
+  const [retryNonce, setRetryNonce] = useState(0);
 
   useEffect(() => {
     const term = q.trim();
-    if (!term) { setResults([]); return; }
-    setLoading(true);
+    if (!term) { setResults([]); setPhase("idle"); return; }
+    setPhase("loading");
     // P1-9：AbortController 防竞态——慢请求被新输入覆盖时直接放弃 setState
     const controller = new AbortController();
     const id = setTimeout(async () => {
@@ -31,19 +35,24 @@ export default function SearchPage() {
         const url = new URL("/api/proxy/search", window.location.origin);
         url.searchParams.set("q", term);
         if (category) url.searchParams.set("category", category);
-        const r = await fetch(url.toString(), { signal: controller.signal }).then((r) => r.json());
-        setResults((r.data ?? []) as UiItem[]);
+        const res = await fetch(url.toString(), { signal: controller.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (json?.error) throw new Error(json.error);
+        if (controller.signal.aborted) return;
+        setResults((json.data ?? []) as UiItem[]);
+        setPhase("ok");
       } catch (err) {
         if ((err as { name?: string })?.name === "AbortError") return;
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        setResults([]);
+        setPhase("error");
       }
     }, 280);
     return () => {
       clearTimeout(id);
       controller.abort();
     };
-  }, [q, category]);
+  }, [q, category, retryNonce]);
 
   useEffect(() => {
     const u = new URL(window.location.href);
@@ -89,13 +98,23 @@ export default function SearchPage() {
           输入关键词开始搜索 · NeoDB 全库
         </div>
       )}
-      {q && loading && (
+      {q && phase === "loading" && (
         <div style={{ padding: "18px 20px", fontSize: 12, color: "var(--text3)" }}>搜索中…</div>
       )}
-      {q && !loading && results.length === 0 && (
-        <div style={{ padding: "26px 20px", textAlign: "center", color: "var(--text3)", fontSize: 12 }}>
-          没有结果。
-        </div>
+      {q && phase === "error" && (
+        <EmptyState
+          tone="error"
+          icon="ti-cloud-off"
+          title="搜索没成功"
+          description={<>NeoDB 这会儿没回话，或者网络抖了一下。关键词「{q}」还在，可以重试。</>}
+          actions={[{ label: "重试", primary: true, onClick: () => setRetryNonce((n) => n + 1) }]}
+        />
+      )}
+      {q && phase === "ok" && results.length === 0 && (
+        <EmptyState
+          title="没有结果"
+          description={<>关键词「{q}」在 NeoDB 没有匹配。换个说法试试。</>}
+        />
       )}
 
       {Array.from(grouped.entries()).map(([m, items]) => (

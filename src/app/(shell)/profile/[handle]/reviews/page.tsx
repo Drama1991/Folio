@@ -5,6 +5,7 @@ import { reviewToUi } from "@/lib/neodb/mappers";
 import type { UiMedium } from "@/lib/format/verbs";
 import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
 import { mediumLabel } from "@/lib/format/verbs";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 interface PageProps {
   params: Promise<{ handle: string }>;
@@ -112,15 +113,14 @@ export default async function ReviewsArchivePage({ params, searchParams }: PageP
       </div>
 
       {/* 列表 */}
+      {/* 列表 */}
       {items.length === 0 ? (
-        <div style={{
-          padding: "60px 0",
-          textAlign: "center",
-          fontFamily: "var(--serif)",
-          fontSize: 14,
-          color: "var(--text3)",
-        }}>
-          {category ? `还没写过${mediumLabel(category)}类的长评。` : "还没写过长评。"}
+        <div style={{ marginTop: 18 }}>
+          <EmptyState
+            icon="ti-feather"
+            title={category ? `还没写过${mediumLabel(category)}类的长评` : "还没写过长评"}
+            description="长评通常是看完作品之后整理出的完整想法。先去标记一些作品，回头慢慢写。"
+          />
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column" }}>

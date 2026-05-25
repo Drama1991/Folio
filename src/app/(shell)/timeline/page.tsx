@@ -7,6 +7,7 @@ import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
 import { Cover } from "@/components/shared/Cover";
 import { RatingTag } from "@/components/shared/RatingTag";
 import { TimelineStatusFilter, type TimelineStatus } from "@/components/timeline/TimelineStatusFilter";
+import { TimelineEmptyCTA } from "@/components/timeline/TimelineEmptyCTA";
 
 const STATUS_VALUES: TimelineStatus[] = ["all", "complete", "progress", "wishlist"];
 
@@ -85,11 +86,7 @@ export default async function TimelinePage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {sortedGroups.length === 0 && (
-        <div style={{ padding: "26px 20px", textAlign: "center", color: "var(--text3)", fontSize: 12, border: "0.5px solid var(--border)", borderRadius: "var(--r)" }}>
-          这个区间还没有记录。
-        </div>
-      )}
+      {sortedGroups.length === 0 && <TimelineEmptyCTA />}
 
       {sortedGroups.map(([key, list], idx) => (
         <div key={key} style={{ marginBottom: 22 }}>

@@ -6,6 +6,7 @@ import { useRecordModal } from "@/lib/store/record-modal";
 import { useToast } from "@/components/shared/Toast";
 import { Cover } from "@/components/shared/Cover";
 import { MediumBadge } from "@/components/shared/MediumBadge";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { statusVerb, type UiMedium } from "@/lib/format/verbs";
 import type { UiItem, UiShelfStatus } from "@/lib/neodb/ui-types";
 
@@ -56,31 +57,37 @@ export function RecordModal() {
 function SearchStep({ onSelect, onClose }: { onSelect: (it: { uuid: string; medium: UiMedium; title: string; cover?: string; year?: number | string; creator?: string }) => void; onClose: () => void }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<UiItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [phase, setPhase] = useState<"idle" | "loading" | "error" | "ok">("idle");
+  const [retryNonce, setRetryNonce] = useState(0);
 
   useEffect(() => {
     const term = q.trim();
-    if (!term) { setResults([]); return; }
-    setLoading(true);
+    if (!term) { setResults([]); setPhase("idle"); return; }
+    setPhase("loading");
     // P1-9：AbortController 防竞态——慢请求被新输入覆盖时直接放弃
     const controller = new AbortController();
     const id = setTimeout(async () => {
       try {
         const res = await fetch(`/api/proxy/search?q=${encodeURIComponent(term)}`, {
           signal: controller.signal,
-        }).then((r) => r.json());
-        setResults((res.data ?? []) as UiItem[]);
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (json?.error) throw new Error(json.error);
+        if (controller.signal.aborted) return;
+        setResults((json.data ?? []) as UiItem[]);
+        setPhase("ok");
       } catch (err) {
         if ((err as { name?: string })?.name === "AbortError") return;
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        setResults([]);
+        setPhase("error");
       }
     }, 280);
     return () => {
       clearTimeout(id);
       controller.abort();
     };
-  }, [q]);
+  }, [q, retryNonce]);
 
   return (
     <>
@@ -106,17 +113,28 @@ function SearchStep({ onSelect, onClose }: { onSelect: (it: { uuid: string; medi
         </div>
       </div>
       <div style={{ overflowY: "auto", flex: 1, minHeight: 120 }}>
-        {loading && (
+        {phase === "loading" && (
           <div style={{ padding: "26px 22px", fontSize: 12, color: "var(--text3)", fontFamily: "var(--mono)" }}>
             搜索中…
           </div>
         )}
-        {!loading && q && results.length === 0 && (
+        {phase === "error" && (
+          <div style={{ padding: "20px 22px" }}>
+            <EmptyState
+              tone="error"
+              icon="ti-cloud-off"
+              title="搜索没成功"
+              description={<>NeoDB 这会儿没回话。关键词「{q}」还在，可以重试。</>}
+              actions={[{ label: "重试", primary: true, onClick: () => setRetryNonce((n) => n + 1) }]}
+            />
+          </div>
+        )}
+        {phase === "ok" && q && results.length === 0 && (
           <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--text3)", fontSize: 12 }}>
             没找到。换个关键词试试。
           </div>
         )}
-        {!loading && !q && (
+        {phase === "idle" && !q && (
           <div style={{ padding: "32px 22px", textAlign: "center", color: "var(--text3)", fontSize: 12, fontFamily: "var(--mono)" }}>
             输入标题、作者或关键词开始搜索
           </div>

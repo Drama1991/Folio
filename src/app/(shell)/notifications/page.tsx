@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth/cookie";
 import { listNotifications } from "@/lib/neodb/client";
 import { mastodonNotificationToUi } from "@/lib/neodb/mappers";
 import { NotificationsListClient } from "@/components/notifications/NotificationsListClient";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 export default async function NotificationsPage() {
   const session = await getSession();
@@ -37,40 +38,12 @@ export default async function NotificationsPage() {
       </p>
 
       {items.length === 0 ? (
-        <div
-          className="notifications-empty"
-          style={{
-            marginTop: 36,
-            padding: "48px 28px",
-            border: "0.5px dashed var(--border)",
-            borderRadius: "var(--r)",
-            textAlign: "center",
-          }}
-        >
-          <i className="ti ti-bell-off" style={{ fontSize: 28, color: "var(--text3)" }} />
-          <p
-            style={{
-              fontFamily: "var(--serif)",
-              fontSize: 16,
-              fontWeight: 500,
-              marginTop: 14,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            还没有通知
-          </p>
-          <p
-            style={{
-              fontSize: 13,
-              color: "var(--text2)",
-              marginTop: 8,
-              lineHeight: 1.7,
-              maxWidth: 380,
-              marginInline: "auto",
-            }}
-          >
-            被人 @ 提到、点赞、转发或关注时会出现在这里。
-          </p>
+        <div style={{ marginTop: 36 }}>
+          <EmptyState
+            icon="ti-bell-off"
+            title="还没有通知"
+            description="被人 @ 提到、点赞、转发或关注时会出现在这里。"
+          />
         </div>
       ) : (
         <NotificationsListClient items={items} />

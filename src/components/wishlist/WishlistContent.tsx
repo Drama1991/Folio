@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Cover } from "@/components/shared/Cover";
 import { RatingTag } from "@/components/shared/RatingTag";
 import { useToast } from "@/components/shared/Toast";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { useRecordModal } from "@/lib/store/record-modal";
 import { relativeTime } from "@/lib/format/dates";
 import { mediumLabel, type UiMedium } from "@/lib/format/verbs";
@@ -236,12 +237,18 @@ export function WishlistContent({
 
       {/* 主体：list 或 grid */}
       {rows.length === 0 ? (
-        <div style={{
-          border: "0.5px solid var(--border)", borderRadius: "var(--r)",
-          padding: "32px 20px", textAlign: "center", color: "var(--text3)", fontSize: 12,
-        }}>
-          心愿单还空着。去 /home 或 /discover 加点想看的吧。
-        </div>
+        <EmptyState
+          icon="ti-bookmark"
+          title="心愿单还空着"
+          description="想看的电影、书、播客 — 先存一个起来，回头需要点什么的时候有得挑。"
+          actions={[
+            {
+              label: "搜一个想看的",
+              primary: true,
+              onClick: () => showModal({ prefill: { status: "wishlist" } }),
+            },
+          ]}
+        />
       ) : view === "list" ? (
         <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden" }}>
           {rows.map((r) => {

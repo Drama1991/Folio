@@ -3,6 +3,7 @@ import { gradientFor } from "@/lib/format/cover-gradient";
 import { relativeTime } from "@/lib/format/dates";
 import { statusVerb, mediumLabel, type UiMedium, type ShelfStatus } from "@/lib/format/verbs";
 import type { UiTimelineEntry } from "@/lib/neodb/ui-types";
+import { FeaturedEmptyCTA } from "./FeaturedEmptyCTA";
 
 export function BentoTop({
   featured,
@@ -180,25 +181,7 @@ function ProgressBadge({ progress, medium }: { progress?: string; medium: UiMedi
 
 function FeaturedCard({ entry }: { entry: UiTimelineEntry | null }) {
   if (!entry) {
-    return (
-      <div
-        style={{
-          background: "#1C1C1A",
-          borderRadius: "var(--r)",
-          padding: 22,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          minHeight: 196,
-          color: "#888780",
-        }}
-      >
-        <span style={{ fontFamily: "var(--mono)", fontSize: 11, letterSpacing: ".1em" }}>暂无在看</span>
-        <p style={{ fontFamily: "var(--serif)", fontSize: 18, color: "#F1EFE8", lineHeight: 1.2 }}>
-          先去 &laquo;记录新内容&raquo; 开始追一部吧。
-        </p>
-      </div>
-    );
+    return <FeaturedEmptyCTA />;
   }
 
   const grad = gradientFor(entry.uuid);

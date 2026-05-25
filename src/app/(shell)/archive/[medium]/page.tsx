@@ -6,6 +6,7 @@ import { ArchiveHeader } from "@/components/archive/ArchiveHeader";
 import { ArchiveRow } from "@/components/archive/ArchiveRow";
 import { SortDropdown, type SortBy } from "@/components/archive/SortDropdown";
 import { Cover } from "@/components/shared/Cover";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
 import { mediumLabel, statusVerb, type UiMedium } from "@/lib/format/verbs";
 import type { NeoDBShelfType } from "@/lib/neodb/types";
@@ -173,9 +174,11 @@ export default async function ArchivePage({ params, searchParams }: PageProps) {
 
       <div style={{ marginTop: 14 }}>
         {sorted.length === 0 ? (
-          <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", padding: "26px 20px", textAlign: "center", color: "var(--text3)", fontSize: 12 }}>
-            没有匹配的内容。
-          </div>
+          <EmptyState
+            title="没有匹配的内容"
+            description={<>当前筛选下 {mediumLabel(medium)} 档案是空的。换个状态/年份试试，或去发现页看看。</>}
+            actions={[{ label: `去 ${mediumLabel(medium)} 频道发现`, href: "/discover", primary: true }]}
+          />
         ) : p.view === "list" ? (
           <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden" }}>
             {sorted.map((r) => <ArchiveRow key={`${r.uuid}-${r.updatedAt}`} row={r} />)}
