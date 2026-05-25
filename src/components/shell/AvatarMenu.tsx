@@ -70,6 +70,7 @@ export function AvatarMenu({ display, handle, initial, avatar }: AvatarMenuProps
             <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 4, letterSpacing: ".02em" }}>{handle}</p>
           </div>
           <MenuItem href="/profile/me" icon="ti-user" label="个人主页" />
+          <MenuItem href="/notifications" icon="ti-bell" label="通知" />
           <MenuItem href="/settings" icon="ti-settings" label="设置" />
           <div style={{ height: "0.5px", background: "var(--border)", margin: "5px 0" }} />
           {/* P1-8：注销走 POST form；GET 注销可被跨站构造触发。 */}

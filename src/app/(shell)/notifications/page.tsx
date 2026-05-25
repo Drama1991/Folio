@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/cookie";
+import { listNotifications } from "@/lib/neodb/client";
+import { mastodonNotificationToUi } from "@/lib/neodb/mappers";
+import { NotificationsListClient } from "@/components/notifications/NotificationsListClient";
 
 export default async function NotificationsPage() {
   const session = await getSession();
   const externalUrl = session?.instance ? `https://${session.instance}/notifications/` : null;
+
+  const raw = await listNotifications({ limit: 40 });
+  const items = raw.map(mastodonNotificationToUi);
 
   return (
     <div className="notifications-page">
@@ -13,33 +19,62 @@ export default async function NotificationsPage() {
         <span className="crumb cur">通知</span>
       </div>
       <p style={{ fontFamily: "var(--serif)", fontSize: 26, fontWeight: 500, lineHeight: 1 }}>通知</p>
-
-      <div className="notifications-empty" style={{
-        marginTop: 36,
-        padding: "48px 28px",
-        border: "0.5px dashed var(--border)",
-        borderRadius: "var(--r)",
-        textAlign: "center",
-      }}>
-        <i className="ti ti-bell-off" style={{ fontSize: 28, color: "var(--text3)" }} />
-        <p style={{ fontFamily: "var(--serif)", fontSize: 16, fontWeight: 500, marginTop: 14, letterSpacing: "-0.01em" }}>
-          通知功能即将到来
-        </p>
-        <p style={{ fontSize: 13, color: "var(--text2)", marginTop: 8, lineHeight: 1.7, maxWidth: 380, marginInline: "auto" }}>
-          NeoDB 暂未开放通知 API。上游接口上线后，关注、提及、回复、收藏会出现在这里。
-        </p>
+      <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 5 }}>
+        {items.length > 0 ? `共 ${items.length} 条` : "暂无通知"}
         {externalUrl && (
-          <a
-            href={externalUrl}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="btn"
-            style={{ marginTop: 22, display: "inline-flex" }}
-          >
-            在 NeoDB 查看通知 ↗
-          </a>
+          <>
+            {" · "}
+            <a
+              href={externalUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              style={{ color: "var(--text3)", textDecoration: "underline" }}
+            >
+              在 NeoDB 查看 ↗
+            </a>
+          </>
         )}
-      </div>
+      </p>
+
+      {items.length === 0 ? (
+        <div
+          className="notifications-empty"
+          style={{
+            marginTop: 36,
+            padding: "48px 28px",
+            border: "0.5px dashed var(--border)",
+            borderRadius: "var(--r)",
+            textAlign: "center",
+          }}
+        >
+          <i className="ti ti-bell-off" style={{ fontSize: 28, color: "var(--text3)" }} />
+          <p
+            style={{
+              fontFamily: "var(--serif)",
+              fontSize: 16,
+              fontWeight: 500,
+              marginTop: 14,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            还没有通知
+          </p>
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--text2)",
+              marginTop: 8,
+              lineHeight: 1.7,
+              maxWidth: 380,
+              marginInline: "auto",
+            }}
+          >
+            被人 @ 提到、点赞、转发或关注时会出现在这里。
+          </p>
+        </div>
+      ) : (
+        <NotificationsListClient items={items} />
+      )}
     </div>
   );
 }

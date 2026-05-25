@@ -112,3 +112,33 @@ export interface UiCommunityReview extends UiCommunityPostBase {
   /** 直链到 NeoDB review 页（href，区分于发帖 url） */
   reviewUrl?: string;
 }
+
+// ─── 通知（Mastodon 兼容 API 来源） ─────────────────────────────────
+
+export type UiNotificationKind =
+  | "mention"
+  | "favourite"
+  | "reblog"
+  | "follow"
+  | "follow_request"
+  | "status"
+  | "update"
+  | "other";
+
+export interface UiNotification {
+  id: string;
+  kind: UiNotificationKind;
+  createdAt: string;
+  author: {
+    displayName: string;
+    handle: string;
+    avatar: string;
+    profileUrl: string;
+  };
+  /** 去 HTML 后的预览文本（mention/favourite/reblog/status 通常有） */
+  preview?: string;
+  /** 点击跳转：internal 走 Next Link 站内导航，external 在新标签页打开 NeoDB */
+  target:
+    | { type: "internal"; href: string }
+    | { type: "external"; href: string };
+}

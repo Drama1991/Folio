@@ -1,6 +1,7 @@
 import { ratingToUi } from "@/components/shared/Stars";
 import { fromNeoDBCategory } from "./mediumMap";
 import type { NeoDBItemBase, NeoDBMark, NeoDBPost, NeoDBPostRelated, NeoDBReview, NeoDBShelfType } from "./types";
+import type { MastodonNotification } from "./mastodon-types";
 import type {
   ShelfCounts,
   UiArchiveRow,
@@ -9,6 +10,8 @@ import type {
   UiItem,
   UiMark,
   UiMedium,
+  UiNotification,
+  UiNotificationKind,
   UiReviewSummary,
   UiShelfStatus,
   UiTimelineEntry,
@@ -236,5 +239,104 @@ export function postToUiReview(post: NeoDBPost): UiCommunityReview | null {
     title,
     excerpt,
     reviewUrl: r.href,
+  };
+}
+
+// ─── Mastodon Notification → UiNotification ─────────────────────────
+// NeoDB 通知走 Mastodon 兼容 API。status.url 通常是 NeoDB 实例域下的网页 URL，
+// 形如 `/movie/{uuid}` `/book/{uuid}` `/album/{uuid}` `/tv/{uuid}` `/podcast/{uuid}`
+// `/game/{uuid}` `/review/{uuid}`。我们尽力识别能站内打开的路由，识别不出兜底外链。
+// 保守原则：宁可外链跳出，不要把陌生 URL 错跳到 /detail/movie 这种伪路由。
+
+const NEODB_ITEM_PATH = /^\/(movie|book|album|music|tv|podcast|game|performance)\/([A-Za-z0-9_-]+)/;
+const NEODB_REVIEW_PATH = /^\/review\/([A-Za-z0-9_-]+)/;
+
+function neodbUrlSegmentToMedium(seg: string): UiMedium | null {
+  switch (seg) {
+    case "movie": return "movie";
+    case "tv": return "series";
+    case "book": return "book";
+    case "album": return "music";
+    case "music": return "music";
+    case "podcast": return "podcast";
+    case "game": return "game";
+    default: return null;
+  }
+}
+
+function detectInternalRoute(url: string): string | null {
+  try {
+    const u = new URL(url);
+    const path = u.pathname;
+    const itemMatch = path.match(NEODB_ITEM_PATH);
+    if (itemMatch) {
+      const medium = neodbUrlSegmentToMedium(itemMatch[1]);
+      if (medium) return `/detail/${medium}/${itemMatch[2]}`;
+    }
+    const reviewMatch = path.match(NEODB_REVIEW_PATH);
+    if (reviewMatch) return `/review/${reviewMatch[1]}`;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/p>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function toUiKind(t: string): UiNotificationKind {
+  switch (t) {
+    case "mention":
+    case "favourite":
+    case "reblog":
+    case "follow":
+    case "follow_request":
+    case "status":
+    case "update":
+      return t;
+    default:
+      return "other";
+  }
+}
+
+export function mastodonNotificationToUi(n: MastodonNotification): UiNotification {
+  const author = {
+    displayName: n.account.display_name || n.account.username || n.account.acct,
+    handle: n.account.acct,
+    avatar: n.account.avatar,
+    profileUrl: n.account.url,
+  };
+  const preview = n.status ? stripHtml(n.status.content).slice(0, 140) : undefined;
+
+  let target: UiNotification["target"];
+  if (n.status?.url) {
+    const internal = detectInternalRoute(n.status.url);
+    target = internal
+      ? { type: "internal", href: internal }
+      : { type: "external", href: n.status.url };
+  } else {
+    // follow / follow_request / 其他兜底 → 关注者主页（外站可达）
+    target = { type: "external", href: n.account.url || "#" };
+  }
+
+  return {
+    id: n.id,
+    kind: toUiKind(n.type),
+    createdAt: n.created_at,
+    author,
+    preview,
+    target,
   };
 }

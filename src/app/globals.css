@@ -658,6 +658,33 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   box-shadow: 0 1px 3px rgba(168, 101, 21, 0.08);
 }
 
+/* Header 桌面端通知铃铛 —— 跟 .header-record-btn 同一右侧动作区
+   不用金描边（次级权重，区别于"+ 记录"主行动按钮）；纯米白 + 中性描边
+   移动端入口走 /profile/me 的 actions 行，本按钮 @media 隐藏 */
+.header-bell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r2);
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  color: var(--text2);
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.header-bell > i {
+  font-size: 16px;
+}
+.header-bell:hover {
+  background: var(--bg2);
+  color: var(--text);
+  border-color: var(--border2);
+}
+
 .avatar {
   width: 28px;
   height: 28px;
@@ -1156,6 +1183,10 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   }
   /* 桌面 Header 的"+ 记录"入口移动端隐藏（移动端入口走 BottomTabBar 中间凸 tab） */
   .header-record-btn {
+    display: none !important;
+  }
+  /* 桌面 Header 的通知铃铛移动端隐藏（移动端入口走 /profile/me 的 actions 行） */
+  .header-bell {
     display: none !important;
   }
   .search-mobile-link {
@@ -1911,5 +1942,140 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   }
   .ai-panel-send > i {
     font-size: 17px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   通知页 · /notifications
+   未读用极淡金底 + 右上 8px 金圆点；点击站内能识别的 status URL 跳详情，
+   识别不出则外链 NeoDB。avatar 右下角小角标显示通知类型 icon。
+   ═══════════════════════════════════════════════════════════════════ */
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--bg);
+}
+.notif-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 0.5px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  background: var(--bg);
+  transition: background 0.12s ease;
+}
+.notif-row:last-child {
+  border-bottom: none;
+}
+.notif-row:hover {
+  background: var(--bg2);
+}
+.notif-row.unread {
+  background: rgba(168, 101, 21, 0.05);
+}
+.notif-row.unread:hover {
+  background: rgba(168, 101, 21, 0.08);
+}
+.notif-row__avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg2);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 500;
+}
+.notif-row__avatar > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.notif-row__kind-icon {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text2);
+}
+.notif-row__body {
+  flex: 1;
+  min-width: 0;
+}
+.notif-row__head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 0;
+}
+.notif-row__name {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.notif-row__verb {
+  font-size: 12px;
+  color: var(--text2);
+}
+.notif-row__time {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  margin-left: auto;
+}
+.notif-row__preview {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.55;
+  margin: 6px 0 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.notif-row__dot {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+}
+@media (max-width: 767px) {
+  .notif-row {
+    padding: 12px 14px;
+  }
+  .notif-row__time {
+    font-size: 10px;
+  }
+  .notif-row__dot {
+    top: 14px;
+    right: 14px;
   }
 }

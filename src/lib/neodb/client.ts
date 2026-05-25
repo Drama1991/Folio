@@ -14,6 +14,7 @@ import type {
   NeoDBTag,
   NeoDBVisibility,
 } from "./types";
+import type { MastodonNotification } from "./mastodon-types";
 import { endpointSegment, toNeoDBCategory, trendingSegment } from "./mediumMap";
 import type { UiMedium } from "./ui-types";
 
@@ -407,6 +408,34 @@ export async function listMyTags(): Promise<NeoDBTag[]> {
     );
     if (Array.isArray(res)) return res;
     return res.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+// ─── Notifications (Mastodon-compatible) ────────────────────────────
+/**
+ * 拉取通知列表。NeoDB 把 Mastodon 兼容 API 挂在同一鉴权层下，
+ * 通知走 `GET /api/v1/notifications`（Mastodon 标准路径，注意带 v1）。
+ * 不走 cache：通知就是要拉最新；调用方应控制访问频率（通常用户进通知页才调）。
+ */
+export async function listNotifications(opts: {
+  limit?: number;
+  max_id?: string;
+  since_id?: string;
+  min_id?: string;
+} = {}): Promise<MastodonNotification[]> {
+  const params = new URLSearchParams();
+  if (opts.limit) params.set("limit", String(opts.limit));
+  if (opts.max_id) params.set("max_id", opts.max_id);
+  if (opts.since_id) params.set("since_id", opts.since_id);
+  if (opts.min_id) params.set("min_id", opts.min_id);
+  const qs = params.toString();
+  try {
+    return await neodb<MastodonNotification[]>(
+      `/api/v1/notifications${qs ? "?" + qs : ""}`,
+      noStore(),
+    );
   } catch {
     return [];
   }

@@ -55,6 +55,9 @@ export function Header({ display, handle, avatar }: HeaderProps) {
           <span>记录</span>
         </button>
         <HeaderSearch />
+        <Link href="/notifications" aria-label="通知" className="header-bell">
+          <i className="ti ti-bell" aria-hidden />
+        </Link>
         <span className="avatar-desktop">
           <AvatarMenu display={display} handle={handle} initial={initial} avatar={avatar} />
         </span>
