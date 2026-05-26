@@ -187,7 +187,7 @@ export default async function ArchivePage({ params, searchParams }: PageProps) {
           <div className="poster-grid">
             {sorted.map((r) => (
               <Link key={`${r.uuid}-${r.updatedAt}`} href={`/detail/${r.medium}/${r.uuid}`} className="poster-tile">
-                <Cover src={r.cover ?? undefined} seed={r.uuid} width="100%" height="100%" alt={r.title} />
+                <Cover src={r.cover ?? undefined} seed={r.uuid} medium={r.medium} width="100%" height="100%" alt={r.title} />
                 {r.rating ? (
                   <span className="poster-tile-corner own">★ {r.rating.toFixed(1)}</span>
                 ) : r.externalRating ? (

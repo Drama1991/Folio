@@ -40,7 +40,7 @@ function ActivityRow({ e }: { e: UiTimelineEntry }) {
   const pill = STATUS_PILL[e.status] ?? STATUS_PILL.complete;
   return (
     <Link href={`/detail/${e.medium}/${e.uuid}`} className="row" style={{ textDecoration: "none", color: "inherit" }}>
-      <Cover src={e.cover ?? undefined} seed={e.uuid} width={32} height={46} />
+      <Cover src={e.cover ?? undefined} seed={e.uuid} medium={e.medium} width={32} height={46} alt={e.title} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500 }}>{e.title}</p>
         <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 2 }}>

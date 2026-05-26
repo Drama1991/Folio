@@ -11,6 +11,7 @@ import { useRecordModal } from "@/lib/store/record-modal";
 import { relativeTime } from "@/lib/format/dates";
 import { mediumLabel, type UiMedium } from "@/lib/format/verbs";
 import type { UiArchiveRow } from "@/lib/neodb/ui-types";
+import { USER_MESSAGE } from "@/lib/user-message";
 
 const DAY = 86_400_000;
 
@@ -84,7 +85,7 @@ export function WishlistContent({
       if (pick?.uuid === row.uuid) setPick(null);
       startTransition(() => router.refresh());
     } catch {
-      showToast("标记失败");
+      showToast(USER_MESSAGE.MARK_FAILED);
     } finally {
       setPendingId(null);
     }
@@ -204,7 +205,7 @@ export function WishlistContent({
             display: "flex", alignItems: "center", gap: 14,
           }}
         >
-          <Cover src={pick.cover ?? undefined} seed={pick.uuid} width={42} height={60} />
+          <Cover src={pick.cover ?? undefined} seed={pick.uuid} medium={pick.medium} width={42} height={60} alt={pick.title} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "#854F0B", marginBottom: 4, letterSpacing: ".04em" }}>
               今晚就它了 ↓
@@ -263,7 +264,7 @@ export function WishlistContent({
                 onKeyDown={(e) => { if (e.key === "Enter") go(r); }}
                 style={{ opacity: pendingId === r.uuid ? 0.55 : 1 }}
               >
-                <Cover src={r.cover ?? undefined} seed={r.uuid} width={38} height={54} />
+                <Cover src={r.cover ?? undefined} seed={r.uuid} medium={r.medium} width={38} height={54} alt={r.title} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {r.title}
@@ -329,7 +330,7 @@ export function WishlistContent({
               onKeyDown={(e) => { if (e.key === "Enter") go(r); }}
               style={{ opacity: pendingId === r.uuid ? 0.55 : 1 }}
             >
-              <Cover src={r.cover ?? undefined} seed={r.uuid} width="100%" height="100%" alt={r.title} />
+              <Cover src={r.cover ?? undefined} seed={r.uuid} medium={r.medium} width="100%" height="100%" alt={r.title} />
               {r.rating ? (
                 <span className="poster-tile-corner own">★ {r.rating.toFixed(1)}</span>
               ) : r.externalRating ? (

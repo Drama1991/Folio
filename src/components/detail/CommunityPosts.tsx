@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Stars } from "@/components/shared/Stars";
 import { relativeTime } from "@/lib/format/dates";
 import type { UiCommunityComment, UiCommunityReview } from "@/lib/neodb/ui-types";
+import { USER_MESSAGE } from "@/lib/user-message";
 
 interface Props {
   uuid: string;
@@ -267,7 +268,7 @@ function LoadMoreFooter({
       </button>
       {err ? (
         <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)" }}>
-          失败 · {err} · 点重试
+          {USER_MESSAGE.LOAD_MORE_FAILED}
         </span>
       ) : null}
     </div>

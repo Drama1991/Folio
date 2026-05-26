@@ -11,6 +11,7 @@ import { StatusControl, STATUS_ICONS } from "@/components/shared/StatusControl";
 import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 import { statusVerb, type UiMedium } from "@/lib/format/verbs";
 import type { UiItem, UiShelfStatus } from "@/lib/neodb/ui-types";
+import { formatUserError, USER_MESSAGE } from "@/lib/user-message";
 
 export function RecordModal() {
   const { open, step, initial, prefill, hide, setItem } = useRecordModal();
@@ -191,7 +192,7 @@ function SearchStep({ onSelect, onClose }: { onSelect: (it: { uuid: string; medi
               onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg2)"; }}
               onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg)"; }}
             >
-              <Cover src={it.cover ?? undefined} seed={it.uuid} width={38} height={54} />
+              <Cover src={it.cover ?? undefined} seed={it.uuid} medium={it.medium} width={38} height={54} alt={it.title} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {it.title}
@@ -259,7 +260,7 @@ function FormStep({ item, prefill, onClose, onSaved }: FormStepProps) {
       show(`已${statusVerb(item.medium, status)}《${item.title}》`);
       onSaved();
     } catch (err) {
-      show(`保存失败：${err instanceof Error ? err.message : ""}`);
+      show(formatUserError(err, USER_MESSAGE.SAVE_FAILED));
     } finally {
       setSaving(false);
     }
@@ -292,8 +293,10 @@ function FormStep({ item, prefill, onClose, onSaved }: FormStepProps) {
           <Cover
             src={item.cover ?? undefined}
             seed={item.uuid}
+            medium={item.medium}
             width={92}
             height={132}
+            alt={item.title}
             style={{
               boxShadow: "0 10px 26px rgba(0,0,0,0.50)",
               border: "0.5px solid rgba(255,255,255,0.12)",

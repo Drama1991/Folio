@@ -20,9 +20,22 @@ export function DetailHero({ ui, medium }: { ui: UiItem; medium: UiMedium }) {
   const showModal = useRecordModal((s) => s.show);
   const openAI = useAIPanel((s) => s.setOpen);
 
+  // 音乐/播客实物封面就是方形（CD/黑胶/Apple Podcast）；其它走 poster 2:3。
+  const isSquare = medium === "music" || medium === "podcast";
+  const coverHeight = isSquare ? 114 : 170;
+  const coverAspect = isSquare ? "1/1" : "2/3";
+
   return (
     <div style={{ display: "grid", gridTemplateColumns: "114px 1fr", gap: 18, marginBottom: 8 }}>
-      <Cover src={ui.cover ?? undefined} seed={ui.uuid} width={114} height={170} alt={ui.title} style={{ borderRadius: "var(--r)", aspectRatio: "2/3", height: "auto" }} />
+      <Cover
+        src={ui.cover ?? undefined}
+        seed={ui.uuid}
+        medium={medium}
+        width={114}
+        height={coverHeight}
+        alt={ui.title}
+        style={{ borderRadius: "var(--r)", aspectRatio: coverAspect, height: "auto" }}
+      />
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
         <div>
           <p style={{ fontFamily: "var(--serif)", fontSize: 28, fontWeight: 500, lineHeight: 1.1, letterSpacing: "-0.02em" }}>

@@ -3,6 +3,7 @@ import { listTrending } from "@/lib/neodb/client";
 import { itemToUi } from "@/lib/neodb/mappers";
 import { Cover } from "@/components/shared/Cover";
 import { mediumLabel, type UiMedium } from "@/lib/format/verbs";
+import { USER_MESSAGE } from "@/lib/user-message";
 
 const TRENDING_SECTIONS: { medium: UiMedium; label: string }[] = [
   { medium: "movie", label: "热门电影" },
@@ -145,7 +146,7 @@ export default async function DiscoverPage() {
                   display: "flex", gap: 10, alignItems: "center",
                   textDecoration: "none", color: "inherit", background: "var(--bg)",
                 }}>
-                  <Cover src={it.cover ?? undefined} seed={it.uuid} width={34} height={48} />
+                  <Cover src={it.cover ?? undefined} seed={it.uuid} medium={it.medium} width={34} height={48} alt={it.title} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontFamily: "var(--serif)", fontSize: 13, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{it.title}</p>
                     <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 3 }}>
@@ -165,7 +166,7 @@ export default async function DiscoverPage() {
               fontFamily: "var(--mono)",
               textAlign: "center",
             }}>
-              暂无数据 · NeoDB 上游未返回
+              {USER_MESSAGE.UPSTREAM_QUIET}
             </div>
           )}
         </div>

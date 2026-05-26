@@ -101,7 +101,7 @@ export default async function TimelinePage({ searchParams }: PageProps) {
           <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden" }}>
             {list.map((e) => (
               <Link key={`${e.uuid}-${e.createdAt}`} href={`/detail/${e.medium}/${e.uuid}`} className="row" style={{ textDecoration: "none", color: "inherit" }}>
-                <Cover src={e.cover ?? undefined} seed={e.uuid} width={38} height={54} />
+                <Cover src={e.cover ?? undefined} seed={e.uuid} medium={e.medium} width={38} height={54} alt={e.title} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500 }}>{e.title}</p>
                   <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 2 }}>

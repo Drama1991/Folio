@@ -157,7 +157,7 @@ export default function SearchPage() {
               const mySt = myMarks.get(it.uuid);
               return (
                 <Link key={it.uuid} href={`/detail/${it.medium}/${it.uuid}`} className="row" style={{ textDecoration: "none", color: "inherit" }}>
-                  <Cover src={it.cover ?? undefined} seed={it.uuid} width={38} height={54} />
+                  <Cover src={it.cover ?? undefined} seed={it.uuid} medium={it.medium} width={38} height={54} alt={it.title} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500 }}>{it.title}</p>
                     <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 3 }}>

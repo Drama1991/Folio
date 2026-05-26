@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { gradientFor } from "@/lib/format/cover-gradient";
+import { MEDIUM_ICON } from "@/lib/format/medium-icons";
+import type { UiMedium } from "@/lib/format/verbs";
 
 interface CoverProps {
   src?: string | null;
@@ -9,17 +11,19 @@ interface CoverProps {
   alt?: string;
   className?: string;
   style?: React.CSSProperties;
+  /** 缺封面时画哪个 medium 图标；省略则只显示渐变。 */
+  medium?: UiMedium;
 }
 
 /**
  * 封面渲染：有 src → next/image（unoptimized，不走 Next image loader，无 SSRF 面），
- * 无 src → 基于 seed 的渐变占位。
+ * 无 src → 基于 seed 的渐变占位 + 可选 medium 图标。
  *
  * 尺寸两种模式：
  * 1) width/height 是 number → 用 next/image 的 intrinsic 模式
  * 2) width/height 是 string（"100%" 等）→ fill 模式，要求父级 position: relative（.poster-tile 等都已就位）
  */
-export function Cover({ src, seed, width = 38, height = 54, alt = "", className, style }: CoverProps) {
+export function Cover({ src, seed, width = 38, height = 54, alt = "", className, style, medium }: CoverProps) {
   const grad = gradientFor(seed);
   const useFill = typeof width === "string" || typeof height === "string";
   // P2-6：fill 模式且父级未给 aspect-ratio 时兜底 2/3（poster），防止占位塌成 0 高 → CLS。
@@ -55,5 +59,36 @@ export function Cover({ src, seed, width = 38, height = 54, alt = "", className,
       />
     );
   }
-  return <div className={`${grad}${className ? " " + className : ""}`} style={dim} aria-label={alt || undefined} />;
+
+  // 占位：渐变 + 居中 medium 图标（半透白）；无 medium 时退化为纯渐变。
+  // 图标尺寸按容器最短边 × 0.42；fill 模式拿不到数值，给 22px 中间值。
+  const iconPx =
+    typeof width === "number" && typeof height === "number"
+      ? Math.max(11, Math.min(width, height) * 0.42)
+      : 22;
+  return (
+    <div
+      className={`${grad}${className ? " " + className : ""}`}
+      style={{
+        ...dim,
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+      aria-label={alt || undefined}
+    >
+      {medium && (
+        <i
+          className={`ti ${MEDIUM_ICON[medium]}`}
+          aria-hidden
+          style={{
+            fontSize: iconPx,
+            color: "rgba(255,255,255,0.55)",
+            lineHeight: 1,
+          }}
+        />
+      )}
+    </div>
+  );
 }

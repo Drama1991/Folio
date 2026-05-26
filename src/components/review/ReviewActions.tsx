@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/shared/Toast";
+import { formatUserError, USER_MESSAGE } from "@/lib/user-message";
 
 interface Props {
   /** review uuid (用于编辑路由) */
@@ -30,7 +31,7 @@ export function ReviewActions({ reviewUuid, itemUuid }: Props) {
       router.push("/profile/me");
       router.refresh();
     } catch (err) {
-      show(`删除失败：${err instanceof Error ? err.message : ""}`);
+      show(formatUserError(err, USER_MESSAGE.DELETE_FAILED));
     } finally {
       setDeleting(false);
     }

@@ -10,6 +10,7 @@ import { relativeTime } from "@/lib/format/dates";
 import { statusVerb } from "@/lib/format/verbs";
 import type { UiArchiveRow } from "@/lib/neodb/ui-types";
 import type { NeoDBShelfType } from "@/lib/neodb/types";
+import { USER_MESSAGE } from "@/lib/user-message";
 
 const STATUS_PILL: Record<string, { bg: string; fg: string }> = {
   complete: { bg: "var(--bg2)", fg: "var(--text3)" },
@@ -42,7 +43,7 @@ export function ArchiveRow({ row }: { row: UiArchiveRow }) {
       showToast(`已将《${row.title}》标记为${verb}`);
       startTransition(() => router.refresh());
     } catch {
-      showToast("标记失败");
+      showToast(USER_MESSAGE.MARK_FAILED);
     } finally {
       setBusy(false);
     }
@@ -57,7 +58,7 @@ export function ArchiveRow({ row }: { row: UiArchiveRow }) {
       showToast(`已删除《${row.title}》的记录`);
       startTransition(() => router.refresh());
     } catch {
-      showToast("删除失败");
+      showToast(USER_MESSAGE.DELETE_FAILED);
     } finally {
       setBusy(false);
     }
@@ -90,7 +91,7 @@ export function ArchiveRow({ row }: { row: UiArchiveRow }) {
       onKeyDown={(e) => { if (e.key === "Enter") go(); }}
       style={{ opacity: busy ? 0.55 : 1 }}
     >
-      <Cover src={row.cover ?? undefined} seed={row.uuid} width={38} height={54} />
+      <Cover src={row.cover ?? undefined} seed={row.uuid} medium={row.medium} width={38} height={54} alt={row.title} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {row.title}

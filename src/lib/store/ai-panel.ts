@@ -9,6 +9,7 @@ import {
   type AISession,
   buildItemKey,
 } from "./ai-sessions";
+import { USER_MESSAGE } from "@/lib/user-message";
 
 export type AIContextKey = "home" | UiMedium;
 
@@ -217,10 +218,13 @@ export const useAIPanel = create<AIPanelState>((set, get) => ({
       });
       if (!res.ok || !res.body) {
         const j = await res.json().catch(() => null);
+        if (j?.error !== "not_configured") {
+          console.error("[ai-chat] request failed", { status: res.status, body: j });
+        }
         const msg =
           j?.error === "not_configured"
-            ? "尚未配置 AI。去 设置 → AI 填一份 API key 再来。"
-            : `请求失败：${j?.error ?? `HTTP ${res.status}`}`;
+            ? USER_MESSAGE.AI_CONFIG_MISSING
+            : USER_MESSAGE.AI_REQUEST_FAILED;
         if (get().sessionId === capturedSid) {
           pushOrAppendAi(set, msg);
           set({ typing: false });
@@ -258,8 +262,8 @@ export const useAIPanel = create<AIPanelState>((set, get) => ({
           return;
         }
         if (event === "error") {
-          const msg = (data as { message?: string }).message ?? "stream_failed";
-          pushOrAppendAi(set, `\n\n[AI 出错] ${msg}`);
+          console.error("[ai-chat] stream error event", data);
+          pushOrAppendAi(set, `\n\n${USER_MESSAGE.AI_STREAM_BROKEN}`);
         }
         // "done" 由 reader 自然结束触发，这里不必特殊处理
       };
@@ -301,8 +305,9 @@ export const useAIPanel = create<AIPanelState>((set, get) => ({
         drain();
       }
     } catch (e) {
+      console.error("[ai-chat] network error", e);
       if (get().sessionId === capturedSid) {
-        pushOrAppendAi(set, `\n\n[网络错误] ${e instanceof Error ? e.message : ""}`);
+        pushOrAppendAi(set, `\n\n${USER_MESSAGE.NETWORK_HICCUP}`);
       }
     } finally {
       // 持久化最终结果——若 sessionId 已被 newChat/loadSession 抢占则跳过

@@ -260,7 +260,7 @@ export function HeaderSearch() {
                         color: "inherit",
                       }}
                     >
-                      <Cover src={it.cover ?? undefined} seed={it.uuid} width={28} height={40} />
+                      <Cover src={it.cover ?? undefined} seed={it.uuid} medium={it.medium} width={28} height={40} alt={it.title} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p
                           style={{

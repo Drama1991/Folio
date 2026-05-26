@@ -5,6 +5,7 @@ import { itemToUi } from "@/lib/neodb/mappers";
 import { Cover } from "@/components/shared/Cover";
 import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
 import { mediumLabel, type UiMedium } from "@/lib/format/verbs";
+import { USER_MESSAGE } from "@/lib/user-message";
 
 interface PageProps {
   params: Promise<{ medium: string }>;
@@ -42,7 +43,7 @@ export default async function DiscoverMediumPage({ params }: PageProps) {
           border: "0.5px dashed var(--border)", borderRadius: "var(--r)",
           fontFamily: "var(--mono)",
         }}>
-          暂无数据 · NeoDB 上游未返回
+          {USER_MESSAGE.UPSTREAM_QUIET}
         </div>
       ) : (
         <div className="discover-trending-grid">
@@ -56,7 +57,7 @@ export default async function DiscoverMediumPage({ params }: PageProps) {
                 textDecoration: "none", color: "inherit", background: "var(--bg)",
               }}
             >
-              <Cover src={it.cover ?? undefined} seed={it.uuid} width={34} height={48} />
+              <Cover src={it.cover ?? undefined} seed={it.uuid} medium={it.medium} width={34} height={48} alt={it.title} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontFamily: "var(--serif)", fontSize: 13, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {it.title}

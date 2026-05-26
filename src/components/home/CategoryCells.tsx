@@ -1,15 +1,8 @@
 import Link from "next/link";
 import { gradientFor } from "@/lib/format/cover-gradient";
+import { MEDIUM_ICON } from "@/lib/format/medium-icons";
 import type { UiMedium } from "@/lib/format/verbs";
 
-const ICONS: Record<UiMedium, string> = {
-  movie: "ti-movie",
-  series: "ti-device-tv",
-  book: "ti-book",
-  music: "ti-vinyl",
-  podcast: "ti-microphone",
-  game: "ti-device-gamepad-2",
-};
 const LABELS: Record<UiMedium, string> = {
   movie: "电影", series: "剧集", book: "书籍", music: "音乐", podcast: "播客", game: "游戏",
 };
@@ -95,7 +88,7 @@ function CategoryCell({ medium, covers }: Cell) {
       </div>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-        <i className={`ti ${ICONS[medium]}`} style={{ fontSize: 14, color: "var(--text3)" }} />
+        <i className={`ti ${MEDIUM_ICON[medium]}`} style={{ fontSize: 14, color: "var(--text3)" }} />
         <span style={{ fontSize: 12, fontWeight: 500 }}>{LABELS[medium]}</span>
       </div>
     </Link>

@@ -7,6 +7,7 @@ import { Cover } from "@/components/shared/Cover";
 import { MediumBadge } from "@/components/shared/MediumBadge";
 import { useToast } from "@/components/shared/Toast";
 import type { UiMedium } from "@/lib/format/verbs";
+import { formatUserError, USER_MESSAGE } from "@/lib/user-message";
 
 interface Props {
   uuid: string;
@@ -62,7 +63,7 @@ export function ReviewEditor({
       show(mode === "edit" ? "已保存" : "已发布长评");
       router.push(`/detail/${medium}/${uuid}`);
     } catch (err) {
-      show(`${mode === "edit" ? "保存" : "发布"}失败：${err instanceof Error ? err.message : ""}`);
+      show(formatUserError(err, mode === "edit" ? USER_MESSAGE.SAVE_FAILED : USER_MESSAGE.PUBLISH_FAILED));
     } finally {
       setSaving(false);
     }
@@ -79,7 +80,7 @@ export function ReviewEditor({
       </div>
 
       <div className="review-editor-item-card" style={{ display: "flex", alignItems: "center", gap: 12, padding: 14, background: "var(--bg2)", borderRadius: "var(--r)", marginBottom: 18 }}>
-        <Cover src={cover ?? undefined} seed={uuid} width={42} height={60} />
+        <Cover src={cover ?? undefined} seed={uuid} medium={medium} width={42} height={60} alt={title} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontFamily: "var(--serif)", fontSize: 15, fontWeight: 500 }}>{title}</p>
           <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 3 }}>
