@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Cover } from "@/components/shared/Cover";
 import { MediumBadge } from "@/components/shared/MediumBadge";
-import type { UiItem } from "@/lib/neodb/ui-types";
+import { STATUS_ICONS } from "@/components/shared/StatusControl";
+import { statusVerb } from "@/lib/format/verbs";
+import type { UiItem, UiShelfStatus } from "@/lib/neodb/ui-types";
 
 const MAX_INLINE = 8;
 const DEBOUNCE_MS = 280;
@@ -18,6 +20,9 @@ export function HeaderSearch() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [total, setTotal] = useState(0);
+  // marks-check：results 出来后批量查"当前用户对这批 uuid 的标记"
+  const [myMarks, setMyMarks] = useState<Map<string, UiShelfStatus | null>>(new Map());
+  const fetchedUuidsRef = useRef<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -75,6 +80,34 @@ export function HeaderSearch() {
       controller.abort();
     };
   }, [q]);
+
+  // results 变化时把新 uuid 送到 marks-check 端点；fetchedUuidsRef 防重复查
+  useEffect(() => {
+    if (results.length === 0) return;
+    const unknown = results
+      .map((r) => r.uuid)
+      .filter((u) => !fetchedUuidsRef.current.has(u));
+    if (unknown.length === 0) return;
+    unknown.forEach((u) => fetchedUuidsRef.current.add(u));
+
+    const controller = new AbortController();
+    fetch(`/api/proxy/marks-check?uuids=${encodeURIComponent(unknown.join(","))}`, {
+      signal: controller.signal,
+    })
+      .then((r) => (r.ok ? r.json() : { data: {} }))
+      .then((j) => {
+        const data = (j.data ?? {}) as Record<string, UiShelfStatus | null>;
+        setMyMarks((prev) => {
+          const next = new Map(prev);
+          for (const [uuid, status] of Object.entries(data)) {
+            next.set(uuid, status);
+          }
+          return next;
+        });
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [results]);
 
   function go(item: UiItem) {
     setOpen(false);
@@ -205,6 +238,7 @@ export function HeaderSearch() {
               <div style={{ padding: 4 }}>
                 {results.map((it, idx) => {
                   const on = idx === active;
+                  const mySt = myMarks.get(it.uuid);
                   return (
                     <button
                       key={it.uuid}
@@ -254,6 +288,22 @@ export function HeaderSearch() {
                           {[it.year, it.creator].filter(Boolean).join(" · ") || "—"}
                         </p>
                       </div>
+                      {mySt && (
+                        <span
+                          title={`你已${statusVerb(it.medium, mySt)}`}
+                          aria-label={`你已${statusVerb(it.medium, mySt)}`}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 16,
+                            color: "var(--gold)",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <i className={`ti ${STATUS_ICONS[mySt]}`} aria-hidden style={{ fontSize: 13 }} />
+                        </span>
+                      )}
                       <MediumBadge medium={it.medium} small />
                     </button>
                   );

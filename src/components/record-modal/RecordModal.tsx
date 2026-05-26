@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useRecordModal } from "@/lib/store/record-modal";
 import { useToast } from "@/components/shared/Toast";
 import { Cover } from "@/components/shared/Cover";
 import { MediumBadge } from "@/components/shared/MediumBadge";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { StatusControl } from "@/components/shared/StatusControl";
+import { StatusControl, STATUS_ICONS } from "@/components/shared/StatusControl";
 import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 import { statusVerb, type UiMedium } from "@/lib/format/verbs";
 import type { UiItem, UiShelfStatus } from "@/lib/neodb/ui-types";
@@ -60,6 +60,9 @@ function SearchStep({ onSelect, onClose }: { onSelect: (it: { uuid: string; medi
   const [results, setResults] = useState<UiItem[]>([]);
   const [phase, setPhase] = useState<"idle" | "loading" | "error" | "ok">("idle");
   const [retryNonce, setRetryNonce] = useState(0);
+  // marks-check：results 出来后批量查"当前用户对这批 uuid 的标记"，渲染金角标
+  const [myMarks, setMyMarks] = useState<Map<string, UiShelfStatus | null>>(new Map());
+  const fetchedUuidsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const term = q.trim();
@@ -89,6 +92,34 @@ function SearchStep({ onSelect, onClose }: { onSelect: (it: { uuid: string; medi
       controller.abort();
     };
   }, [q, retryNonce]);
+
+  // results 变化时把新 uuid 送到 marks-check 端点；fetchedUuidsRef 防重复查
+  useEffect(() => {
+    if (results.length === 0) return;
+    const unknown = results
+      .map((r) => r.uuid)
+      .filter((u) => !fetchedUuidsRef.current.has(u));
+    if (unknown.length === 0) return;
+    unknown.forEach((u) => fetchedUuidsRef.current.add(u));
+
+    const controller = new AbortController();
+    fetch(`/api/proxy/marks-check?uuids=${encodeURIComponent(unknown.join(","))}`, {
+      signal: controller.signal,
+    })
+      .then((r) => (r.ok ? r.json() : { data: {} }))
+      .then((j) => {
+        const data = (j.data ?? {}) as Record<string, UiShelfStatus | null>;
+        setMyMarks((prev) => {
+          const next = new Map(prev);
+          for (const [uuid, status] of Object.entries(data)) {
+            next.set(uuid, status);
+          }
+          return next;
+        });
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [results]);
 
   return (
     <>
@@ -140,36 +171,55 @@ function SearchStep({ onSelect, onClose }: { onSelect: (it: { uuid: string; medi
             输入标题、作者或关键词开始搜索
           </div>
         )}
-        {results.map((it) => (
-          <button
-            key={it.uuid}
-            onClick={() =>
-              onSelect({
-                uuid: it.uuid, medium: it.medium, title: it.title,
-                cover: it.cover ?? undefined, year: it.year, creator: it.creator,
-              })
-            }
-            style={{
-              display: "flex", alignItems: "center", gap: 14, padding: "12px 22px",
-              cursor: "pointer", borderBottom: "0.5px solid var(--border)",
-              width: "100%", background: "var(--bg)", border: "none", textAlign: "left", fontFamily: "inherit",
-              transition: "background 0.1s",
-            }}
-            onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg2)"; }}
-            onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg)"; }}
-          >
-            <Cover src={it.cover ?? undefined} seed={it.uuid} width={38} height={54} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {it.title}
-              </p>
-              <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 3 }}>
-                {[it.year, it.creator].filter(Boolean).join(" · ")}
-              </p>
-            </div>
-            <MediumBadge medium={it.medium} small />
-          </button>
-        ))}
+        {results.map((it) => {
+          const mySt = myMarks.get(it.uuid);
+          return (
+            <button
+              key={it.uuid}
+              onClick={() =>
+                onSelect({
+                  uuid: it.uuid, medium: it.medium, title: it.title,
+                  cover: it.cover ?? undefined, year: it.year, creator: it.creator,
+                })
+              }
+              style={{
+                display: "flex", alignItems: "center", gap: 14, padding: "12px 22px",
+                cursor: "pointer", borderBottom: "0.5px solid var(--border)",
+                width: "100%", background: "var(--bg)", border: "none", textAlign: "left", fontFamily: "inherit",
+                transition: "background 0.1s",
+              }}
+              onMouseOver={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg2)"; }}
+              onMouseOut={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg)"; }}
+            >
+              <Cover src={it.cover ?? undefined} seed={it.uuid} width={38} height={54} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {it.title}
+                </p>
+                <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 3 }}>
+                  {[it.year, it.creator].filter(Boolean).join(" · ")}
+                </p>
+              </div>
+              {mySt && (
+                <span
+                  title={`你已${statusVerb(it.medium, mySt)}`}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 3,
+                    fontFamily: "var(--mono)",
+                    fontSize: 10,
+                    color: "var(--gold)",
+                  }}
+                >
+                  <i className={`ti ${STATUS_ICONS[mySt]}`} aria-hidden style={{ fontSize: 11 }} />
+                  已{statusVerb(it.medium, mySt)}
+                </span>
+              )}
+              <MediumBadge medium={it.medium} small />
+            </button>
+          );
+        })}
       </div>
     </>
   );

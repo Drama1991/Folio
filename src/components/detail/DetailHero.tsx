@@ -4,9 +4,8 @@ import { useRecordModal } from "@/lib/store/record-modal";
 import { useAIPanel, detailContext } from "@/lib/store/ai-panel";
 import { Cover } from "@/components/shared/Cover";
 import { Stars } from "@/components/shared/Stars";
-import { STATUS_ICONS } from "@/components/shared/StatusControl";
-import type { UiItem, UiShelfStatus } from "@/lib/neodb/ui-types";
-import { statusVerb, type UiMedium } from "@/lib/format/verbs";
+import type { UiItem } from "@/lib/neodb/ui-types";
+import type { UiMedium } from "@/lib/format/verbs";
 
 const AI_LABEL: Record<UiMedium, string> = {
   movie: "AI 聊聊",
@@ -17,7 +16,7 @@ const AI_LABEL: Record<UiMedium, string> = {
   game: "AI 聊聊",
 };
 
-export function DetailHero({ ui, medium, myStatus }: { ui: UiItem; medium: UiMedium; myStatus?: UiShelfStatus }) {
+export function DetailHero({ ui, medium }: { ui: UiItem; medium: UiMedium }) {
   const showModal = useRecordModal((s) => s.show);
   const openAI = useAIPanel((s) => s.setOpen);
 
@@ -49,25 +48,6 @@ export function DetailHero({ ui, medium, myStatus }: { ui: UiItem; medium: UiMed
                   NeoDB · {ui.externalRatingCount} 人评
                 </span>
               )}
-            </div>
-          )}
-          {myStatus && (
-            <div style={{ marginTop: 10 }}>
-              <a
-                href="#my-record"
-                className="chip"
-                style={{
-                  textDecoration: "none",
-                  color: "var(--gold)",
-                  borderColor: "var(--gold)",
-                  background: "var(--bg)",
-                  fontWeight: 500,
-                }}
-                aria-label={`跳到我的记录：已${statusVerb(medium, myStatus)}`}
-              >
-                <i className={`ti ${STATUS_ICONS[myStatus]}`} aria-hidden style={{ fontSize: 11 }} />
-                我已{statusVerb(medium, myStatus)}
-              </a>
             </div>
           )}
         </div>

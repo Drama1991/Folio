@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Cover } from "@/components/shared/Cover";
 import { MediumBadge } from "@/components/shared/MediumBadge";
 import { Stars } from "@/components/shared/Stars";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { STATUS_ICONS } from "@/components/shared/StatusControl";
 import { ALL_UI_MEDIUMS } from "@/lib/neodb/mediumMap";
-import { mediumLabel, type UiMedium } from "@/lib/format/verbs";
-import type { UiItem } from "@/lib/neodb/ui-types";
+import { mediumLabel, statusVerb, type UiMedium } from "@/lib/format/verbs";
+import type { UiItem, UiShelfStatus } from "@/lib/neodb/ui-types";
 
 type SearchPhase = "idle" | "loading" | "error" | "ok";
 
@@ -23,6 +24,9 @@ export default function SearchPage() {
   const [results, setResults] = useState<UiItem[]>([]);
   const [phase, setPhase] = useState<SearchPhase>("idle");
   const [retryNonce, setRetryNonce] = useState(0);
+  // marks-check：results 出来后批量查"当前用户对这批 uuid 的标记"
+  const [myMarks, setMyMarks] = useState<Map<string, UiShelfStatus | null>>(new Map());
+  const fetchedUuidsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const term = q.trim();
@@ -53,6 +57,34 @@ export default function SearchPage() {
       controller.abort();
     };
   }, [q, category, retryNonce]);
+
+  // results 变化时把新 uuid 送到 marks-check 端点；fetchedUuidsRef 防重复查
+  useEffect(() => {
+    if (results.length === 0) return;
+    const unknown = results
+      .map((r) => r.uuid)
+      .filter((u) => !fetchedUuidsRef.current.has(u));
+    if (unknown.length === 0) return;
+    unknown.forEach((u) => fetchedUuidsRef.current.add(u));
+
+    const controller = new AbortController();
+    fetch(`/api/proxy/marks-check?uuids=${encodeURIComponent(unknown.join(","))}`, {
+      signal: controller.signal,
+    })
+      .then((r) => (r.ok ? r.json() : { data: {} }))
+      .then((j) => {
+        const data = (j.data ?? {}) as Record<string, UiShelfStatus | null>;
+        setMyMarks((prev) => {
+          const next = new Map(prev);
+          for (const [uuid, status] of Object.entries(data)) {
+            next.set(uuid, status);
+          }
+          return next;
+        });
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [results]);
 
   useEffect(() => {
     const u = new URL(window.location.href);
@@ -121,25 +153,44 @@ export default function SearchPage() {
         <div key={m} style={{ marginBottom: 18 }}>
           <p className="section-label" style={{ marginBottom: 8 }}>{mediumLabel(m)} · {items.length}</p>
           <div style={{ border: "0.5px solid var(--border)", borderRadius: "var(--r)", overflow: "hidden" }}>
-            {items.map((it) => (
-              <Link key={it.uuid} href={`/detail/${it.medium}/${it.uuid}`} className="row" style={{ textDecoration: "none", color: "inherit" }}>
-                <Cover src={it.cover ?? undefined} seed={it.uuid} width={38} height={54} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500 }}>{it.title}</p>
-                  <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 3 }}>
-                    {[it.year, it.creator].filter(Boolean).join(" · ")}
-                  </p>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  {typeof it.externalRating === "number" && it.externalRating > 0 && (
-                    <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text2)" }}>
-                      NeoDB <Stars value={it.externalRating / 2} size={10} /> {it.externalRating.toFixed(1)}
-                    </span>
-                  )}
-                  <MediumBadge medium={it.medium} small />
-                </div>
-              </Link>
-            ))}
+            {items.map((it) => {
+              const mySt = myMarks.get(it.uuid);
+              return (
+                <Link key={it.uuid} href={`/detail/${it.medium}/${it.uuid}`} className="row" style={{ textDecoration: "none", color: "inherit" }}>
+                  <Cover src={it.cover ?? undefined} seed={it.uuid} width={38} height={54} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontFamily: "var(--serif)", fontSize: 14, fontWeight: 500 }}>{it.title}</p>
+                    <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 3 }}>
+                      {[it.year, it.creator].filter(Boolean).join(" · ")}
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    {mySt && (
+                      <span
+                        title={`你已${statusVerb(it.medium, mySt)}`}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 3,
+                          fontFamily: "var(--mono)",
+                          fontSize: 10,
+                          color: "var(--gold)",
+                        }}
+                      >
+                        <i className={`ti ${STATUS_ICONS[mySt]}`} aria-hidden style={{ fontSize: 11 }} />
+                        已{statusVerb(it.medium, mySt)}
+                      </span>
+                    )}
+                    {typeof it.externalRating === "number" && it.externalRating > 0 && (
+                      <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text2)" }}>
+                        NeoDB <Stars value={it.externalRating / 2} size={10} /> {it.externalRating.toFixed(1)}
+                      </span>
+                    )}
+                    <MediumBadge medium={it.medium} small />
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       ))}

@@ -93,7 +93,7 @@ export default async function DetailPage({ params }: PageProps) {
   return (
     <div className="detail-page">
       <Crumbs medium={medium} title={ui.title} />
-      <DetailHero ui={ui} medium={medium} myStatus={myRecord?.status} />
+      <DetailHero ui={ui} medium={medium} />
       <div className="detail-main">
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <MyRecordCard uuid={uuid} medium={medium} myRecord={myRecord} title={ui.title} cover={ui.cover ?? undefined} year={ui.year} creator={ui.creator} />
@@ -118,18 +118,6 @@ export default async function DetailPage({ params }: PageProps) {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <MetaKVList items={meta} />
-          {ui.url && (
-            <a
-              href={ui.url}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="btn"
-              style={{ justifyContent: "center" }}
-            >
-              <i className="ti ti-external-link" style={{ fontSize: 12 }} aria-hidden />
-              在 NeoDB 查看
-            </a>
-          )}
         </div>
       </div>
     </div>

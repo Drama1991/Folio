@@ -73,7 +73,6 @@ export function itemToUi(item: NeoDBItemBase): UiItem {
     externalRating: typeof item.rating === "number" ? item.rating : undefined,
     externalRatingCount: typeof item.rating_count === "number" ? item.rating_count : undefined,
     tags: item.tags,
-    url: item.url,
     raw: item as Record<string, unknown>,
   };
 }
