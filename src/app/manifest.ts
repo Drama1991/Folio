@@ -18,6 +18,8 @@ export default function manifest(): MetadataRoute.Manifest {
     icons: [
       { src: "/folion-app-icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/folion-app-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/folion-app-icon-maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/folion-app-icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }
