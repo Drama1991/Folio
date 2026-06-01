@@ -11,7 +11,10 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#F5F2EA",
+    // 启动页背景走白：图标也是白底，二者无缝。米白 splash 背景在 Android Chrome 上压不住
+    // （background_color 仅"部分环境"生效），故图标 + background_color 统一为白，消掉"白底上一个米黄方块"。
+    background_color: "#FFFFFF",
+    // theme_color 保持米白 = 运行时状态栏/顶栏与 App 米白界面一致，勿跟着改白（会和顶栏割裂）。
     theme_color: "#F5F2EA",
     lang: "zh-CN",
     categories: ["lifestyle", "books", "entertainment"],

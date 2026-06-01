@@ -86,3 +86,21 @@
 
 **未做**：未 commit（等你指示）。`logo/` 源文件夹目前未跟踪，commit 时你决定是否纳入版本。
 建议 message：`refactor(brand): Folio → folion 全小写品牌 + 新 logo 集成（内部契约保留）`
+
+---
+
+## 阶段 C · Android PWA splash「白底米黄方块」修复
+
+**现象**：安卓 11 装 PWA，启动页 = 白底 + 一个米黄方块。
+
+**两步定位（第一步打偏，记录留痕）**：
+1. ❌ commit `4f4e0b5`：先猜是非 maskable 图标被垫白底，补了 `maskable` 变体。但这修的是**桌面 launcher 图标的裁切**，**没碰启动页背景** —— 用户实测无变化。
+2. ✅ 实测定位（dump 线上 + 逐像素采样）：
+   - 线上 manifest / 6 个图标全部正确，图标四角是精确 `#F5F2EA` 不透明 —— **方块就是图标本体，颜色没错**。
+   - 白色是**启动页背景**，由 Chrome 绘制。`background_color` 只在"部分环境"用于 splash（[MDN](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest/Reference/background_color)），安卓 11 Chrome 不在其中 —— manifest 写米白也压不住白底。
+
+**真正修法（白底统一）**：splash 背景动不了，就动图标底色去贴合它。`f` 字标是深色须配浅底，故全部图标米白底 → **纯白底**（从 `3007f3d` 取回透明源重新合成，字标几何不变），`manifest.ts` `background_color` → `#FFFFFF`（`theme_color` 保持米白，跟运行时顶栏一致）。白图标落到白 splash 上 → 方块消失，只剩「深色 f + 金丝带 + folion」。
+
+**验证**：`type-check` 零错；`build` 通过；构建产物确认 `background_color:"#FFFFFF"` + `2×any + 2×maskable`；逐像素确认 6 个图标四角已是 `#FFFFFF`；512 视觉确认字标融入白底无米白残晕。
+
+**⚠️ 用户侧必办**：WebAPK 安装时把图标/manifest 烤进系统——必须**完全卸载再重装** PWA 才能刷新，光重启/重开无效。
