@@ -23,14 +23,14 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { medium: rawMedium, uuid } = await params;
   if (!ALL_UI_MEDIUMS.includes(rawMedium as UiMedium)) {
-    return { title: "未找到 · Folio" };
+    return { title: "未找到 · folion" };
   }
   const medium = rawMedium as UiMedium;
   try {
     const item = await getItem({ medium, uuid });
     const ui = itemToUi(item);
-    const title = `${ui.title} · Folio`;
-    const description = ui.brief?.slice(0, 160) || `在 Folio 上查看 ${ui.title} 的档案`;
+    const title = `${ui.title} · folion`;
+    const description = ui.brief?.slice(0, 160) || `在 folion 上查看 ${ui.title} 的档案`;
     const images = ui.cover ? [{ url: ui.cover }] : undefined;
     return {
       title,
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       twitter: { card: "summary_large_image", title, description, images: images?.map((i) => i.url) },
     };
   } catch {
-    return { title: "未找到 · Folio" };
+    return { title: "未找到 · folion" };
   }
 }
 

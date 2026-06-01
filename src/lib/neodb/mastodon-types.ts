@@ -3,7 +3,7 @@
 // NeoDB 同时提供两套 API：原生 NeoDB（catalog/shelf/mark/review/etc.，路径 /api/...）
 // 与 Mastodon 兼容（社交层：notifications/timelines/statuses，路径 /api/v1/...）。
 // 同一个 OAuth access token 即可访问两套，鉴权层是统一的。
-// 本文件只列出 Folio 实际消费的 Mastodon 字段子集（subset，非穷举）。
+// 本文件只列出 folion 实际消费的 Mastodon 字段子集（subset，非穷举）。
 
 export type MastodonNotificationType =
   | "mention"

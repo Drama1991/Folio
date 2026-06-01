@@ -100,10 +100,10 @@ export async function GET() {
   };
 
   return NextResponse.json({
-    $schema: "https://folio.app/archive/v1.json",
+    $schema: "https://folion.app/archive/v1.json",
     version: 1,
     exportedAt: new Date().toISOString(),
-    exportedBy: "folio/0.1.0",
+    exportedBy: "folion/0.1.0",
     account: {
       acct: me?.acct ?? session.acct ?? "",
       instance: session.instance,

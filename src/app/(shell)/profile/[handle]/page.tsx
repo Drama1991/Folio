@@ -34,8 +34,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       avatar = me.avatar;
     } catch { /* fallback */ }
   }
-  const title = `${display} · Folio`;
-  const description = `${display} 在 Folio 的文化档案：看过、读过、听过、玩过的一切`;
+  const title = `${display} · folion`;
+  const description = `${display} 在 folion 的文化档案：看过、读过、听过、玩过的一切`;
   const images = avatar ? [{ url: avatar }] : undefined;
   return {
     title,

@@ -4,7 +4,7 @@ import { markToTimelineEntry } from "@/lib/neodb/mappers";
 import type { ChatMessage, SearchResult } from "./types";
 import type { UiMedium } from "@/lib/format/verbs";
 
-const FOLIO_INTRO = `你是 Folio 的 AI 助手。Folio 是一个基于 NeoDB 的个人影音书游记录工具。用户通过你聊正在看 / 想看 / 看过的内容，或就某一部具体作品和你深聊。
+const FOLIO_INTRO = `你是 folion 的 AI 助手。folion 是一个基于 NeoDB 的个人影音书游记录工具。用户通过你聊正在看 / 想看 / 看过的内容，或就某一部具体作品和你深聊。
 回复风格：克制、像朋友，不啰嗦、不堆砌套话；遇到不知道的事就说不知道；中文回复。`;
 
 /** 首页"今晚看什么"上下文：抓 shelf 计数 + 在看/想看的标题片段。 */

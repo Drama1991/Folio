@@ -371,7 +371,7 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   border-color: transparent;
 }
 
-/* ───── Folio wordmark logo（用户提供的设计图，PNG） ───── */
+/* ───── folion wordmark logo（用户提供的设计图，PNG） ───── */
 .brand {
   display: inline-flex;
   align-items: center;

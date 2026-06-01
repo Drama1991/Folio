@@ -36,8 +36,8 @@ export function LoginCard({ initialError }: { initialError?: string }) {
       {/* Logo */}
       <div style={{ textAlign: "center", marginBottom: 36 }}>
         <img
-          src="/folio-logo.png"
-          alt="Folio"
+          src="/folion-logo.png"
+          alt="folion"
           className="brand-mark"
           draggable={false}
           style={{ height: 56, margin: "0 auto" }}
@@ -118,8 +118,8 @@ export function LoginCard({ initialError }: { initialError?: string }) {
         <p className="section-label" style={{ marginBottom: 16 }}>联邦登录 · 三步完成</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <Step n={1} cur title="选择你的 NeoDB 实例" body="所有实例数据互通，但账户独立。没账号？任选一个公开实例注册。" />
-          <Step n={2} title="在 NeoDB 中授权 Folio" body="OAuth 2.0 标准流程 · Folio 永远不会看到你的密码。" />
-          <Step n={3} title="回到 Folio · 完成" body="导入书架、评分、短评、合集，从你停下的地方继续。" />
+          <Step n={2} title="在 NeoDB 中授权 folion" body="OAuth 2.0 标准流程 · folion 永远不会看到你的密码。" />
+          <Step n={3} title="回到 folion · 完成" body="导入书架、评分、短评、合集，从你停下的地方继续。" />
         </div>
       </div>
 

@@ -37,7 +37,7 @@ export default function GlobalError({
           <p style={{ fontFamily: "monospace", fontSize: 11, color: "#9F9D98", letterSpacing: "0.12em" }}>
             FATAL · APP CRASHED
           </p>
-          <p style={{ fontSize: 24, fontWeight: 500, marginTop: 12 }}>Folio 暂时无法启动。</p>
+          <p style={{ fontSize: 24, fontWeight: 500, marginTop: 12 }}>folion 暂时无法启动。</p>
           <p style={{ fontSize: 13, color: "#5F5E5A", marginTop: 10, lineHeight: 1.7 }}>
             刷新页面通常能修复。如果一直如此，请联系作者。
           </p>

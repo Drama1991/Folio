@@ -264,7 +264,7 @@ function AccountPanel({
           />
         </div>
         <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", lineHeight: 1.65 }}>
-          Folio 使用无状态 JWT，目前不维护服务端 session 列表，无法显示其它设备。要让所有设备失效，请到 NeoDB 撤销 OAuth 授权。
+          folion 使用无状态 JWT，目前不维护服务端 session 列表，无法显示其它设备。要让所有设备失效，请到 NeoDB 撤销 OAuth 授权。
         </p>
       </div>
 
@@ -863,7 +863,7 @@ function DataPanel() {
         }
       }
       const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-      downloadJson(`folio-archive-${ts}.json`, archive);
+      downloadJson(`folion-archive-${ts}.json`, archive);
       setStatus("导出完成");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "export_failed");
@@ -874,7 +874,7 @@ function DataPanel() {
   }
 
   function onClearLocal() {
-    if (!window.confirm("确定清空 Folio 本地缓存？\n这会删除集数 / 阅读进度 / 外观偏好 / AI 会话。\nNeoDB 上的记录不受影响。"))
+    if (!window.confirm("确定清空 folion 本地缓存？\n这会删除集数 / 阅读进度 / 外观偏好 / AI 会话。\nNeoDB 上的记录不受影响。"))
       return;
     const n = clearFolioLocal();
     setInv(scanLocalCache());
@@ -897,7 +897,7 @@ function DataPanel() {
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 13, fontWeight: 500 }}>导出全部记录</p>
               <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 3, lineHeight: 1.55 }}>
-                JSON · Folio Archive v1 · 含书架 / 长评 / 合集 / 标签
+                JSON · folion Archive v1 · 含书架 / 长评 / 合集 / 标签
               </p>
             </div>
             <button onClick={onExport} disabled={busy} className="btn primary" style={{ fontSize: 12 }}>
@@ -998,7 +998,7 @@ function AboutPanel({ version, buildDate }: { version: string; buildDate: string
   const isAlpha = version.startsWith("0.");
   return (
     <>
-      <PanelHeader title="Folio" hint="基于 NeoDB 联邦的个人文化档案。" />
+      <PanelHeader title="folion" hint="基于 NeoDB 联邦的个人文化档案。" />
       <div className="settings-panel">
 
       {/* 版本 + GitHub 双列 */}
@@ -1070,7 +1070,7 @@ function AboutPanel({ version, buildDate }: { version: string; buildDate: string
         }}
       >
         <p style={{ fontFamily: "var(--serif)", fontSize: 13, color: "var(--text2)", lineHeight: 1.75 }}>
-          Folio 是基于 NeoDB 联邦协议的个人媒体档案应用 · 数据归属于你 · 可随时导出 · 永不锁仓。
+          folion 是基于 NeoDB 联邦协议的个人媒体档案应用 · 数据归属于你 · 可随时导出 · 永不锁仓。
         </p>
       </div>
 
@@ -1093,7 +1093,7 @@ function AboutPanel({ version, buildDate }: { version: string; buildDate: string
         <AboutLink href="https://github.com/" label="更新日志" />
         <AboutLink href="https://neodb.social/help/api/" label="NeoDB API" />
         <span aria-hidden style={{ color: "var(--border2)" }}>·</span>
-        <span style={{ color: "var(--text3)" }}>© {new Date().getFullYear()} Folio</span>
+        <span style={{ color: "var(--text3)" }}>© {new Date().getFullYear()} folion</span>
       </div>
       </div>
     </>

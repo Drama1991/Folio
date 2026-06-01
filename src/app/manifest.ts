@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
 
 // Next.js metadata API 生成 /manifest.webmanifest。
-// icon.tsx / apple-icon.tsx 自动暴露在 /icon、/apple-icon。
+// 应用图标走同目录静态文件 icon.png / apple-icon.png；PWA 图标见下方 icons。
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Folio · 你的文化档案",
-    short_name: "Folio",
+    name: "folion · 你的文化档案",
+    short_name: "folion",
     description: "记录看过、读过、听过、玩过的每一件事。",
     start_url: "/home",
     scope: "/",
@@ -16,8 +16,8 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "zh-CN",
     categories: ["lifestyle", "books", "entertainment"],
     icons: [
-      { src: "/icon", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/apple-icon", sizes: "180x180", type: "image/png" },
+      { src: "/folion-app-icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/folion-app-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
     ],
   };
 }

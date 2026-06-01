@@ -30,10 +30,10 @@ export function Header({ display, handle, avatar }: HeaderProps) {
   return (
     <header className={`header${hidden ? " header-hidden" : ""}`}>
       <div style={{ display: "flex", alignItems: "center", gap: 26 }}>
-        <Link href="/home" className="brand" aria-label="Folio 首页">
+        <Link href="/home" className="brand" aria-label="folion 首页">
           <img
-            src="/folio-logo.png"
-            alt="Folio"
+            src="/folion-logo.png"
+            alt="folion"
             className="brand-mark"
             draggable={false}
           />

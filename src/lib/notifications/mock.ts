@@ -36,7 +36,7 @@ export const mockNotifications: MockNotification[] = [
   },
   {
     id: "n4", type: "system",
-    actor: { handle: "folio", display: "Folio" },
+    actor: { handle: "folion", display: "folion" },
     text: "你的本月观影 +8。继续保持。",
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 64).toISOString(),
     read: true,

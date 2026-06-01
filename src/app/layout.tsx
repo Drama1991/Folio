@@ -17,13 +17,13 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Folio · 你的文化档案",
+  title: "folion · 你的文化档案",
   description: "记录看过、读过、听过、玩过的每一件事。",
-  applicationName: "Folio",
+  applicationName: "folion",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Folio",
+    title: "folion",
   },
   // 关掉 iOS Safari 的电话号自动识别（会把日期/编号渲染成蓝色链接）
   formatDetection: {

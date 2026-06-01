@@ -4,8 +4,10 @@ out
 dist
 build
 .env*.local
-.folio-apps.json
 *.log
+
+# OAuth app 凭证缓存（含 client_secret，IAppCache 落盘）—— 切勿提交
+.folio-apps.json
 .DS_Store
 next-env.d.ts
 .tsbuildinfo

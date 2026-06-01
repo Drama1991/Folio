@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ...(robots ? { robots } : {}),
     };
   } catch {
-    return { title: "长评 · Folio" };
+    return { title: "长评 · folion" };
   }
 }
 
@@ -74,7 +74,7 @@ export default async function ReviewPage({ params }: PageProps) {
           {status === 403
             ? "可能因为可见性受限或 NeoDB API 拒绝。可以试试到 NeoDB 上直接打开。"
             : status === 401
-              ? "Folio 当前会话失效，请重新登录后再试。"
+              ? "folion 当前会话失效，请重新登录后再试。"
               : "调用 NeoDB 接口时出错。也可以到 NeoDB 上直接打开。"}
         </p>
         {externalUrl && (

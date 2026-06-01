@@ -1,6 +1,6 @@
 "use client";
 
-/** 扫描 localStorage 里 Folio 写入的所有 key，按用途分组返回。
+/** 扫描 localStorage 里 folion 写入的所有 key，按用途分组返回。
  *  写入约定：`folio:ep:<uuid>` 集数、`folio:read:<uuid>` 阅读进度、`folio:appearance` 外观。
  *  其它 key（zustand persist 等）只统计大小，不解析。 */
 export interface LocalCacheInventory {
@@ -52,7 +52,7 @@ export function scanLocalCache(): LocalCacheInventory {
   return inv;
 }
 
-/** 清掉 Folio 写入的所有 localStorage（folio: 前缀 + folio. 前缀）。 */
+/** 清掉 folion 写入的所有 localStorage（folio: 前缀 + folio. 前缀）。 */
 export function clearFolioLocal(): number {
   if (typeof window === "undefined") return 0;
   const toDelete: string[] = [];

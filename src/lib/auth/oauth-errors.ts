@@ -18,7 +18,7 @@ export type OAuthErrorCode =
 
 export const OAUTH_ERROR_MESSAGE: Record<OAuthErrorCode, string> = {
   missing_instance: "请填写 NeoDB 实例域名后重试。",
-  register_failed: "无法在该实例上注册 Folio 应用，可能实例不支持 Mastodon API。",
+  register_failed: "无法在该实例上注册 folion 应用，可能实例不支持 Mastodon API。",
   state_mismatch: "登录会话已过期或已被使用过，请重试。",
   missing_code_or_state: "授权回调缺少必要参数，请重新登录。",
   app_not_found: "未找到该实例的注册记录，请重新发起登录。",

@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import { getApp, setApp, type AppRecord } from "@/lib/auth/apps-cache";
 
 const SCOPES = "read write";
-const CLIENT_NAME = "Folio";
-const WEBSITE = "https://github.com/folio";
+const CLIENT_NAME = "folion";
+const WEBSITE = "https://github.com/Drama1991/Folio";
 
 export interface RegisteredApp extends AppRecord {
   instance: string;

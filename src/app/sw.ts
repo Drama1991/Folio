@@ -1,7 +1,7 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
-// Folio Service Worker（Serwist 驱动）
+// folion Service Worker（Serwist 驱动）
 // 仅生产构建启用（next.config.ts 里 `disable: isDev`）。
 // 策略：默认缓存（图片/字体/静态资源 stale-while-revalidate），导航预加载开启。
 // 业务 API（/api/*）不做缓存，避免缓存到登录后的私有数据。

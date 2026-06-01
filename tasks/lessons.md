@@ -55,4 +55,14 @@
 
 **附加教训（依赖兼容）：** 本轮真实 bug 是 `isomorphic-dompurify → jsdom → html-encoding-sniffer → @exodus/bytes` 这条 ESM/CJS 互导链在 Vercel lambda 上炸（`ERR_REQUIRE_ESM`），localhost dev 不复现是因为 next dev 用 webpack/turbopack 转译统一了模块系统、prod build 输出原生 CommonJS。**dev 跑通 ≠ prod 跑通**，依赖兼容性问题必须 `next build` + Vercel 真机部署才算验证完。修法：换 `sanitize-html`（纯 Node CJS，无 jsdom）。
 
+## 2026-06-01 · 删 .gitignore 规则前先看磁盘上有没有那个文件（尤其含 secret）
+
+**情境：** 品牌改名 Folio→folion 顺手清理时，我以为 `.folio-apps.json` 是死规则——读 `apps-cache.ts` 看到当前实现是 `InMemoryAppCache`（line 28/44，不落盘），就把它从 `.gitignore` 删了。最后一轮 `git status` 复查时跳出 `?? .folio-apps.json`：文件实存于磁盘（May 19，旧 `FsAppCache` 时代遗留），里头是 neodb.social 的 `client_id` + `client_secret`。删规则 = 让 OAuth secret 进 public repo（`github.com/Drama1991/Folio`）。已恢复规则 + 加注释；`git log --all -- .folio-apps.json` 确认从未提交过，secret 安全、无需轮换。
+
+**事实：** 代码现状（InMemory 不写文件）只决定"以后还会不会生成"，**不决定"现在磁盘上有没有"**。`.gitignore` 的职责是兜住任何匹配该模式的文件——历史遗留的、别的分支生成的、未来 swap 回落盘实现生成的。`apps-cache.ts:42` 注释本就预留 `VercelKvAppCache` / 可插拔 cache，将来换回 FsAppCache 完全可能。
+
+**规则：** **删任何 `.gitignore` 规则前，先 `git check-ignore <pattern>` + `ls` 看磁盘上是否真有匹配文件**。命中 secret 语义文件（`secret`/`token`/`credential`/`client_secret`/`.env`/`*-apps.json`）时**默认保留规则**——保留成本为零，删除成本是 secret 泄漏。"代码不再生成它"不是删忽略规则的充分理由。
+
+**how to apply：** 一冒出"这条 ignore 规则好像没用了"的念头，先 `git check-ignore` + `ls` 确认磁盘现状，文件在就别删。若文件含凭证，再 `git log --all -- <file>` 查是否已泄漏到历史（泄漏过则提示用户轮换 secret）。跟 [[feedback-dump-api-response-before-theorizing]] 同根：以磁盘/git 历史的实证为准，不以"读代码推断它是死的"为准。
+
 
