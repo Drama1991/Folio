@@ -126,7 +126,7 @@ export function WishlistContent({
             <i className="ti ti-dice-5 wishlist-title-dice" aria-hidden />
           </button>
           <p style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text3)", marginTop: 5 }}>
-            想看 · 想读 · 想听 — 我准备走入的世界
+            想看 · 想读 · 想听 · 想玩 — 我准备走入的世界
           </p>
         </div>
       </div>

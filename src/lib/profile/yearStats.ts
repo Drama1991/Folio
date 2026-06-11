@@ -47,7 +47,7 @@ function pickName(x: unknown): string | null {
 }
 
 /**
- * 从 item.[extra] 取主创：电影/剧集 → director；书 → author；音乐 → artist；播客 → host。
+ * 从 item.[extra] 取主创：电影/剧集 → director；书 → author；音乐 → artist；播客 → host；游戏 → developer。
  * NeoDB shelf list 已带上这些字段，无需 N+1。
  */
 export function extractCreator(item: NeoDBItemBase): string | null {
@@ -57,6 +57,7 @@ export function extractCreator(item: NeoDBItemBase): string | null {
   else if (cat === "book") raw = item.author ?? item.translator;
   else if (cat === "music") raw = item.artist;
   else if (cat === "podcast") raw = item.host ?? item.hosts;
+  else if (cat === "game") raw = item.developer ?? item.publisher;
 
   if (!raw) return null;
   if (Array.isArray(raw)) return raw.length > 0 ? pickName(raw[0]) : null;

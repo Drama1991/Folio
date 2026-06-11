@@ -11,6 +11,7 @@ const TRENDING_SECTIONS: { medium: UiMedium; label: string }[] = [
   { medium: "book", label: "热门书籍" },
   { medium: "music", label: "热门音乐" },
   { medium: "podcast", label: "热门播客" },
+  { medium: "game", label: "热门游戏" },
 ];
 
 export default async function DiscoverPage() {

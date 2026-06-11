@@ -7,9 +7,9 @@ export type TimelineStatus = "all" | "complete" | "progress" | "wishlist";
 
 const OPTIONS: Array<{ value: TimelineStatus; label: string; hint: string }> = [
   { value: "all", label: "全部状态", hint: "完成 / 进行 / 心愿" },
-  { value: "complete", label: "已完成", hint: "看过 · 读过 · 听过" },
-  { value: "progress", label: "进行中", hint: "在看 · 在读 · 在听" },
-  { value: "wishlist", label: "心愿单", hint: "想看 · 想读 · 想听" },
+  { value: "complete", label: "已完成", hint: "看过 · 读过 · 听过 · 玩过" },
+  { value: "progress", label: "进行中", hint: "在看 · 在读 · 在听 · 在玩" },
+  { value: "wishlist", label: "心愿单", hint: "想看 · 想读 · 想听 · 想玩" },
 ];
 
 export function TimelineStatusFilter({

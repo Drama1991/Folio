@@ -1368,7 +1368,7 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
   grid-template-columns: 88px 1fr auto;
 }
 .profile-stats {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
 }
 .profile-year-grid {
   grid-template-columns: repeat(4, 1fr);
@@ -1407,12 +1407,9 @@ a.stat-cell:hover { background: var(--bg); box-shadow: inset 0 0 0 0.5px var(--b
     font-size: 24px !important;
   }
 
-  /* Stats 2 列；第 5 个跨两列填满网格 */
+  /* Stats 2 列；6 格正好 2×3 铺满 */
   .profile-stats {
     grid-template-columns: repeat(2, 1fr);
-  }
-  .profile-stats > a:nth-child(5) {
-    grid-column: span 2;
   }
 
   /* 年度黑卡内部 4 列 → 2 列 */

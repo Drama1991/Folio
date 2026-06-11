@@ -60,8 +60,8 @@ export default function HomeLoading() {
       </div>
 
       {/* CategoryCells */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
-        {Array.from({ length: 5 }).map((_, i) => (
+      <div className="home-category-cells" style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8 }}>
+        {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} width="100%" height={138} radius={6} />
         ))}
       </div>

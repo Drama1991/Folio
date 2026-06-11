@@ -55,4 +55,4 @@ export function trendingSegment(cat: NeoDBCategory): string {
   }
 }
 
-export const ALL_UI_MEDIUMS: UiMedium[] = ["movie", "series", "book", "music", "podcast"];
+export const ALL_UI_MEDIUMS: UiMedium[] = ["movie", "series", "book", "music", "podcast", "game"];

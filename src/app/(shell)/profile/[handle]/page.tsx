@@ -100,6 +100,7 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
     shelfCount({ type: "complete", category: "book" }),
     shelfCount({ type: "complete", category: "music" }),
     shelfCount({ type: "complete", category: "podcast" }),
+    shelfCount({ type: "complete", category: "game" }),
     shelfCount({ type: "progress" }),
     shelfCount({ type: "wishlist" }),
     listMyCollections({ page: 1 }),
@@ -118,19 +119,21 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
   const readBook = pick<number>(2, 0);
   const listenedMusic = pick<number>(3, 0);
   const listenedPodcast = pick<number>(4, 0);
-  const progressAll = pick<number>(5, 0);
-  const wishlistAll = pick<number>(6, 0);
-  const collectionsPaged = pick<Awaited<ReturnType<typeof listMyCollections>>>(7, { data: [] });
-  const rawTags = pick<Awaited<ReturnType<typeof listMyTags>>>(8, []);
-  const reviews = pick<Awaited<ReturnType<typeof listMyReviews>>>(9, { data: [], count: 0 });
-  const yearMarks = pick<Awaited<ReturnType<typeof pullYearMarks>>>(10, []);
-  const heatmapMarksOther = pick<Awaited<ReturnType<typeof pullYearMarks>> | null>(11, null);
+  const playedGame = pick<number>(5, 0);
+  const progressAll = pick<number>(6, 0);
+  const wishlistAll = pick<number>(7, 0);
+  const collectionsPaged = pick<Awaited<ReturnType<typeof listMyCollections>>>(8, { data: [] });
+  const rawTags = pick<Awaited<ReturnType<typeof listMyTags>>>(9, []);
+  const reviews = pick<Awaited<ReturnType<typeof listMyReviews>>>(10, { data: [], count: 0 });
+  const yearMarks = pick<Awaited<ReturnType<typeof pullYearMarks>>>(11, []);
+  const heatmapMarksOther = pick<Awaited<ReturnType<typeof pullYearMarks>> | null>(12, null);
   const heatmapMarks = heatmapMarksOther ?? yearMarks;
 
   const stats = [
     { label: "看过", num: watchedMovie + watchedSeries, sub: "电影 · 剧集", href: "/archive/movie" },
     { label: "读过", num: readBook, sub: "书籍", href: "/archive/book" },
     { label: "听过", num: listenedMusic + listenedPodcast, sub: "音乐 · 播客", href: "/archive/music" },
+    { label: "玩过", num: playedGame, sub: "游戏", href: "/archive/game" },
     { label: "在看", num: progressAll, sub: "进行中", href: "/timeline" },
     { label: "想看", num: wishlistAll, sub: "待开始", href: "/wishlist" },
   ];
